@@ -57,6 +57,15 @@ export type CalendarEvent = {
   participants: string[]; // user IDs
 };
 
+export type Grade = {
+  id: string;
+  subject: string;
+  grade: number;
+  date: string; // YYYY-MM-DD
+  type: 'Klausur' | 'Mündlich' | 'Projekt';
+  notes?: string;
+};
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' },
@@ -117,4 +126,15 @@ export const calendarEvents: CalendarEvent[] = [
   { id: 'evt2', title: 'Design Review', date: formatDate(today), startTime: '14:00', endTime: '15:30', category: 'Meeting', participants: ['1', '3', '4'] },
   { id: 'evt3', title: 'Zahnarzt', date: formatDate(today), startTime: '12:00', endTime: '13:00', category: 'Personal', participants: ['1'] },
   { id: 'evt4', title: 'Team Lunch', date: new Date(today.setDate(today.getDate() + 2)).toISOString().split('T')[0], startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['1', '2', '3', '4', '5', '6', '7', '8'] },
+];
+
+export const grades: Grade[] = [
+    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-05-10', type: 'Klausur', notes: 'Analysis' },
+    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-05-22', type: 'Mündlich', notes: 'Lineare Algebra' },
+    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-05-15', type: 'Klausur', notes: 'Gedichtanalyse' },
+    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-05-20', type: 'Klausur', notes: 'Vokabeltest' },
+    { id: 'g5', subject: 'Englisch', grade: 1.0, date: '2024-05-28', type: 'Projekt', notes: 'Präsentation über Shakespeare' },
+    { id: 'g6', subject: 'Physik', grade: 3.0, date: '2024-04-25', type: 'Klausur', notes: 'Mechanik' },
+    { id: 'g7', subject: 'Physik', grade: 2.3, date: '2024-05-30', type: 'Mündlich', notes: 'Thermodynamik' },
+    { id: 'g8', subject: 'Chemie', grade: 1.0, date: '2024-05-12', type: 'Klausur', notes: 'Organische Chemie' },
 ];

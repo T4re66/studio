@@ -25,6 +25,7 @@ import {
   Mail,
   ListChecks,
   CalendarDays,
+  BookMarked,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -51,6 +52,7 @@ const toolsMenuItems = [
     { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
     { href: "/focus", label: "Fokus", icon: Timer },
     { href: "/check-in", label: "Check-in", icon: HeartPulse },
+    { href: "/grades", label: "Notenblatt", icon: BookMarked },
 ];
 
 export function AppSidebar() {
