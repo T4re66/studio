@@ -2,13 +2,16 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { emails, teamMembers } from "@/lib/data";
-import { Archive, Mail, Reply, Trash } from "lucide-react";
+import { Archive, Mail, Reply, Trash, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
 
-export default function InboxPage() {
+export default async function InboxPage() {
   const findSender = (senderName: string) => {
     return teamMembers.find(m => m.name.includes(senderName.split(" ")[0])) || null;
   };
+
+  const emailSummary = await summarizeEmails(emails);
 
   return (
     <div className="flex flex-col gap-8">
@@ -17,6 +20,20 @@ export default function InboxPage() {
         description="Eine priorisierte Ansicht deiner wichtigsten E-Mails."
       />
       
+      <Card className="bg-primary/5 border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-headline">
+            <Sparkles className="text-primary"/>
+            Tageszusammenfassung
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-foreground/80">
+            {emailSummary.summary}
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="p-0">
           <div className="divide-y">

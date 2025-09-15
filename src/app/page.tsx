@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Separator } from "@/components/ui/separator";
 import { teamMembers, emails } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { Coffee, Gift, Mail, Medal, Users } from "lucide-react";
+import { Coffee, Gift, Mail, Medal, Users, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -43,10 +44,12 @@ function getNextBirthday() {
 }
 
 
-export default function Home() {
+export default async function Home() {
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const currentUser = teamMembers[0]; // Assuming current user is Alice
   const nextBirthday = getNextBirthday();
+  const emailSummary = await summarizeEmails(emails.filter(e => !e.isRead));
+
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -135,25 +138,15 @@ export default function Home() {
         <Card className="xl:col-span-2 transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
            <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="font-headline">KI-Posteingang</CardTitle>
-              <CardDescription>Die wichtigsten E-Mails des Tages.</CardDescription>
+              <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary w-5 h-5"/>KI-Posteingang</CardTitle>
+              <CardDescription>Deine wichtigsten E-Mails zusammengefasst.</CardDescription>
             </div>
              <Link href="/inbox">
               <Button variant="ghost" size="sm">Alle anzeigen</Button>
             </Link>
           </CardHeader>
           <CardContent className="space-y-4">
-             {emails.filter(e => !e.isRead).map(email => (
-              <div key={email.id} className="flex gap-4 group cursor-pointer">
-                <div className="bg-primary/10 text-primary p-2 rounded-lg h-fit">
-                    <Mail className="h-5 w-5" />
-                </div>
-                <div className="flex-1 border-b pb-4 group-last:border-none">
-                    <p className="font-semibold">{email.sender}</p>
-                    <p className="text-sm text-muted-foreground">{email.subject}</p>
-                </div>
-              </div>
-             ))}
+             <p className="text-sm text-muted-foreground">{emailSummary.summary}</p>
           </CardContent>
         </Card>
         
