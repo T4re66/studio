@@ -1,3 +1,100 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "user-1",
+      "description": "Portrait of a smiling woman.",
+      "imageUrl": "https://picsum.photos/seed/user1/200/200",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-2",
+      "description": "Portrait of a man with glasses.",
+      "imageUrl": "https://picsum.photos/seed/user2/200/200",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "user-3",
+      "description": "Portrait of a person with short hair.",
+      "imageUrl": "https://picsum.photos/seed/user3/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-4",
+      "description": "Avatar of a person smiling.",
+      "imageUrl": "https://picsum.photos/seed/user4/200/200",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "user-5",
+      "description": "Avatar of a man in a suit.",
+      "imageUrl": "https://picsum.photos/seed/user5/200/200",
+      "imageHint": "man professional"
+    },
+    {
+      "id": "user-6",
+      "description": "Portrait of a woman with curly hair.",
+      "imageUrl": "https://picsum.photos/seed/user6/200/200",
+      "imageHint": "woman curly"
+    },
+    {
+      "id": "user-7",
+      "description": "Man with a beard.",
+      "imageUrl": "https://picsum.photos/seed/user7/200/200",
+      "imageHint": "man beard"
+    },
+    {
+      "id": "user-8",
+      "description": "Woman looking at the camera.",
+      "imageUrl": "https://picsum.photos/seed/user8/200/200",
+      "imageHint": "woman face"
+    },
+    {
+      "id": "fridge-1",
+      "description": "A carton of milk.",
+      "imageUrl": "https://picsum.photos/seed/milk/400/300",
+      "imageHint": "milk carton"
+    },
+    {
+      "id": "fridge-2",
+      "description": "A container of yogurt.",
+      "imageUrl": "https://picsum.photos/seed/yogurt/400/300",
+      "imageHint": "yogurt container"
+    },
+    {
+      "id": "fridge-3",
+      "description": "A sandwich in a plastic container.",
+      "imageUrl": "https://picsum.photos/seed/sandwich/400/300",
+      "imageHint": "sandwich container"
+    },
+    {
+      "id": "fridge-4",
+      "description": "A fresh salad in a bowl.",
+      "imageUrl": "https://picsum.photos/seed/salad/400/300",
+      "imageHint": "salad bowl"
+    },
+    {
+      "id": "fridge-5",
+      "description": "A bottle of orange juice.",
+      "imageUrl": "https://picsum.photos/seed/juice/400/300",
+      "imageHint": "juice bottle"
+    },
+    {
+      "id": "fridge-6",
+      "description": "Leftover pizza slices in a box.",
+      "imageUrl": "https://picsum.photos/seed/pizza/400/300",
+      "imageHint": "pizza box"
+    },
+    {
+      "id": "fridge-7",
+      "description": "A bowl of fresh berries.",
+      "imageUrl": "https://picsum.photos/seed/berries/400/300",
+      "imageHint": "fruit bowl"
+    },
+    {
+      "id": "fridge-8",
+      "description": "A piece of cake on a plate.",
+      "imageUrl": "https://picsum.photos/seed/cake/400/300",
+      "imageHint": "cake slice"
+    }
+  ]
 }

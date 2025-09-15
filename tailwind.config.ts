@@ -11,7 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        headline: ['Lexend', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -65,6 +65,9 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        'status-green': 'hsl(var(--status-green))',
+        'status-yellow': 'hsl(var(--status-yellow))',
+        'status-red': 'hsl(var(--status-red))',
       },
       borderRadius: {
         lg: 'var(--radius)',
