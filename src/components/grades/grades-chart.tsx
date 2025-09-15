@@ -9,31 +9,53 @@ interface GradesChartProps {
     grades: Grade[];
 }
 
-const subjectColors: { [key: string]: string } = {
-    'Mathematik': '#8884d8',
-    'Deutsch': '#82ca9d',
-    'Englisch': '#ffc658',
-    'Physik': '#ff7300',
-    'Chemie': '#00C49F',
-    'Biologie': '#FF8042',
+const subjectCategories: { [key: string]: string } = {
+    'Mathematik': 'MINT',
+    'Physik': 'MINT',
+    'Chemie': 'MINT',
+    'Informatik': 'MINT',
+    'Biologie': 'MINT',
+    'Deutsch': 'Sprachen',
+    'Englisch': 'Sprachen',
+    'Latein': 'Sprachen',
+    'Geschichte': 'Gesellschaft',
+    'Ethik': 'Gesellschaft',
+    'Geographie': 'Gesellschaft',
+    'Kunst': 'Kreativ & Sport',
+    'Musik': 'Kreativ & Sport',
+    'Sport': 'Kreativ & Sport',
 };
 
+const categoryColors: { [key: string]: string } = {
+    'MINT': '#8884d8',
+    'Sprachen': '#82ca9d',
+    'Gesellschaft': '#ffc658',
+    'Kreativ & Sport': '#ff7300',
+};
+
+
 export function GradesChart({ grades }: GradesChartProps) {
-    const { chartData, subjects } = useMemo(() => {
-        const data = [...grades].sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
-        const subjects = [...new Set(data.map(g => g.subject))];
-        const dates = [...new Set(data.map(g => format(parseISO(g.date), 'dd.MM.yy')))].sort((a,b) => parseISO(a.split('.').reverse().join('-')).getTime() - parseISO(b.split('.').reverse().join('-')).getTime());
+    const { chartData, categories } = useMemo(() => {
+        const gradesWithCategory = grades.map(g => ({ ...g, category: subjectCategories[g.subject] || 'Sonstige'}));
+        const categories = [...new Set(Object.values(subjectCategories))];
+        const dates = [...new Set(grades.map(g => format(parseISO(g.date), 'dd.MM.yy')))].sort((a,b) => parseISO(a.split('.').reverse().join('-')).getTime() - parseISO(b.split('.').reverse().join('-')).getTime());
 
         const chartData = dates.map(date => {
             const entry: {[key: string]: any} = { date };
-            subjects.forEach(subject => {
-                const gradeOnDate = data.find(g => format(parseISO(g.date), 'dd.MM.yy') === date && g.subject === subject);
-                entry[subject] = gradeOnDate ? gradeOnDate.grade : null;
+            categories.forEach(category => {
+                const gradesOnDate = gradesWithCategory.filter(g => format(parseISO(g.date), 'dd.MM.yy') === date && g.category === category);
+                if (gradesOnDate.length > 0) {
+                    const totalPoints = gradesOnDate.reduce((acc, g) => acc + g.grade * g.weight, 0);
+                    const totalWeight = gradesOnDate.reduce((acc, g) => acc + g.weight, 0);
+                    entry[category] = totalWeight > 0 ? totalPoints / totalWeight : null;
+                } else {
+                    entry[category] = null;
+                }
             });
             return entry;
         });
 
-        return { chartData, subjects };
+        return { chartData, categories };
     }, [grades]);
 
     if (grades.length === 0) {
@@ -46,14 +68,15 @@ export function GradesChart({ grades }: GradesChartProps) {
                 <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis reversed domain={[1,6]} ticks={[1,2,3,4,5,6]} />
-                    <Tooltip />
+                    <YAxis reversed domain={[1,6]} ticks={[1,2,3,4,5,6]} allowDecimals={false} />
+                    <Tooltip formatter={(value: number) => value ? value.toFixed(2) : ''}/>
                     <Legend />
-                    {subjects.map(subject => (
+                    {categories.map(category => (
                          <Bar 
-                            key={subject} 
-                            dataKey={subject} 
-                            fill={subjectColors[subject] || '#8884d8'} 
+                            key={category} 
+                            dataKey={category} 
+                            fill={categoryColors[category] || '#8884d8'}
+                            maxBarSize={50}
                          />
                     ))}
                 </BarChart>
