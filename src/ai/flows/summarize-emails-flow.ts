@@ -16,10 +16,9 @@ const EmailSchema = z.object({
   snippet: z.string(),
 });
 
-export const SummarizeEmailsInputSchema = z.array(EmailSchema);
-export type SummarizeEmailsInput = z.infer<typeof SummarizeEmailsInputSchema>;
+export type SummarizeEmailsInput = z.infer<typeof EmailSchema>[];
 
-export const SummarizeEmailsOutputSchema = z.object({
+const SummarizeEmailsOutputSchema = z.object({
   summary: z.string().describe('A concise summary of the most important emails, written in German.'),
 });
 export type SummarizeEmailsOutput = z.infer<typeof SummarizeEmailsOutputSchema>;
@@ -30,7 +29,7 @@ export async function summarizeEmails(input: SummarizeEmailsInput): Promise<Summ
 
 const prompt = ai.definePrompt({
   name: 'summarizeEmailsPrompt',
-  input: {schema: SummarizeEmailsInputSchema},
+  input: {schema: z.array(EmailSchema)},
   output: {schema: SummarizeEmailsOutputSchema},
   prompt: `You are an expert office assistant. Your task is to summarize the following list of emails.
   Focus on the most important and urgent items. Identify any action items, deadlines, or key decisions.
@@ -46,7 +45,7 @@ const prompt = ai.definePrompt({
 const summarizeEmailsFlow = ai.defineFlow(
   {
     name: 'summarizeEmailsFlow',
-    inputSchema: SummarizeEmailsInputSchema,
+    inputSchema: z.array(EmailSchema),
     outputSchema: SummarizeEmailsOutputSchema,
   },
   async (emails) => {
@@ -54,7 +53,12 @@ const summarizeEmailsFlow = ai.defineFlow(
       return { summary: "Dein Posteingang ist leer. Gut gemacht!" };
     }
     
-    const {output} = await prompt(emails);
-    return output!;
+    try {
+      const {output} = await prompt(emails);
+      return output!;
+    } catch (e) {
+      console.error(e);
+      return { summary: "Zusammenfassung konnte nicht geladen werden. Bitte versuchen Sie es später erneut." };
+    }
   }
 );
