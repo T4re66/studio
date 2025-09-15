@@ -8,6 +8,9 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import {
   Home,
@@ -20,25 +23,38 @@ import {
   Gift,
   Trophy,
   Mail,
+  ListChecks,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Icons } from "./icons"
 
-const menuItems = [
+const mainMenuItems = [
   { href: "/", label: "Übersicht", icon: Home },
-  { href: "/people", label: "Team", icon: Users },
-  { href: "/breaks", label: "Pausen", icon: Coffee },
-  { href: "/birthdays", label: "Geburtstage", icon: Gift },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/inbox", label: "Inbox", icon: Mail },
-  { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
-  { href: "/focus", label: "Fokus", icon: Timer },
-  { href: "/check-in", label: "Check-in", icon: HeartPulse },
 ]
+
+const teamMenuItems = [
+    { href: "/people", label: "Team", icon: Users },
+    { href: "/breaks", label: "Pausen", icon: Coffee },
+    { href: "/birthdays", label: "Geburtstage", icon: Gift },
+];
+
+const gamificationMenuItems = [
+    { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/tasks", label: "Aufgaben", icon: ListChecks },
+]
+
+const toolsMenuItems = [
+    { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
+    { href: "/focus", label: "Fokus", icon: Timer },
+    { href: "/check-in", label: "Check-in", icon: HeartPulse },
+];
 
 export function AppSidebar() {
   const pathname = usePathname()
+
+  const isActive = (href: string) => pathname === href;
 
   return (
     <Sidebar>
@@ -54,20 +70,80 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map(item => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  tooltip={{ children: item.label }}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          ))}
+            {mainMenuItems.map(item => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href} legacyBehavior passHref>
+                    <SidebarMenuButton
+                    isActive={isActive(item.href)}
+                    tooltip={{ children: item.label }}
+                    >
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            ))}
         </SidebarMenu>
+        
+        <SidebarSeparator />
+
+        <SidebarGroup>
+            <SidebarGroupLabel>Team</SidebarGroupLabel>
+            <SidebarMenu>
+                 {teamMenuItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                    <Link href={item.href} legacyBehavior passHref>
+                        <SidebarMenuButton
+                        isActive={isActive(item.href)}
+                        tooltip={{ children: item.label }}
+                        >
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+            <SidebarGroupLabel>Gamification</SidebarGroupLabel>
+            <SidebarMenu>
+                 {gamificationMenuItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                    <Link href={item.href} legacyBehavior passHref>
+                        <SidebarMenuButton
+                        isActive={isActive(item.href)}
+                        tooltip={{ children: item.label }}
+                        >
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup>
+            <SidebarGroupLabel>Werkzeuge</SidebarGroupLabel>
+            <SidebarMenu>
+                 {toolsMenuItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                    <Link href={item.href} legacyBehavior passHref>
+                        <SidebarMenuButton
+                        isActive={isActive(item.href)}
+                        tooltip={{ children: item.label }}
+                        >
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

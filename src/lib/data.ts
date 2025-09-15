@@ -38,6 +38,15 @@ export type Break = {
   endTime: string; // HH:mm
 };
 
+export type OfficeTask = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  category: 'Soziales' | 'Büro' | 'Spass';
+  isCompleted?: boolean;
+};
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Alice Johnson', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' },
@@ -76,4 +85,16 @@ export const breaks: Break[] = [
     { id: 'b1', userId: '1', type: 'lunch', startTime: '12:30', endTime: '13:00' },
     { id: 'b2', userId: '3', type: 'lunch', startTime: '12:30', endTime: '13:00' },
     { id: 'b3', userId: '4', type: 'coffee', startTime: '15:00', endTime: '15:15' },
+];
+
+
+export const officeTasks: OfficeTask[] = [
+  { id: 't1', title: 'Kaffeemaschine entkalken', description: 'Die Kaffeemaschine braucht etwas Liebe. Entkalke sie für das Wohl des ganzen Teams.', points: 100, category: 'Büro' },
+  { id: 't2', title: 'Bringe einem Kollegen einen Kaffee', description: 'Frage einen Kollegen, ob er einen Kaffee möchte und bringe ihn ihm an den Platz.', points: 20, category: 'Soziales' },
+  { id: 't3', title: 'Organisiere eine 5-Minuten-Dehnpause', description: 'Versammle ein paar Kollegen für eine kurze Dehnpause am Nachmittag.', points: 50, category: 'Soziales' },
+  { id: 't4', title: 'Dekoriere deinen Schreibtisch', description: 'Mache deinen Arbeitsplatz zu einem Ort, an dem du dich wohlfühlst. Sei kreativ!', points: 30, category: 'Spass' },
+  { id: 't5', title: 'Snack-Attacke', description: 'Bringe heute einen Snack für dein Team mit. Geteilte Freude ist doppelte Freude!', points: 70, category: 'Soziales' },
+  { id: 't6', title: 'Pflanzen giessen', description: 'Kümmere dich um die Büropflanzen. Sie werden es dir danken.', points: 40, category: 'Büro' },
+  { id: 't7', title: 'Schreibtisch-Challenge', description: 'Wer hat den ordentlichsten (oder kreativsten) Schreibtisch? Starte einen kleinen Wettbewerb.', points: 60, category: 'Spass', isCompleted: true },
+  { id: 't8', title: 'Feedback geben', description: 'Gib einem Kollegen konstruktives und positives Feedback zu seiner Arbeit.', points: 50, category: 'Soziales' },
 ];
