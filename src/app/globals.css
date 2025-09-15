@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 240 13% 96%;
+    --background: 240 10% 97%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 213 100% 67%;
-    --primary-foreground: 216 100% 10%;
+    --primary: 345 100% 67%;
+    --primary-foreground: 355 100% 10%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 273 100% 67%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 25 100% 67%;
+    --accent-foreground: 25 100% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 213 100% 67%;
+    --ring: 345 100% 67%;
     --radius: 0.875rem;
 
     --status-green: 135 58% 50%;
@@ -46,19 +46,19 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 213 100% 67%;
-    --primary-foreground: 216 100% 10%;
+    --primary: 345 100% 67%;
+    --primary-foreground: 355 100% 10%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 273 100% 67%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 25 100% 67%;
+    --accent-foreground: 25 100% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 213 100% 67%;
+    --ring: 345 100% 67%;
     
     --status-green: 135 58% 52%;
     --status-yellow: 48 93% 57%;
@@ -81,5 +81,12 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }

@@ -18,13 +18,13 @@ export default function Home() {
   const expiringSoon = fridgeItems.filter(item => item.expiryDays <= 3 && item.expiryDays > 0).length;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 fade-in">
       <PageHeader
         title="Übersicht"
         description={`Willkommen zurück! Hier ist dein Überblick für heute.`}
       />
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
           <CardHeader>
             <CardTitle className="font-headline">Wer ist im Büro?</CardTitle>
             <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind heute vor Ort.</CardDescription>
@@ -33,7 +33,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-4">
               {onlineMembers.map((member) => (
                 <Link href="/people" key={member.id} className="flex flex-col items-center gap-2 group">
-                  <Avatar className="h-16 w-16 border-2 border-transparent group-hover:border-primary transition-colors">
+                  <Avatar className="h-16 w-16 border-2 border-transparent group-hover:border-primary transition-all duration-300 transform group-hover:scale-110">
                     <AvatarImage src={member.avatar} alt={member.name} />
                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                     <span
@@ -50,7 +50,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
           <CardHeader>
             <CardTitle className="font-headline">Heutige Events</CardTitle>
             <CardDescription>Deine anstehenden Termine.</CardDescription>
@@ -79,7 +79,7 @@ export default function Home() {
         </Card>
         
         <Link href="/fridge">
-          <Card className="hover:border-primary/50 hover:bg-primary/5 transition-all">
+          <Card className="transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-primary/50 hover:bg-primary/5">
             <CardHeader className="flex-row items-center gap-4 space-y-0">
               <div className="bg-amber-100 text-amber-600 p-3 rounded-lg">
                 <Utensils className="h-6 w-6" />
@@ -96,7 +96,7 @@ export default function Home() {
           </Card>
         </Link>
         
-        <Card className="cursor-not-allowed opacity-60">
+        <Card className="cursor-not-allowed opacity-60 transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
            <CardHeader className="flex-row items-center gap-4 space-y-0">
               <div className="bg-sky-100 text-sky-600 p-3 rounded-lg">
                 <ParkingSquare className="h-6 w-6" />
