@@ -16,6 +16,10 @@ import {
   Users,
   HeartPulse,
   Settings,
+  Coffee,
+  Gift,
+  Trophy,
+  Mail,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -23,9 +27,13 @@ import { Icons } from "./icons"
 
 const menuItems = [
   { href: "/", label: "Übersicht", icon: Home },
+  { href: "/people", label: "Team", icon: Users },
+  { href: "/breaks", label: "Pausen", icon: Coffee },
+  { href: "/birthdays", label: "Geburtstage", icon: Gift },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { href: "/inbox", label: "Inbox", icon: Mail },
   { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
   { href: "/focus", label: "Fokus", icon: Timer },
-  { href: "/people", label: "Team", icon: Users },
   { href: "/check-in", label: "Check-in", icon: HeartPulse },
 ]
 
