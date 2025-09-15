@@ -47,6 +47,16 @@ export type OfficeTask = {
   isCompleted?: boolean;
 };
 
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
+  category: 'Meeting' | 'Personal' | 'Team Event';
+  participants: string[]; // user IDs
+};
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Alice Johnson', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' },
@@ -97,4 +107,14 @@ export const officeTasks: OfficeTask[] = [
   { id: 't6', title: 'Pflanzen giessen', description: 'Kümmere dich um die Büropflanzen. Sie werden es dir danken.', points: 40, category: 'Büro' },
   { id: 't7', title: 'Schreibtisch-Challenge', description: 'Wer hat den ordentlichsten (oder kreativsten) Schreibtisch? Starte einen kleinen Wettbewerb.', points: 60, category: 'Spass', isCompleted: true },
   { id: 't8', title: 'Feedback geben', description: 'Gib einem Kollegen konstruktives und positives Feedback zu seiner Arbeit.', points: 50, category: 'Soziales' },
+];
+
+const today = new Date();
+const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+export const calendarEvents: CalendarEvent[] = [
+  { id: 'evt1', title: 'Project Phoenix Sync', date: formatDate(today), startTime: '10:00', endTime: '11:00', category: 'Meeting', participants: ['1', '2', '3', '4'] },
+  { id: 'evt2', title: 'Design Review', date: formatDate(today), startTime: '14:00', endTime: '15:30', category: 'Meeting', participants: ['1', '3', '4'] },
+  { id: 'evt3', title: 'Zahnarzt', date: formatDate(today), startTime: '12:00', endTime: '13:00', category: 'Personal', participants: ['1'] },
+  { id: 'evt4', title: 'Team Lunch', date: new Date(today.setDate(today.getDate() + 2)).toISOString().split('T')[0], startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['1', '2', '3', '4', '5', '6', '7', '8'] },
 ];
