@@ -13,6 +13,7 @@ import type { Grade } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 
 export default function GradesPage() {
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [allGrades, setAllGrades] = useState(grades);
 
     const handleAddGrade = (newGrade: Omit<Grade, 'id'>) => {
@@ -104,5 +105,3 @@ export default function GradesPage() {
         </div>
     )
 }
-
-const [isDialogOpen, setIsDialogOpen] = useState(false)

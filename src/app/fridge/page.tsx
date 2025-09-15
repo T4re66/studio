@@ -57,7 +57,7 @@ export default function FridgePage() {
         <TabsContent value="mine" className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {renderItems(filters.mine)}
         </TabsContent>
-        <TabsContent value="expiring" className="grid gap-6 mt-6 md_grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <TabsContent value="expiring" className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {renderItems(filters.expiring)}
         </TabsContent>
         <TabsContent value="shared" className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
