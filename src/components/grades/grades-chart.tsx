@@ -1,6 +1,6 @@
 "use client"
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 import type { Grade } from '@/lib/data';
 import { format, parseISO } from 'date-fns';
@@ -43,32 +43,20 @@ export function GradesChart({ grades }: GradesChartProps) {
     return (
         <div style={{ width: '100%', height: 300 }}>
              <ResponsiveContainer>
-                <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                     <defs>
-                        {subjects.map(subject => (
-                            <linearGradient key={subject} id={`color${subject.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={subjectColors[subject] || '#8884d8'} stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor={subjectColors[subject] || '#8884d8'} stopOpacity={0}/>
-                            </linearGradient>
-                        ))}
-                    </defs>
+                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis reversed domain={[1,6]} ticks={[1,2,3,4,5,6]} />
                     <Tooltip />
                     <Legend />
                     {subjects.map(subject => (
-                         <Area 
+                         <Bar 
                             key={subject} 
-                            type="monotone" 
                             dataKey={subject} 
-                            stroke={subjectColors[subject] || '#8884d8'} 
-                            fillOpacity={1} 
-                            fill={`url(#color${subject.replace(/\s/g, '')})`}
-                            connectNulls 
+                            fill={subjectColors[subject] || '#8884d8'} 
                          />
                     ))}
-                </AreaChart>
+                </BarChart>
             </ResponsiveContainer>
         </div>
     );
