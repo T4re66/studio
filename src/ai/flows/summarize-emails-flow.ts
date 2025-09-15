@@ -53,12 +53,7 @@ const summarizeEmailsFlow = ai.defineFlow(
       return { summary: "Dein Posteingang ist leer. Gut gemacht!" };
     }
     
-    try {
-      const {output} = await prompt(emails);
-      return output!;
-    } catch (e) {
-      console.error(e);
-      return { summary: "Zusammenfassung konnte nicht geladen werden. Bitte versuchen Sie es später erneut." };
-    }
+    const {output} = await prompt(emails);
+    return output!;
   }
 );

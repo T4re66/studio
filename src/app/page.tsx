@@ -48,7 +48,14 @@ export default async function Home() {
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const currentUser = teamMembers[0]; // Assuming current user is Alice
   const nextBirthday = getNextBirthday();
-  const emailSummary = await summarizeEmails(emails.filter(e => !e.isRead));
+  
+  let emailSummary;
+  try {
+    emailSummary = await summarizeEmails(emails.filter(e => !e.isRead));
+  } catch (e) {
+    console.error(e);
+    emailSummary = { summary: "Zusammenfassung konnte nicht geladen werden. Bitte versuchen Sie es später erneut." };
+  }
 
 
   return (

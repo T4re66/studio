@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,14 +31,21 @@ export default function CalendarPage() {
   }, [date]);
 
   const [summary, setSummary] = useState("Zusammenfassung wird geladen...");
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
-  useMemo(async () => {
-    if(selectedDayEvents.length > 0) {
+  useEffect(() => {
+    const fetchSummary = async () => {
+      setIsLoadingSummary(true);
+      if (selectedDayEvents.length > 0) {
         const result = await summarizeCalendar(selectedDayEvents);
         setSummary(result.summary);
-    } else {
+      } else {
         setSummary("Für heute stehen keine Termine im Kalender. Geniesse den freien Tag!");
-    }
+      }
+      setIsLoadingSummary(false);
+    };
+
+    fetchSummary();
   }, [selectedDayEvents]);
 
 
@@ -121,7 +128,7 @@ export default function CalendarPage() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
-                        {summary}
+                        {isLoadingSummary ? "Zusammenfassung wird geladen..." : summary}
                     </p>
                 </CardContent>
             </Card>
