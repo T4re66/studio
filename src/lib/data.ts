@@ -129,12 +129,16 @@ export const calendarEvents: CalendarEvent[] = [
 ];
 
 export const grades: Grade[] = [
-    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-05-10', type: 'Klausur', notes: 'Analysis' },
-    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-05-22', type: 'Mündlich', notes: 'Lineare Algebra' },
-    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-05-15', type: 'Klausur', notes: 'Gedichtanalyse' },
-    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-05-20', type: 'Klausur', notes: 'Vokabeltest' },
-    { id: 'g5', subject: 'Englisch', grade: 1.0, date: '2024-05-28', type: 'Projekt', notes: 'Präsentation über Shakespeare' },
-    { id: 'g6', subject: 'Physik', grade: 3.0, date: '2024-04-25', type: 'Klausur', notes: 'Mechanik' },
+    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-03-10', type: 'Klausur', notes: 'Analysis' },
+    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-04-22', type: 'Mündlich', notes: 'Lineare Algebra' },
+    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-03-15', type: 'Klausur', notes: 'Gedichtanalyse' },
+    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-03-20', type: 'Klausur', notes: 'Vokabeltest' },
+    { id: 'g5', subject: 'Englisch', grade: 1.0, date: '2024-04-28', type: 'Projekt', notes: 'Präsentation über Shakespeare' },
+    { id: 'g6', subject: 'Physik', grade: 3.0, date: '2024-02-25', type: 'Klausur', notes: 'Mechanik' },
     { id: 'g7', subject: 'Physik', grade: 2.3, date: '2024-05-30', type: 'Mündlich', notes: 'Thermodynamik' },
-    { id: 'g8', subject: 'Chemie', grade: 1.0, date: '2024-05-12', type: 'Klausur', notes: 'Organische Chemie' },
+    { id: 'g8', subject: 'Chemie', grade: 1.0, date: '2024-03-12', type: 'Klausur', notes: 'Organische Chemie' },
+    { id: 'g9', subject: 'Deutsch', grade: 1.7, date: '2024-05-02', type: 'Mündlich', notes: 'Diskussion' },
+    { id: 'g10', subject: 'Mathematik', grade: 1.0, date: '2024-05-18', type: 'Klausur', notes: 'Stochastik' },
+    { id: 'g11', subject: 'Biologie', grade: 2.7, date: '2024-03-05', type: 'Klausur', notes: 'Genetik' },
+    { id: 'g12', subject: 'Biologie', grade: 2.0, date: '2024-04-15', type: 'Projekt', notes: 'Ökosystem-Modell' },
 ];
