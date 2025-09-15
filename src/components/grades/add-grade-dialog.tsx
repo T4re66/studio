@@ -36,6 +36,7 @@ export function AddGradeDialog({ open, onOpenChange, onAddGrade }: AddGradeDialo
   const [grade, setGrade] = useState("");
   const [type, setType] = useState<Grade['type'] | undefined>(undefined);
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [weight, setWeight] = useState<string>("1");
   const [notes, setNotes] = useState("");
 
 
@@ -54,6 +55,7 @@ export function AddGradeDialog({ open, onOpenChange, onAddGrade }: AddGradeDialo
         grade: parseFloat(grade),
         type,
         date,
+        weight: parseInt(weight, 10),
         notes,
     }
 
@@ -69,6 +71,7 @@ export function AddGradeDialog({ open, onOpenChange, onAddGrade }: AddGradeDialo
     setGrade("");
     setType(undefined);
     setDate(format(new Date(), 'yyyy-MM-dd'));
+    setWeight("1");
     setNotes("");
   };
 
@@ -82,61 +85,73 @@ export function AddGradeDialog({ open, onOpenChange, onAddGrade }: AddGradeDialo
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="subject">Fach</Label>
-              <Input
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="z.B. Mathematik"
-              />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                <Label htmlFor="subject">Fach</Label>
+                <Input
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="z.B. Mathematik"
+                />
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="grade">Note</Label>
+                <Input
+                    id="grade"
+                    type="number"
+                    step="0.1"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    placeholder="z.B. 1.3"
+                />
+                </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="grade">Note</Label>
-              <Input
-                id="grade"
-                type="number"
-                step="0.1"
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                placeholder="z.B. 1.3"
-              />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                <Label htmlFor="type">Art der Note</Label>
+                <Select onValueChange={(value) => setType(value as Grade['type'])} value={type}>
+                    <SelectTrigger id="type">
+                    <SelectValue placeholder="Art auswählen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="Klausur">Klausur</SelectItem>
+                    <SelectItem value="Mündlich">Mündlich</SelectItem>
+                    <SelectItem value="Projekt">Projekt</SelectItem>
+                    </SelectContent>
+                </Select>
+                </div>
+                <div className="grid gap-2">
+                <Label htmlFor="date">Datum</Label>
+                <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                />
+                </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="type">Art der Note</Label>
-              <Select onValueChange={(value) => setType(value as Grade['type'])} value={type}>
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="Art auswählen" />
+             <div className="grid gap-2">
+              <Label htmlFor="weight">Gewichtung</Label>
+              <Select onValueChange={setWeight} value={weight}>
+                <SelectTrigger id="weight">
+                  <SelectValue placeholder="Gewichtung auswählen" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Klausur">Klausur</SelectItem>
-                  <SelectItem value="Mündlich">Mündlich</SelectItem>
-                  <SelectItem value="Projekt">Projekt</SelectItem>
+                  <SelectItem value="1">Einfach (1x)</SelectItem>
+                  <SelectItem value="2">Doppelt (2x)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="date">Datum</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+                <Label htmlFor="notes">Notizen (optional)</Label>
+                <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="z.B. Thema der Klausur"
+                />
             </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="notes">Notizen (optional)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="z.B. Thema der Klausur"
-            />
-          </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>

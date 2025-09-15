@@ -64,6 +64,7 @@ export type Grade = {
   grade: number;
   date: string; // YYYY-MM-DD
   type: 'Klausur' | 'Mündlich' | 'Projekt';
+  weight: number;
   notes?: string;
 };
 
@@ -130,35 +131,36 @@ export const calendarEvents: CalendarEvent[] = [
 ];
 
 export const grades: Grade[] = [
-    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-03-10', type: 'Klausur', notes: 'Analysis' },
-    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-04-22', type: 'Mündlich', notes: 'Lineare Algebra' },
-    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-03-15', type: 'Klausur', notes: 'Gedichtanalyse' },
-    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-03-20', type: 'Klausur', notes: 'Vokabeltest' },
-    { id: 'g5', subject: 'Englisch', grade: 1.0, date: '2024-04-28', type: 'Projekt', notes: 'Präsentation über Shakespeare' },
-    { id: 'g6', subject: 'Physik', grade: 3.0, date: '2024-02-25', type: 'Klausur', notes: 'Mechanik' },
-    { id: 'g7', subject: 'Physik', grade: 2.3, date: '2024-05-30', type: 'Mündlich', notes: 'Thermodynamik' },
-    { id: 'g8', subject: 'Chemie', grade: 1.0, date: '2024-03-12', type: 'Klausur', notes: 'Organische Chemie' },
-    { id: 'g9', subject: 'Deutsch', grade: 1.7, date: '2024-05-02', type: 'Mündlich', notes: 'Diskussion' },
-    { id: 'g10', subject: 'Mathematik', grade: 1.0, date: '2024-05-18', type: 'Klausur', notes: 'Stochastik' },
-    { id: 'g11', subject: 'Biologie', grade: 2.7, date: '2024-03-05', type: 'Klausur', notes: 'Genetik' },
-    { id: 'g12', subject: 'Biologie', grade: 2.0, date: '2024-04-15', type: 'Projekt', notes: 'Ökosystem-Modell' },
-    { id: 'g13', subject: 'Geschichte', grade: 1.7, date: '2024-02-10', type: 'Klausur', notes: 'Französische Revolution' },
-    { id: 'g14', subject: 'Geschichte', grade: 2.3, date: '2024-04-05', type: 'Mündlich', notes: 'Weimarer Republik' },
-    { id: 'g15', subject: 'Kunst', grade: 1.0, date: '2024-05-20', type: 'Projekt', notes: 'Porträtmalerei' },
-    { id: 'g16', subject: 'Sport', grade: 1.3, date: '2024-06-01', type: 'Mündlich', notes: 'Leichtathletik-Bewertung' },
-    { id: 'g17', subject: 'Informatik', grade: 1.7, date: '2024-03-25', type: 'Klausur', notes: 'Datenbanken' },
-    { id: 'g18', subject: 'Informatik', grade: 1.0, date: '2024-05-15', type: 'Projekt', notes: 'Web-Anwendung' },
-    { id: 'g19', subject: 'Mathematik', grade: 2.7, date: '2024-06-05', type: 'Klausur', notes: 'Geometrie' },
-    { id: 'g20', subject: 'Deutsch', grade: 3.0, date: '2024-06-10', type: 'Klausur', notes: 'Epochenvergleich' },
-    { id: 'g21', subject: 'Englisch', grade: 2.3, date: '2024-06-12', type: 'Mündlich', notes: 'Debatte' },
-    { id: 'g22', subject: 'Physik', grade: 2.0, date: '2024-06-15', type: 'Klausur', notes: 'Optik' },
-    { id: 'g23', subject: 'Chemie', grade: 1.7, date: '2024-06-18', type: 'Mündlich', notes: 'Periodensystem' },
-    { id: 'g24', subject: 'Biologie', grade: 1.3, date: '2024-06-20', type: 'Klausur', notes: 'Evolution' },
-    { id: 'g25', subject: 'Geschichte', grade: 2.0, date: '2024-06-22', type: 'Projekt', notes: 'Kalter Krieg' },
-    { id: 'g26', subject: 'Latein', grade: 3.3, date: '2024-03-18', type: 'Klausur', notes: 'Übersetzung Cäsar' },
-    { id: 'g27', subject: 'Latein', grade: 2.7, date: '2024-05-22', type: 'Mündlich', notes: 'Vokabeltest' },
-    { id: 'g28', subject: 'Ethik', grade: 1.0, date: '2024-06-11', type: 'Mündlich', notes: 'Diskussion über Kant' },
-    { id: 'g29', subject: 'Musik', grade: 2.0, date: '2024-04-30', type: 'Projekt', notes: 'Komposition' },
-    { id: 'g30', subject: 'Geographie', grade: 2.3, date: '2024-05-14', type: 'Klausur', notes: 'Klimazonen' },
+    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-03-10', type: 'Klausur', weight: 2, notes: 'Analysis' },
+    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-04-22', type: 'Mündlich', weight: 1, notes: 'Lineare Algebra' },
+    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-03-15', type: 'Klausur', weight: 2, notes: 'Gedichtanalyse' },
+    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-03-20', type: 'Klausur', weight: 2, notes: 'Vokabeltest' },
+    { id: 'g5', subject: 'Englisch', grade: 1.0, date: '2024-04-28', type: 'Projekt', weight: 1, notes: 'Präsentation über Shakespeare' },
+    { id: 'g6', subject: 'Physik', grade: 3.0, date: '2024-02-25', type: 'Klausur', weight: 2, notes: 'Mechanik' },
+    { id: 'g7', subject: 'Physik', grade: 2.3, date: '2024-05-30', type: 'Mündlich', weight: 1, notes: 'Thermodynamik' },
+    { id: 'g8', subject: 'Chemie', grade: 1.0, date: '2024-03-12', type: 'Klausur', weight: 2, notes: 'Organische Chemie' },
+    { id: 'g9', subject: 'Deutsch', grade: 1.7, date: '2024-05-02', type: 'Mündlich', weight: 1, notes: 'Diskussion' },
+    { id: 'g10', subject: 'Mathematik', grade: 1.0, date: '2024-05-18', type: 'Klausur', weight: 2, notes: 'Stochastik' },
+    { id: 'g11', subject: 'Biologie', grade: 2.7, date: '2024-03-05', type: 'Klausur', weight: 2, notes: 'Genetik' },
+    { id: 'g12', subject: 'Biologie', grade: 2.0, date: '2024-04-15', type: 'Projekt', weight: 1, notes: 'Ökosystem-Modell' },
+    { id: 'g13', subject: 'Geschichte', grade: 1.7, date: '2024-02-10', type: 'Klausur', weight: 2, notes: 'Französische Revolution' },
+    { id: 'g14', subject: 'Geschichte', grade: 2.3, date: '2024-04-05', type: 'Mündlich', weight: 1, notes: 'Weimarer Republik' },
+    { id: 'g15', subject: 'Kunst', grade: 1.0, date: '2024-05-20', type: 'Projekt', weight: 1, notes: 'Porträtmalerei' },
+    { id: 'g16', subject: 'Sport', grade: 1.3, date: '2024-06-01', type: 'Mündlich', weight: 1, notes: 'Leichtathletik-Bewertung' },
+    { id: 'g17', subject: 'Informatik', grade: 1.7, date: '2024-03-25', type: 'Klausur', weight: 2, notes: 'Datenbanken' },
+    { id: 'g18', subject: 'Informatik', grade: 1.0, date: '2024-05-15', type: 'Projekt', weight: 1, notes: 'Web-Anwendung' },
+    { id: 'g19', subject: 'Mathematik', grade: 2.7, date: '2024-06-05', type: 'Klausur', weight: 2, notes: 'Geometrie' },
+    { id: 'g20', subject: 'Deutsch', grade: 3.0, date: '2024-06-10', type: 'Klausur', weight: 2, notes: 'Epochenvergleich' },
+    { id: 'g21', subject: 'Englisch', grade: 2.3, date: '2024-06-12', type: 'Mündlich', weight: 1, notes: 'Debatte' },
+    { id: 'g22', subject: 'Physik', grade: 2.0, date: '2024-06-15', type: 'Klausur', weight: 2, notes: 'Optik' },
+    { id: 'g23', subject: 'Chemie', grade: 1.7, date: '2024-06-18', type: 'Mündlich', weight: 1, notes: 'Periodensystem' },
+    { id: 'g24', subject: 'Biologie', grade: 1.3, date: '2024-06-20', type: 'Klausur', weight: 2, notes: 'Evolution' },
+    { id: 'g25', subject: 'Geschichte', grade: 2.0, date: '2024-06-22', type: 'Projekt', weight: 1, notes: 'Kalter Krieg' },
+    { id: 'g26', subject: 'Latein', grade: 3.3, date: '2024-03-18', type: 'Klausur', weight: 2, notes: 'Übersetzung Cäsar' },
+    { id: 'g27', subject: 'Latein', grade: 2.7, date: '2024-05-22', type: 'Mündlich', weight: 1, notes: 'Vokabeltest' },
+    { id: 'g28', subject: 'Ethik', grade: 1.0, date: '2024-06-11', type: 'Mündlich', weight: 1, notes: 'Diskussion über Kant' },
+    { id: 'g29', subject: 'Musik', grade: 2.0, date: '2024-04-30', type: 'Projekt', weight: 1, notes: 'Komposition' },
+    { id: 'g30', subject: 'Geographie', grade: 2.3, date: '2024-05-14', type: 'Klausur', weight: 2, notes: 'Klimazonen' },
 ];
+
 

@@ -34,6 +34,7 @@ export function GradesTable({ grades }: GradesTableProps) {
                 <TableHead>Art</TableHead>
                 <TableHead>Datum</TableHead>
                 <TableHead>Notizen</TableHead>
+                <TableHead className="text-center">Gewichtung</TableHead>
                 <TableHead className="text-right">Note</TableHead>
                 </TableRow>
             </TableHeader>
@@ -46,6 +47,7 @@ export function GradesTable({ grades }: GradesTableProps) {
                         </TableCell>
                         <TableCell>{format(parseISO(grade.date), 'dd. MMMM yyyy', {locale: de})}</TableCell>
                         <TableCell className="text-muted-foreground">{grade.notes || '-'}</TableCell>
+                        <TableCell className="text-center text-muted-foreground">{grade.weight}x</TableCell>
                         <TableCell className="text-right font-bold">{grade.grade.toFixed(1)}</TableCell>
                     </TableRow>
                 ))}
