@@ -72,7 +72,7 @@ export function AppSidebar() {
         <SidebarMenu>
             {mainMenuItems.map(item => (
                 <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href}>
                     <SidebarMenuButton
                     isActive={isActive(item.href)}
                     tooltip={{ children: item.label }}
@@ -92,7 +92,7 @@ export function AppSidebar() {
             <SidebarMenu>
                  {teamMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} legacyBehavior passHref>
+                    <Link href={item.href}>
                         <SidebarMenuButton
                         isActive={isActive(item.href)}
                         tooltip={{ children: item.label }}
@@ -111,7 +111,7 @@ export function AppSidebar() {
             <SidebarMenu>
                  {gamificationMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} legacyBehavior passHref>
+                    <Link href={item.href}>
                         <SidebarMenuButton
                         isActive={isActive(item.href)}
                         tooltip={{ children: item.label }}
@@ -130,7 +130,7 @@ export function AppSidebar() {
             <SidebarMenu>
                  {toolsMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
-                    <Link href={item.href} legacyBehavior passHref>
+                    <Link href={item.href}>
                         <SidebarMenuButton
                         isActive={isActive(item.href)}
                         tooltip={{ children: item.label }}

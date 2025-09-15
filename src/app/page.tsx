@@ -73,18 +73,20 @@ export default async function Home() {
           <CardContent>
             <div className="flex flex-wrap gap-4">
               {onlineMembers.slice(0, 7).map((member) => (
-                <Link href="/people" key={member.id} className="flex flex-col items-center gap-2 group">
-                  <Avatar className="h-14 w-14 border-2 border-transparent group-hover:border-primary transition-all duration-300 transform group-hover:scale-110">
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                     <span
-                      className={cn(
-                        "absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-card",
-                        statusClasses[member.status]
-                      )}
-                    />
-                  </Avatar>
-                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">{member.name.split(' ')[0]}</span>
+                <Link href="/people" key={member.id}>
+                  <div className="flex flex-col items-center gap-2 group">
+                    <Avatar className="h-14 w-14 border-2 border-transparent group-hover:border-primary transition-all duration-300 transform group-hover:scale-110">
+                      <AvatarImage src={member.avatar} alt={member.name} />
+                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                       <span
+                        className={cn(
+                          "absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-card",
+                          statusClasses[member.status]
+                        )}
+                      />
+                    </Avatar>
+                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">{member.name.split(' ')[0]}</span>
+                  </div>
                 </Link>
               ))}
                {onlineMembers.length > 7 && (
