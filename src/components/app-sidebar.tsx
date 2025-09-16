@@ -70,7 +70,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Icons.logo className="size-5" />
           </div>
           <span className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden">
