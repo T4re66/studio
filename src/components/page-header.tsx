@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface PageHeaderProps {
     title: string;
     description: string;
@@ -6,7 +8,12 @@ interface PageHeaderProps {
 export function PageHeader({ title, description }: PageHeaderProps) {
     return (
         <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-bold tracking-tight font-headline">{title}</h1>
+            <h1 className={cn(
+                "text-3xl font-bold tracking-tight font-headline",
+                !title.startsWith("Hallo") && "text-gradient"
+            )}>
+                {title}
+            </h1>
             <p className="text-muted-foreground">{description}</p>
         </div>
     );
