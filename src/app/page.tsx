@@ -36,14 +36,6 @@ export default function LandingPage() {
                             OfficeZen
                         </span>
                     </Link>
-                    <nav className="flex items-center gap-4">
-                        <Link href="/dashboard">
-                          <Button variant="ghost">Dashboard</Button>
-                        </Link>
-                        <Link href="/dashboard">
-                          <Button>Anmelden <ArrowRight className="ml-2"/></Button>
-                        </Link>
-                    </nav>
                 </div>
             </header>
 
