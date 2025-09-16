@@ -1,9 +1,8 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 import type { Grade } from '@/lib/data';
-import { format, parseISO } from 'date-fns';
 
 interface GradesChartProps {
     grades: Grade[];
@@ -27,35 +26,35 @@ const subjectCategories: { [key: string]: string } = {
 };
 
 const categoryColors: { [key: string]: string } = {
-    'MINT': '#8884d8',
-    'Sprachen': '#82ca9d',
+    'MINT': 'hsl(var(--primary))',
+    'Sprachen': 'hsl(var(--accent))',
     'Gesellschaft': '#ffc658',
     'Kreativ & Sport': '#ff7300',
 };
 
 
 export function GradesChart({ grades }: GradesChartProps) {
-    const { chartData, categories } = useMemo(() => {
+    const chartData = useMemo(() => {
         const gradesWithCategory = grades.map(g => ({ ...g, category: subjectCategories[g.subject] || 'Sonstige'}));
         const categories = [...new Set(Object.values(subjectCategories))];
-        const dates = [...new Set(grades.map(g => format(parseISO(g.date), 'dd.MM.yy')))].sort((a,b) => parseISO(a.split('.').reverse().join('-')).getTime() - parseISO(b.split('.').reverse().join('-')).getTime());
-
-        const chartData = dates.map(date => {
-            const entry: {[key: string]: any} = { date };
-            categories.forEach(category => {
-                const gradesOnDate = gradesWithCategory.filter(g => format(parseISO(g.date), 'dd.MM.yy') === date && g.category === category);
-                if (gradesOnDate.length > 0) {
-                    const totalPoints = gradesOnDate.reduce((acc, g) => acc + g.grade * g.weight, 0);
-                    const totalWeight = gradesOnDate.reduce((acc, g) => acc + g.weight, 0);
-                    entry[category] = totalWeight > 0 ? totalPoints / totalWeight : null;
-                } else {
-                    entry[category] = null;
-                }
-            });
-            return entry;
+        
+        const data = categories.map(category => {
+            const categoryGrades = gradesWithCategory.filter(g => g.category === category);
+            if (categoryGrades.length === 0) {
+                return { name: category, averageGrade: 0 };
+            }
+            const totalPoints = categoryGrades.reduce((acc, g) => acc + g.grade * g.weight, 0);
+            const totalWeight = categoryGrades.reduce((acc, g) => acc + g.weight, 0);
+            const averageGrade = totalWeight > 0 ? totalPoints / totalWeight : 0;
+            return {
+                name: category,
+                averageGrade: parseFloat(averageGrade.toFixed(2)),
+                fill: categoryColors[category] || '#8884d8',
+            }
         });
+        
+        return data.filter(d => d.averageGrade > 0);
 
-        return { chartData, categories };
     }, [grades]);
 
     if (grades.length === 0) {
@@ -65,20 +64,28 @@ export function GradesChart({ grades }: GradesChartProps) {
     return (
         <div style={{ width: '100%', height: 300 }}>
              <ResponsiveContainer>
-                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis reversed domain={[1,6]} ticks={[1,2,3,4,5,6]} allowDecimals={false} />
-                    <Tooltip formatter={(value: number) => value ? value.toFixed(2) : ''}/>
-                    <Legend />
-                    {categories.map(category => (
-                         <Bar 
-                            key={category} 
-                            dataKey={category} 
-                            fill={categoryColors[category] || '#8884d8'}
-                            maxBarSize={50}
-                         />
-                    ))}
+                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false}/>
+                    <YAxis reversed domain={[1,6]} ticks={[1,2,3,4,5,6]} allowDecimals={false} stroke="#888888" fontSize={12} tickLine={false} axisLine={false}/>
+                    <Tooltip 
+                        cursor={{fill: 'hsla(var(--muted))'}}
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className="flex flex-col space-y-1">
+                                    <span className="text-[0.70rem] uppercase text-muted-foreground">{label}</span>
+                                    <span className="font-bold text-foreground">{payload[0].value}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                    />
+                    <Bar dataKey="averageGrade" radius={[4, 4, 0, 0]} />
                 </BarChart>
             </ResponsiveContainer>
         </div>
