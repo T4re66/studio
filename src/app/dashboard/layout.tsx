@@ -4,11 +4,6 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 
-export const metadata: Metadata = {
-  title: 'OfficeZen Dashboard',
-  description: 'Your friendly office companion.',
-};
-
 export default function DashboardLayout({
   children,
 }: Readonly<{
