@@ -21,47 +21,25 @@ const statusClasses: { [key: string]: string } = {
   away: "bg-gray-400",
 };
 
-function getNextBirthday() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
-    const currentYear = today.getFullYear();
+type NextBirthday = {
+    member: (typeof teamMembers[0]) | null;
+    days: number;
+} | null;
 
-    let nextBirthdayMember: (typeof teamMembers[0]) | null = null;
-    let minDays = Infinity;
-
-    teamMembers.forEach(member => {
-        if (!member.birthday) return;
-        const birthday = new Date(member.birthday);
-        birthday.setFullYear(currentYear);
-
-        if (birthday < today) {
-            birthday.setFullYear(currentYear + 1);
-        }
-
-        const diffTime = birthday.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays < minDays) {
-            minDays = diffDays;
-            nextBirthdayMember = member;
-        }
-    });
-
-    return { member: nextBirthdayMember, days: minDays };
-}
 
 // Function to get seating positions around an oval table
 const getSeatPosition = (index: number, total: number, tableWidth: number, tableHeight: number) => {
     const angle = (index / total) * 2 * Math.PI;
     const x = 50 + (tableWidth / 2) * Math.cos(angle);
     const y = 50 + (tableHeight / 2) * Math.sin(angle);
-    return { left: `${x}%`, top: `${y}%` };
+    return { left: `${x.toPrecision(6)}%`, top: `${y.toPrecision(6)}%` };
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
+        if (to === 0) return;
         const animation = requestAnimationFrame(animateCount);
         let start: number | undefined;
 
@@ -86,8 +64,43 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 export default function Home() {
   const [emailSummary, setEmailSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
   const [calendarSummary, setCalendarSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
+  const [nextBirthday, setNextBirthday] = useState<NextBirthday>(null);
 
   useEffect(() => {
+    // --- Client-side only calculations to prevent hydration errors ---
+
+    // Birthday calculation
+    const getNextBirthday = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        const currentYear = today.getFullYear();
+
+        let nextBirthdayMember: (typeof teamMembers[0]) | null = null;
+        let minDays = Infinity;
+
+        teamMembers.forEach(member => {
+            if (!member.birthday) return;
+            const birthday = new Date(member.birthday);
+            birthday.setFullYear(currentYear);
+
+            if (birthday < today) {
+                birthday.setFullYear(currentYear + 1);
+            }
+
+            const diffTime = birthday.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < minDays) {
+                minDays = diffDays;
+                nextBirthdayMember = member;
+            }
+        });
+
+        return { member: nextBirthdayMember, days: minDays };
+    }
+    setNextBirthday(getNextBirthday());
+
+    // Summaries fetching
     async function fetchSummaries() {
         const todayEvents = calendarEvents.filter(e => isSameDay(new Date(e.date), new Date()));
         try {
@@ -106,14 +119,12 @@ export default function Home() {
         }
     }
     fetchSummaries();
+
   }, [])
 
 
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const currentUser = teamMembers.find(m => m.id === '1')!; 
-  const nextBirthday = getNextBirthday();
-  const todayEvents = calendarEvents.filter(e => isToday(new Date(e.date)));
-  
   const tableWidth = 45; // in percentage of parent
   const tableHeight = 90; // in percentage of parent
 
@@ -239,14 +250,14 @@ export default function Home() {
             <Link href="/birthdays" className="xl:col-span-1">
                  <Card className={cn(
                     "h-full flex flex-col justify-center items-center text-center transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden",
-                    nextBirthday.days === 0 && "bg-pink-100/50 border-pink-400"
+                    nextBirthday?.days === 0 && "bg-pink-100/50 border-pink-400"
                 )}>
-                     {nextBirthday.days === 0 && <div className="absolute top-2 right-2 text-xs font-bold text-pink-600 bg-white/50 px-2 py-1 rounded-full animate-pulse">HEUTE!</div>}
+                     {nextBirthday?.days === 0 && <div className="absolute top-2 right-2 text-xs font-bold text-pink-600 bg-white/50 px-2 py-1 rounded-full animate-pulse">HEUTE!</div>}
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
                     </CardHeader>
                     <CardContent>
-                    {nextBirthday.member && (
+                    {nextBirthday?.member && (
                         <>
                             <Avatar className="h-16 w-16 mx-auto border-4 border-pink-300">
                                 <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name} />
@@ -266,5 +277,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
