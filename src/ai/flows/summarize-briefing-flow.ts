@@ -30,7 +30,7 @@ const NoteSchema = z.object({
     tags: z.array(z.string()),
 });
 
-export const SummarizeBriefingInputSchema = z.object({
+const SummarizeBriefingInputSchema = z.object({
   emails: z.array(EmailSchema),
   events: z.array(CalendarEventSchema),
   notes: z.array(NoteSchema),
