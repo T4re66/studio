@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { notes as initialNotes } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { Plus, Archive } from "lucide-react";
+import { Plus, Archive, Sparkles } from "lucide-react";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
@@ -12,8 +12,11 @@ import { de } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
 import type { Note } from "@/lib/data";
 
+interface NotesTabProps {
+    summary: string | undefined;
+}
 
-export function NotesTab() {
+export function NotesTab({ summary }: NotesTabProps) {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [notes, setNotes] = useState<Note[]>(initialNotes);
     const { toast } = useToast();
@@ -66,6 +69,20 @@ export function NotesTab() {
                     <NoteEditor onSave={handleSaveNote} onCancel={() => setIsEditorOpen(false)}/>
                 </Card>
             )}
+
+             <Card className="bg-primary/5 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                        <Sparkles className="text-primary h-5 w-5"/>
+                        Intelligente Zusammenfassung
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-foreground/80">
+                        {summary || "Zusammenfassung konnte nicht geladen werden."}
+                    </p>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardContent className="space-y-4 p-6">

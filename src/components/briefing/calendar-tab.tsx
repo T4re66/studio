@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
-import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
 import type { CalendarEvent } from "@/lib/data";
 import { DeadlineManager } from "../calendar/deadline-manager";
 
@@ -21,7 +20,11 @@ const categoryColors: { [key: string]: string } = {
     'Team Event': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
-export function CalendarTab() {
+interface CalendarTabProps {
+  summary: string | undefined;
+}
+
+export function CalendarTab({ summary }: CalendarTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
@@ -30,31 +33,6 @@ export function CalendarTab() {
     if (!date) return [];
     return allEvents.filter(event => isSameDay(new Date(event.date), date));
   }, [date, allEvents]);
-
-  const [summary, setSummary] = useState("Zusammenfassung wird geladen...");
-  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      setIsLoadingSummary(true);
-      const eventsForSummary = selectedDayEvents.map(e => ({
-        title: e.title,
-        startTime: e.startTime,
-        endTime: e.endTime,
-        category: e.category,
-      }));
-      if (eventsForSummary.length > 0) {
-        const result = await summarizeCalendar(eventsForSummary);
-        setSummary(result.summary);
-      } else {
-        setSummary("Für den gewählten Tag stehen keine Termine im Kalender.");
-      }
-      setIsLoadingSummary(false);
-    };
-
-    fetchSummary();
-  }, [selectedDayEvents]);
-
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
   
@@ -144,7 +122,7 @@ export function CalendarTab() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
-                        {isLoadingSummary ? "Zusammenfassung wird geladen..." : summary}
+                        {summary || "Zusammenfassung konnte nicht geladen werden."}
                     </p>
                 </CardContent>
             </Card>
@@ -154,5 +132,3 @@ export function CalendarTab() {
     </div>
   );
 }
-
-    

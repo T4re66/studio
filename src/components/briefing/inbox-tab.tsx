@@ -5,29 +5,17 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { emails as initialEmails, teamMembers } from "@/lib/data";
 import { Archive, Reply, Trash, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Email } from "@/lib/data";
 
-export function InboxTab() {
+interface InboxTabProps {
+  summary: string | undefined;
+}
+
+export function InboxTab({ summary }: InboxTabProps) {
   const [emails, setEmails] = useState<Email[]>(initialEmails);
-  const [emailSummary, setEmailSummary] = useState("Zusammenfassung wird geladen...");
   const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      const unreadEmails = emails.filter(e => !e.isRead);
-      if (unreadEmails.length > 0) {
-        const result = await summarizeEmails(unreadEmails);
-        setEmailSummary(result.summary);
-      } else {
-        setEmailSummary("Keine ungelesenen E-Mails. Dein Posteingang ist sauber!");
-      }
-    };
-    fetchSummary();
-  }, [emails]);
-
 
   const findSender = (senderName: string) => {
     return teamMembers.find(m => m.name.includes(senderName.split(" ")[0])) || null;
@@ -52,7 +40,7 @@ export function InboxTab() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-foreground/80">
-            {emailSummary}
+            {summary || "Zusammenfassung konnte nicht geladen werden."}
           </p>
         </CardContent>
       </Card>
