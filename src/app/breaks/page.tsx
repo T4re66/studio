@@ -10,7 +10,7 @@ import { Plus, Coffee, Lunch } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { Break } from '@/lib/data';
+import type { Break, User } from '@/lib/data';
 
 export default function BreaksPage() {
   const [breaks, setBreaks] = useState<Break[]>(initialBreaks);
@@ -28,10 +28,9 @@ export default function BreaksPage() {
 
   lunchBreaks.forEach(breakA => {
       lunchBreaks.forEach(breakB => {
-          if(breakA.userId !== breakB.userId && breakA.startTime === breakB.startTime) {
+          if(breakA.userId < breakB.userId && breakA.startTime === breakB.startTime) {
               const userA = findUser(breakA.userId);
               const userB = findUser(breakB.userId);
-              // Avoid duplicates like [userA, userB] and [userB, userA]
               if (userA && userB && !lunchMatches.some(m => (m.users.includes(userA) && m.users.includes(userB)))) {
                 lunchMatches.push({users: [userA, userB], time: breakA.startTime});
               }
@@ -41,10 +40,9 @@ export default function BreaksPage() {
 
   coffeeBreaks.forEach(breakA => {
       coffeeBreaks.forEach(breakB => {
-          if(breakA.userId !== breakB.userId && breakA.startTime === breakB.startTime) {
+          if(breakA.userId < breakB.userId && breakA.startTime === breakB.startTime) {
               const userA = findUser(breakA.userId);
               const userB = findUser(breakB.userId);
-              // Avoid duplicates
               if (userA && userB && !coffeeMatches.some(m => (m.users.includes(userA) && m.users.includes(userB)))) {
                 coffeeMatches.push({users: [userA, userB], time: breakA.startTime});
               }
@@ -53,9 +51,7 @@ export default function BreaksPage() {
   });
   
   const handleSaveBreaks = () => {
-    // In a real app, you'd save this to a backend.
-    // For now, we update the local state.
-    const currentUser = "1"; // Assuming Tarec
+    const currentUser = "1";
     
     const updatedBreaks = breaks.filter(b => b.userId !== currentUser);
     
@@ -73,6 +69,14 @@ export default function BreaksPage() {
         description: "Deine Pausenzeiten wurden aktualisiert.",
     })
   }
+
+  const handleJoinBreak = (match: {users: User[], time: string}) => {
+    toast({
+      title: "Gruppe beigetreten!",
+      description: `Du schliesst dich ${match.users.map(u => u.name.split(' ')[0]).join(' & ')} für die Pause um ${match.time} an.`,
+    });
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -120,7 +124,7 @@ export default function BreaksPage() {
                     </div>
                     <div className="text-right">
                         <p className="font-semibold text-sm">{match.time}</p>
-                        <Button variant="ghost" size="sm" className="mt-1 h-8">Anschliessen</Button>
+                        <Button variant="ghost" size="sm" className="mt-1 h-8" onClick={() => handleJoinBreak(match)}>Anschliessen</Button>
                     </div>
                 </div>
              ))}
@@ -145,7 +149,7 @@ export default function BreaksPage() {
                     </div>
                     <div className="text-right">
                         <p className="font-semibold text-sm">{match.time}</p>
-                        <Button variant="ghost" size="sm" className="mt-1 h-8">Anschliessen</Button>
+                        <Button variant="ghost" size="sm" className="mt-1 h-8" onClick={() => handleJoinBreak(match)}>Anschliessen</Button>
                     </div>
                 </div>
              ))}

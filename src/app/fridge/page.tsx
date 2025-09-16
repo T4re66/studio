@@ -6,15 +6,29 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, User, Users, Clock, Refrigerator } from "lucide-react"
 import { AddItemDialog } from "@/components/fridge/add-item-dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { fridgeItems } from "@/lib/data"
+import { fridgeItems as initialFridgeItems } from "@/lib/data"
 import { FridgeCard } from "@/components/fridge/fridge-card"
 import type { FridgeItem } from "@/lib/data"
 
 export default function FridgePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>(initialFridgeItems);
   
-  // Assuming current user is Alice Johnson for demo purposes
+  // Assuming current user is Tarec for demo purposes
   const myUserId = "1"; 
+
+  const handleAddItem = (newItem: Omit<FridgeItem, 'id' | 'owner' | 'ownerId' | 'image' | 'shelf'>) => {
+    const fullNewItem: FridgeItem = {
+      ...newItem,
+      id: `f${fridgeItems.length + 1}`,
+      owner: 'Tarec',
+      ownerId: '1',
+      image: `https://picsum.photos/seed/${newItem.name.toLowerCase()}/400/300`,
+      shelf: `B${Math.floor(Math.random() * 3) + 1}`,
+    };
+    setFridgeItems(prev => [fullNewItem, ...prev]);
+  };
+
 
   const filters = {
     all: () => true,
@@ -24,7 +38,7 @@ export default function FridgePage() {
   }
 
   const renderItems = (filter: (item: FridgeItem) => boolean) => {
-    const items = fridgeItems.filter(filter);
+    const items = fridgeItems.filter(filter).sort((a,b) => a.expiryDays - b.expiryDays);
     if (items.length === 0) {
       return <p className="text-muted-foreground col-span-full text-center py-12">Keine Artikel gefunden.</p>
     }
@@ -65,7 +79,7 @@ export default function FridgePage() {
         </TabsContent>
       </Tabs>
 
-      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddItem={handleAddItem}/>
     </div>
   )
 }

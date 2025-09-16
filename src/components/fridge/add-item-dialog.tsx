@@ -14,13 +14,15 @@ import { Label } from "@/components/ui/label";
 import { Camera, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import type { FridgeItem } from "@/lib/data";
 
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddItem: (newItem: Omit<FridgeItem, 'id' | 'owner' | 'ownerId' | 'image' | 'shelf'>) => void;
 }
 
-export function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
+export function AddItemDialog({ open, onOpenChange, onAddItem }: AddItemDialogProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [itemName, setItemName] = useState("");
   const [expiryDays, setExpiryDays] = useState("");
@@ -48,6 +50,9 @@ export function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
       });
       return;
     }
+    
+    onAddItem({ name: itemName, expiryDays: parseInt(expiryDays) });
+
     toast({
       title: "Artikel hinzugefügt",
       description: `${itemName} wurde zum Kühlschrank hinzugefügt.`,

@@ -41,6 +41,16 @@ export default function NotesPage() {
             description: `"${newNote.title}" wurde zu deiner Ablage hinzugefügt.`
         })
     }
+    
+    const handleArchiveNote = (noteId: string) => {
+        const noteToArchive = notes.find(n => n.id === noteId);
+        setNotes(prev => prev.filter(n => n.id !== noteId));
+        toast({
+            title: "Notiz archiviert",
+            description: `"${noteToArchive?.title}" wurde archiviert.`
+        })
+    }
+
 
     return (
         <div className="flex flex-col gap-8">
@@ -67,6 +77,7 @@ export default function NotesPage() {
                     <CardDescription>Deine gespeicherten Notizen.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {notes.length === 0 && <p className="text-muted-foreground text-center py-12">Keine Notizen vorhanden. Erstelle eine neue!</p>}
                     {notes.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()).map(note => (
                          <div key={note.id} className="border p-4 rounded-lg group hover:bg-muted/50 transition-colors">
                             <div className="flex justify-between items-start">
@@ -80,7 +91,7 @@ export default function NotesPage() {
                             </div>
                             <div className="prose prose-sm dark:prose-invert max-w-none mt-2 text-muted-foreground" dangerouslySetInnerHTML={{ __html: note.content }} />
                              <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="outline" size="sm"><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
+                                <Button variant="outline" size="sm" onClick={() => handleArchiveNote(note.id)}><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
                             </div>
                         </div>
                     ))}
