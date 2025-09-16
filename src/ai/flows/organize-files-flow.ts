@@ -86,36 +86,30 @@ const organizeFilesFlow = ai.defineFlow(
   },
   async (input) => {
     // In a real implementation, we would extract text from PDFs/DOCX files.
-    // For now, we'll assume the 'content' field is already populated with text or a data URI.
+    // For now, we'll assume the 'content' field is already populated with text.
     
-    // For demonstration purposes, if the input is dummy, we return a fixed structure.
-    if (input.files.every(f => f.content === 'dummy content')) {
-        const fileNames = input.files.map(f => f.name);
-        return {
-            folders: [
-                {
-                    name: 'Projekte',
-                    files: fileNames.filter(name => name.includes('projekt') || name.includes('plan')).map(name => ({name, path: `/Projekte/${name}`}))
-                },
-                {
-                    name: 'Rechnungen',
-                    files: fileNames.filter(name => name.includes('rechnung')).map(name => ({name, path: `/Rechnungen/${name}`}))
-                },
-                 {
-                    name: 'Reports',
-                    files: fileNames.filter(name => name.includes('bericht')).map(name => ({name, path: `/Reports/${name}`}))
-                }
-            ].filter(f => f.files.length > 0)
-        }
-    }
-
-
     try {
       const {output} = await organizePrompt(input);
+      // Ensure that every file from input is in the output
+      const inputFiles = new Set(input.files.map(f => f.name));
+      const outputFiles = new Set(output!.folders.flatMap(f => f.files).map(f => f.name));
+      
+      for (const inputFile of inputFiles) {
+          if (!outputFiles.has(inputFile)) {
+              // If a file was missed by the AI, add it to an "Unsortiert" folder.
+              let unsortedFolder = output!.folders.find(f => f.name === 'Unsortiert');
+              if (!unsortedFolder) {
+                  unsortedFolder = { name: 'Unsortiert', files: [] };
+                  output!.folders.push(unsortedFolder);
+              }
+              unsortedFolder.files.push({ name: inputFile, path: `/Unsortiert/${inputFile}`});
+          }
+      }
+      
       return output!;
     } catch (e) {
       console.error(e);
-      // Fallback in case of an error
+      // Fallback in case of an error, puts all files in "Unsortiert".
       return {
         folders: [
           {
