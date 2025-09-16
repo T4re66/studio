@@ -230,12 +230,16 @@ export default function DashboardPage() {
         {/* Side Content */}
         <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
             <Link href="/breaks" className="sm:col-span-1">
-                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
                     </CardHeader>
-                    <CardContent className='flex flex-col items-center justify-center text-center'>
-                         <div className="flex -space-x-4">
+                    <CardContent className='flex flex-col items-center justify-center text-center relative'>
+                         <div 
+                            className="absolute w-full h-[80%] rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1"
+                            style={{ background: 'var(--gradient)'}}
+                         />
+                         <div className="flex -space-x-4 z-10">
                              <Avatar className="h-12 w-12 border-2 border-card">
                                  <AvatarImage src={nextBreakMatch.user1.avatar} />
                                  <AvatarFallback>{nextBreakMatch.user1.name.charAt(0)}</AvatarFallback>
@@ -245,8 +249,8 @@ export default function DashboardPage() {
                                  <AvatarFallback>{nextBreakMatch.user2.name.charAt(0)}</AvatarFallback>
                              </Avatar>
                          </div>
-                         <p className="text-sm font-semibold mt-3">Lunch um {nextBreakMatch.time}</p>
-                         <p className="text-xs text-muted-foreground">{nextBreakMatch.user1.name.split(' ')[0]} & {nextBreakMatch.user2.name.split(' ')[0]}</p>
+                         <p className="text-sm font-semibold mt-3 z-10">Lunch um {nextBreakMatch.time}</p>
+                         <p className="text-xs text-muted-foreground z-10">{nextBreakMatch.user1.name.split(' ')[0]} & {nextBreakMatch.user2.name.split(' ')[0]}</p>
                     </CardContent>
                 </Card>
             </Link>
