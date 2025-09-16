@@ -1,3 +1,4 @@
+
 'use client'
 
 import {
@@ -28,7 +29,6 @@ import {
   Map,
   Swords,
   BookText,
-  FolderKanban,
   Bot,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -55,12 +55,15 @@ const gamificationMenuItems = [
 ]
 
 const toolsMenuItems = [
-    { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
     { href: "/focus", label: "Fokus", icon: Timer },
     { href: "/check-in", label: "Check-in", icon: HeartPulse },
     { href: "/grades", label: "Notenblatt", icon: BookMarked },
-    { href: "/map", label: "Bürokarte", icon: Map },
 ];
+
+const officeMenuItems = [
+    { href: "/map", label: "Bürokarte", icon: Map },
+    { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
+]
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -140,6 +143,25 @@ export function AppSidebar() {
             <SidebarGroupLabel>Werkzeuge</SidebarGroupLabel>
             <SidebarMenu>
                  {toolsMenuItems.map(item => (
+                    <SidebarMenuItem key={item.href}>
+                    <Link href={item.href}>
+                        <SidebarMenuButton
+                        isActive={isActive(item.href)}
+                        tooltip={{ children: item.label }}
+                        >
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+
+         <SidebarGroup>
+            <SidebarGroupLabel>Büro</SidebarGroupLabel>
+            <SidebarMenu>
+                 {officeMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                         <SidebarMenuButton
