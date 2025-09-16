@@ -48,9 +48,10 @@ export default function LandingPage() {
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
                         OfficeZen ist die All-in-One-Lösung, die den Büroalltag vereinfacht, die Zusammenarbeit fördert und mit smarten Funktionen und Gamification für mehr Spass bei der Arbeit sorgt.
                     </p>
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-8 flex flex-col items-center justify-center gap-4">
+                        <p className="text-lg">Hey Tarec, willkommen zurück!</p>
                         <Link href="/dashboard">
-                          <Button size="lg">Anmelden <ArrowRight className="ml-2" /></Button>
+                          <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
                         </Link>
                     </div>
                 </section>
