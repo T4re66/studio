@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { teamMembers, emails, calendarEvents } from "@/lib/data";
@@ -8,7 +11,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
 import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
-import { isToday } from "date-fns";
+import { isToday, isSameDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
@@ -55,32 +58,70 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
     return { left: `${x}%`, top: `${y}%` };
 };
 
+const AnimatedCounter = ({ to }: { to: number }) => {
+    const [count, setCount] = useState(0);
 
-export default async function Home() {
+    useEffect(() => {
+        const animation = requestAnimationFrame(animateCount);
+        let start: number | undefined;
+
+        function animateCount(timestamp: number) {
+            if (start === undefined) start = timestamp;
+            const elapsed = timestamp - start;
+            const progress = Math.min(elapsed / 2000, 1); // Animate over 2 seconds
+            const current = Math.floor(progress * to);
+            setCount(current);
+            if (progress < 1) {
+                requestAnimationFrame(animateCount);
+            }
+        }
+
+        return () => cancelAnimationFrame(animation);
+    }, [to]);
+
+    return <>{count.toLocaleString()}</>;
+}
+
+
+export default function Home() {
+  const [emailSummary, setEmailSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
+  const [calendarSummary, setCalendarSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
+
+  useEffect(() => {
+    async function fetchSummaries() {
+        const todayEvents = calendarEvents.filter(e => isSameDay(new Date(e.date), new Date()));
+        try {
+            const result = await summarizeEmails(emails.filter(e => !e.isRead));
+            setEmailSummary(result);
+        } catch (e) {
+            console.error(e);
+            setEmailSummary({ summary: "Zusammenfassung konnte nicht geladen werden." });
+        }
+        try {
+            const result = await summarizeCalendar(todayEvents);
+            setCalendarSummary(result);
+        } catch (e) {
+            console.error(e);
+            setCalendarSummary({ summary: "Zusammenfassung konnte nicht geladen werden." });
+        }
+    }
+    fetchSummaries();
+  }, [])
+
+
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
-  const currentUser = teamMembers[0]; // Assuming current user is Alice
+  const currentUser = teamMembers.find(m => m.id === '1')!; 
   const nextBirthday = getNextBirthday();
   const todayEvents = calendarEvents.filter(e => isToday(new Date(e.date)));
   
-  let emailSummary;
-  let calendarSummary;
-
-  try {
-    emailSummary = await summarizeEmails(emails.filter(e => !e.isRead));
-  } catch (e) {
-    console.error(e);
-    emailSummary = { summary: "Zusammenfassung konnte nicht geladen werden." };
-  }
-
-  try {
-    calendarSummary = await summarizeCalendar(todayEvents);
-  } catch (e) {
-    console.error(e);
-    calendarSummary = { summary: "Zusammenfassung konnte nicht geladen werden." };
-  }
-
   const tableWidth = 45; // in percentage of parent
   const tableHeight = 90; // in percentage of parent
+
+  const nextBreakMatch = {
+    user1: teamMembers.find(m => m.id === '1')!,
+    user2: teamMembers.find(m => m.id === '3')!,
+    time: "12:30"
+  };
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -161,12 +202,22 @@ export default async function Home() {
 
             <Link href="/breaks" className="xl:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    <CardHeader>
+                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                    <p className="text-sm font-semibold">Nächster Match:</p>
-                    <p className="text-sm text-muted-foreground">Mittagessen mit Charlie um 12:30</p>
+                    <CardContent className='flex flex-col items-center text-center'>
+                         <div className="flex -space-x-4">
+                             <Avatar className="h-12 w-12 border-2 border-card">
+                                 <AvatarImage src={nextBreakMatch.user1.avatar} />
+                                 <AvatarFallback>{nextBreakMatch.user1.name.charAt(0)}</AvatarFallback>
+                             </Avatar>
+                              <Avatar className="h-12 w-12 border-2 border-card">
+                                 <AvatarImage src={nextBreakMatch.user2.avatar} />
+                                 <AvatarFallback>{nextBreakMatch.user2.name.charAt(0)}</AvatarFallback>
+                             </Avatar>
+                         </div>
+                         <p className="text-sm font-semibold mt-3">Lunch um {nextBreakMatch.time}</p>
+                         <p className="text-xs text-muted-foreground">{nextBreakMatch.user1.name.split(' ')[0]} & {nextBreakMatch.user2.name.split(' ')[0]}</p>
                     </CardContent>
                 </Card>
             </Link>
@@ -174,18 +225,24 @@ export default async function Home() {
              <Link href="/leaderboard" className="xl:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
                     <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
+                        <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center">
-                        <p className="text-4xl font-bold text-accent">{currentUser.points}</p>
-                        <p className="font-semibold mt-2">Rang 3 von {teamMembers.length}</p>
+                    <CardContent className="text-center flex-1 flex flex-col justify-center">
+                        <p className="text-5xl font-bold text-accent">
+                           <AnimatedCounter to={currentUser.points} />
+                        </p>
+                        <p className="font-semibold mt-1">Dein Rang: 3.</p>
                     </CardContent>
                 </Card>
             </Link>
             
             <Link href="/birthdays" className="xl:col-span-1">
-                <Card className="h-full flex flex-col justify-between items-center text-center transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    <CardHeader>
+                 <Card className={cn(
+                    "h-full flex flex-col justify-center items-center text-center transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden",
+                    nextBirthday.days === 0 && "bg-pink-100/50 border-pink-400"
+                )}>
+                     {nextBirthday.days === 0 && <div className="absolute top-2 right-2 text-xs font-bold text-pink-600 bg-white/50 px-2 py-1 rounded-full animate-pulse">HEUTE!</div>}
+                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -209,3 +266,5 @@ export default async function Home() {
     </div>
   );
 }
+
+    
