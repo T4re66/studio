@@ -23,6 +23,7 @@
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
     --ring: 262 80% 58%;
+    --radius: 1rem;
 
     --status-green: 135 58% 50%;
     --status-yellow: 48 100% 50%;
@@ -58,6 +59,7 @@
     --border: 240 3.7% 20.9%;
     --input: 240 3.7% 15.9%;
     --ring: 262 80% 68%;
+    --radius: 1rem;
     
     --status-green: 135 58% 52%;
     --status-yellow: 48 93% 57%;
