@@ -1,6 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { teamMembers, emails } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Coffee, Gift, Mail, Medal, Users, Sparkles } from "lucide-react";
@@ -24,6 +23,7 @@ function getNextBirthday() {
     let minDays = Infinity;
 
     teamMembers.forEach(member => {
+        if (!member.birthday) return;
         const birthday = new Date(member.birthday);
         birthday.setFullYear(currentYear);
 
@@ -166,7 +166,7 @@ export default async function Home() {
                   <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
                 </CardHeader>
                 <CardContent className="text-center">
-                   {nextBirthday.member && (
+                   {nextBirthday.member && nextBirthday.member.birthday && (
                     <>
                         <Avatar className="h-20 w-20 mx-auto border-4 border-pink-300">
                             <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name} />
