@@ -4,8 +4,26 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import DashboardLayout from './dashboard/layout';
 import { usePathname } from 'next/navigation';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/app-sidebar';
+import { AppHeader } from '@/components/app-header';
+import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
+
+function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="flex flex-col flex-1">
+          <AppHeader />
+          <main className="p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+      </div>
+      <FloatingWalkieTalkie />
+    </SidebarProvider>
+  )
+}
 
 export default function RootLayout({
   children,
@@ -27,9 +45,9 @@ export default function RootLayout({
         {isLandingPage ? (
           children
         ) : (
-          <DashboardLayout>
+          <AppLayout>
             {children}
-          </DashboardLayout>
+          </AppLayout>
         )}
         <Toaster />
       </body>
