@@ -28,6 +28,7 @@ import {
   BookMarked,
   ShoppingCart,
   Map,
+  Notebook
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -37,6 +38,7 @@ const mainMenuItems = [
   { href: "/", label: "Übersicht", icon: Home },
   { href: "/inbox", label: "Inbox", icon: Mail },
   { href: "/calendar", label: "Kalender", icon: CalendarDays },
+  { href: "/notes", label: "Notizen", icon: Notebook },
 ]
 
 const teamMenuItems = [

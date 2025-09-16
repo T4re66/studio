@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { teamMembers, emails, calendarEvents } from "@/lib/data";
+import { teamMembers, emails, calendarEvents, notes } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
-import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
+import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { isToday, isSameDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -62,8 +61,7 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
 
 export default function Home() {
-  const [emailSummary, setEmailSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
-  const [calendarSummary, setCalendarSummary] = useState({ summary: "Zusammenfassung wird geladen..." });
+  const [briefing, setBriefing] = useState({ emailSummary: "...", calendarSummary: "...", notesSummary: "..." });
   const [nextBirthday, setNextBirthday] = useState<NextBirthday>(null);
 
   useEffect(() => {
@@ -101,24 +99,27 @@ export default function Home() {
     setNextBirthday(getNextBirthday());
 
     // Summaries fetching
-    async function fetchSummaries() {
+    async function fetchBriefing() {
         const todayEvents = calendarEvents.filter(e => isSameDay(new Date(e.date), new Date()));
+        const unreadEmails = emails.filter(e => !e.isRead);
+
         try {
-            const result = await summarizeEmails(emails.filter(e => !e.isRead));
-            setEmailSummary(result);
+            const result = await summarizeBriefing({
+                emails: unreadEmails,
+                events: todayEvents,
+                notes: notes,
+            });
+            setBriefing(result);
         } catch (e) {
             console.error(e);
-            setEmailSummary({ summary: "Zusammenfassung konnte nicht geladen werden." });
-        }
-        try {
-            const result = await summarizeCalendar(todayEvents);
-            setCalendarSummary(result);
-        } catch (e) {
-            console.error(e);
-            setCalendarSummary({ summary: "Zusammenfassung konnte nicht geladen werden." });
+            setBriefing({
+                emailSummary: "Zusammenfassung der E-Mails konnte nicht geladen werden.",
+                calendarSummary: "Zusammenfassung des Kalenders konnte nicht geladen werden.",
+                notesSummary: "Zusammenfassung der Notizen konnte nicht geladen werden."
+            });
         }
     }
-    fetchSummaries();
+    fetchBriefing();
 
   }, [])
 
@@ -188,17 +189,23 @@ export default function Home() {
                             Tages-Briefing
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 space-y-4">
+                    <CardContent className="flex-1 space-y-4 overflow-y-auto">
                         <div>
                             <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
                             <p className="text-sm text-foreground/80">
-                                {emailSummary.summary}
+                                {briefing.emailSummary}
                             </p>
                         </div>
                         <div>
                             <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
                             <p className="text-sm text-foreground/80">
-                                {calendarSummary.summary}
+                                {briefing.calendarSummary}
+                            </p>
+                        </div>
+                         <div>
+                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
+                            <p className="text-sm text-foreground/80">
+                                {briefing.notesSummary}
                             </p>
                         </div>
                     </CardContent>

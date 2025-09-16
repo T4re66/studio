@@ -1,4 +1,5 @@
 
+
 export type User = {
   id: string;
   name: string;
@@ -77,6 +78,14 @@ export type ShopItem = {
     category: 'Essen & Trinken' | 'Büro-Vorteile' | 'Freizeit';
     icon: string;
 };
+
+export type Note = {
+    id: string;
+    title: string;
+    content: string;
+    date: string; // YYYY-MM-DD
+    tags: string[];
+}
 
 
 export const teamMembers: User[] = [
@@ -192,3 +201,8 @@ export const officeLayout = {
       { "type": "desks", "count": 4, "id": "D" }
     ]
   }
+
+export const notes: Note[] = [
+    { id: 'n1', title: 'Meeting-Notizen: Project Phoenix', content: '<p>Wichtige Punkte aus dem Meeting: Das Backend-Team hat Probleme mit der Datenbank-Migration. Wir müssen das bis Freitag klären. <strong>Action Item:</strong> Tarec soll sich mit Bob abstimmen.</p>', date: '2024-07-22', tags: ['meeting', 'project-phoenix'] },
+    { id: 'n2', title: 'Ideen für Q3', content: '<p>Brainstorming für das nächste Quartal:</p><ul><li>Gamification weiter ausbauen (z.B. Team-Challenges)</li><li>Performance der App verbessern</li><li>Neues Feature: "Pausen-Roulette"</li></ul>', date: '2024-07-20', tags: ['ideen', 'planung'] },
+];
