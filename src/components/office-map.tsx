@@ -10,6 +10,7 @@ interface OfficeMapProps {
     interactive?: boolean;
     selectedSeat?: string | null;
     onSeatSelect?: (seat: string) => void;
+    highlightedSeat?: string | null;
 }
 
 const iconMap: {[key: string]: React.ElementType} = {
@@ -17,7 +18,7 @@ const iconMap: {[key: string]: React.ElementType} = {
     Tv: Tv
 };
 
-export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect }: OfficeMapProps) {
+export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect, highlightedSeat }: OfficeMapProps) {
     
     const membersBySeat = teamMembers.reduce((acc, member) => {
         if (member.seat) {
@@ -35,6 +36,7 @@ export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect }: O
                 const isSelected = selectedSeat === el.seatId;
                 const isOccupied = !!member;
                 const canSelect = interactive && !isOccupied;
+                const isHighlighted = highlightedSeat === el.seatId;
 
                 const deskContent = (
                     <div className="w-full h-full flex flex-col items-center justify-center relative">
@@ -60,14 +62,19 @@ export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect }: O
                     </div>
                 );
 
+                const commonClassNames = cn(
+                    "bg-card border rounded-md flex items-center justify-center relative transition-all",
+                    el.rotation === 90 && "rotate-90",
+                    isHighlighted && "ring-2 ring-primary ring-offset-2 ring-offset-background z-20",
+                );
+
                  if (interactive) {
                     return (
                         <button
                             key={el.id}
                             style={style}
                             className={cn(
-                                "bg-card border rounded-md flex items-center justify-center relative transition-all",
-                                el.rotation === 90 && "rotate-90",
+                                commonClassNames,
                                 canSelect && "cursor-pointer hover:bg-primary/10 hover:border-primary",
                                 isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background z-20",
                                 isOccupied && "cursor-not-allowed",
@@ -81,7 +88,7 @@ export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect }: O
                 }
 
                 return (
-                    <div key={el.id} style={style} className={cn("bg-card border rounded-md flex items-center justify-center relative", el.rotation === 90 && "rotate-90")}>
+                    <div key={el.id} style={style} className={commonClassNames}>
                        {deskContent}
                     </div>
                 )
