@@ -6,7 +6,7 @@
   :root {
     --background: 240 10% 97%;
     --foreground: 240 10% 3.9%;
-    --card: 0 0% 100% / 0.8;
+    --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -25,6 +25,8 @@
     --ring: 262 80% 58%;
     --radius: 1rem;
 
+    --gradient: linear-gradient(to right, hsl(var(--accent)), #ff7e5f, #de4839, hsl(var(--primary)));
+
     --status-green: 135 58% 50%;
     --status-yellow: 48 100% 50%;
     --status-red: 2 100% 60%;
@@ -42,7 +44,7 @@
   .dark {
     --background: 240 6% 10%;
     --foreground: 0 0% 98%;
-    --card: 240 5% 12% / 0.8;
+    --card: 240 5% 12%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -90,10 +92,11 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-}
-
-@layer components {
-  .card {
-    @apply backdrop-blur-xl;
+  .gradient-text {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
   }
 }
