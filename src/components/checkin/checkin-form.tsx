@@ -37,7 +37,7 @@ export function CheckinForm() {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto">
+    <Card className="max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle className="font-headline">Täglicher Check-in</CardTitle>
         <CardDescription>

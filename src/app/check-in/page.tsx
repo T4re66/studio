@@ -8,7 +8,9 @@ export default function CheckinPage() {
         title="Stress Check-in"
         description="Ein schneller, anonymer Weg, um dein Wohlbefinden zu teilen."
       />
-      <CheckinForm />
+      <div className="w-full">
+        <CheckinForm />
+      </div>
     </div>
   );
 }
