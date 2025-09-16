@@ -61,7 +61,8 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
 
 export default function DashboardPage() {
-  const [briefing, setBriefing] = useState({ emailSummary: "...", calendarSummary: "...", notesSummary: "..." });
+  const [briefing, setBriefing] = useState({ emailSummary: "", calendarSummary: "", notesSummary: "" });
+  const [isLoadingBriefing, setIsLoadingBriefing] = useState(true);
   const [nextBirthday, setNextBirthday] = useState<NextBirthday>(null);
 
   useEffect(() => {
@@ -100,6 +101,7 @@ export default function DashboardPage() {
 
     // Summaries fetching
     async function fetchBriefing() {
+        setIsLoadingBriefing(true);
         const todayEvents = calendarEvents.filter(e => isSameDay(new Date(e.date), new Date()));
         const unreadEmails = emails.filter(e => !e.isRead);
 
@@ -117,6 +119,8 @@ export default function DashboardPage() {
                 calendarSummary: "Zusammenfassung des Kalenders konnte nicht geladen werden.",
                 notesSummary: "Zusammenfassung der Notizen konnte nicht geladen werden."
             });
+        } finally {
+            setIsLoadingBriefing(false);
         }
     }
     fetchBriefing();
@@ -193,19 +197,19 @@ export default function DashboardPage() {
                         <div>
                             <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
                             <p className="text-sm text-foreground/80">
-                                {briefing.emailSummary}
+                                {isLoadingBriefing ? "Wird geladen..." : briefing.emailSummary}
                             </p>
                         </div>
                         <div>
                             <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
                             <p className="text-sm text-foreground/80">
-                                {briefing.calendarSummary}
+                                {isLoadingBriefing ? "Wird geladen..." : briefing.calendarSummary}
                             </p>
                         </div>
                          <div>
                             <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
                             <p className="text-sm text-foreground/80">
-                                {briefing.notesSummary}
+                                {isLoadingBriefing ? "Wird geladen..." : briefing.notesSummary}
                             </p>
                         </div>
                     </CardContent>
@@ -225,7 +229,7 @@ export default function DashboardPage() {
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
                     </CardHeader>
-                    <CardContent className='flex flex-col items-center text-center'>
+                    <CardContent className='flex flex-col items-center justify-center text-center'>
                          <div className="flex -space-x-4">
                              <Avatar className="h-12 w-12 border-2 border-card">
                                  <AvatarImage src={nextBreakMatch.user1.avatar} />
