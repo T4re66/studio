@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
-import { calendarEvents as initialEvents, teamMembers } from "@/lib/data";
+import { calendarEvents as initialEvents, teamMembers, deadlines } from "@/lib/data";
 import { format, isSameDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
 import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
 import type { CalendarEvent } from "@/lib/data";
+import { DeadlineManager } from "../calendar/deadline-manager";
 
 const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -69,7 +70,7 @@ export function CalendarTab() {
   return (
     <div className="flex flex-col gap-8">
        <div className="flex justify-between items-start flex-wrap gap-4">
-            <h2 className="text-xl font-semibold font-headline">Kalenderübersicht</h2>
+            <h2 className="text-xl font-semibold font-headline">Kalenderübersicht & Deadlines</h2>
              <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Termin hinzufügen
@@ -77,18 +78,21 @@ export function CalendarTab() {
        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <Card className="lg:col-span-2">
-            <CardContent className="p-0 sm:p-2 flex justify-center">
-            <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="rounded-md"
-                    weekStartsOn={1}
-                    locale={de}
-                />
-            </CardContent>
-        </Card>
+        <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card>
+                <CardContent className="p-0 sm:p-2 flex justify-center">
+                <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        className="rounded-md"
+                        weekStartsOn={1}
+                        locale={de}
+                    />
+                </CardContent>
+            </Card>
+            <DeadlineManager deadlines={deadlines} />
+        </div>
         
         <div className="lg:col-span-1 flex flex-col gap-8">
             <Card>
@@ -150,3 +154,5 @@ export function CalendarTab() {
     </div>
   );
 }
+
+    

@@ -117,6 +117,14 @@ export type Tournament = {
     winner?: Team;
 }
 
+export type Deadline = {
+  id: string;
+  title: string;
+  projectId: string;
+  projectName: string;
+  dueDate: string; // YYYY-MM-DD
+};
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
@@ -264,6 +272,13 @@ export const notes: Note[] = [
     { id: 'n2', title: 'Ideen für Q3', content: '<p>Brainstorming für das nächste Quartal:</p><ul><li>Gamification weiter ausbauen (z.B. Team-Challenges)</li><li>Performance der App verbessern</li><li>Neues Feature: "Pausen-Roulette"</li></ul>', date: '2024-07-20', tags: ['ideen', 'planung'] },
 ];
 
+export const deadlines: Deadline[] = [
+  { id: 'd1', title: 'Frontend-Implementierung abschliessen', projectId: 'p1', projectName: 'Projekt Phoenix', dueDate: '2024-08-15' },
+  { id: 'd2', title: 'Q3-Marketingbericht erstellen', projectId: 'p2', projectName: 'Marketing-Kampagne', dueDate: '2024-07-30' },
+  { id: 'd3', title: 'Datenbank-Migration planen', projectId: 'p1', projectName: 'Projekt Phoenix', dueDate: '2024-09-01' },
+  { id: 'd4', title: 'User-Testing durchführen', projectId: 'p3', projectName: 'Neue App-Funktion', dueDate: '2024-08-05' },
+];
+
 const [tarec, bob, charlie, diana, ethan, fiona, george, hannah] = teamMembers;
 
 export const tournaments: Tournament[] = [
@@ -331,3 +346,6 @@ export const tournaments: Tournament[] = [
 
 
 
+
+
+    
