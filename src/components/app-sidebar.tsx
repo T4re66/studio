@@ -29,7 +29,8 @@ import {
   ShoppingCart,
   Map,
   Notebook,
-  Mic
+  Mic,
+  Swords
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -46,6 +47,7 @@ const teamMenuItems = [
     { href: "/people", label: "Team", icon: Users },
     { href: "/breaks", label: "Pausen", icon: Coffee },
     { href: "/birthdays", label: "Geburtstage", icon: Gift },
+    { href: "/tournaments", label: "Turniere", icon: Swords },
 ];
 
 const gamificationMenuItems = [

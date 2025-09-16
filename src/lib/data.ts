@@ -88,6 +88,34 @@ export type Note = {
     tags: string[];
 }
 
+export type Team = {
+    name: string;
+    members: User[];
+    score: number;
+}
+
+export type Match = {
+    name: string;
+    teamA: Team;
+    teamB: Team;
+    winner?: Team;
+}
+
+export type TournamentRound = {
+    name: string;
+    matches: Match[];
+}
+
+export type Tournament = {
+    id: string;
+    name: string;
+    game: 'Darts' | 'Ping Pong' | 'Tischfussball';
+    points: number;
+    rounds: TournamentRound[];
+    completed: boolean;
+    winner?: Team;
+}
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true },
@@ -207,3 +235,68 @@ export const notes: Note[] = [
     { id: 'n1', title: 'Meeting-Notizen: Project Phoenix', content: '<p>Wichtige Punkte aus dem Meeting: Das Backend-Team hat Probleme mit der Datenbank-Migration. Wir müssen das bis Freitag klären. <strong>Action Item:</strong> Tarec soll sich mit Bob abstimmen.</p>', date: '2024-07-22', tags: ['meeting', 'project-phoenix'] },
     { id: 'n2', title: 'Ideen für Q3', content: '<p>Brainstorming für das nächste Quartal:</p><ul><li>Gamification weiter ausbauen (z.B. Team-Challenges)</li><li>Performance der App verbessern</li><li>Neues Feature: "Pausen-Roulette"</li></ul>', date: '2024-07-20', tags: ['ideen', 'planung'] },
 ];
+
+const [tarec, bob, charlie, diana, ethan, fiona, george, hannah] = teamMembers;
+
+export const tournaments: Tournament[] = [
+    {
+        id: 'tour-darts-1',
+        name: 'Dart-Meisterschaft Q3',
+        game: 'Darts',
+        points: 500,
+        completed: false,
+        rounds: [
+            {
+                name: 'Halbfinale',
+                matches: [
+                    { name: 'Match 1', teamA: { name: 'Tarec', members: [tarec], score: 0 }, teamB: { name: 'Diana', members: [diana], score: 0 } },
+                    { name: 'Match 2', teamA: { name: 'Charlie', members: [charlie], score: 0 }, teamB: { name: 'George', members: [george], score: 0 } },
+                ]
+            },
+            {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'tour-pingpong-1',
+        name: 'Ping Pong Turnier',
+        game: 'Ping Pong',
+        points: 400,
+        completed: true,
+        winner: { name: 'Fiona', members: [fiona], score: 21 },
+        rounds: [
+            {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'Fiona', members: [fiona], score: 21 }, teamB: { name: 'Bob', members: [bob], score: 18 }, winner: { name: 'Fiona', members: [fiona], score: 21 } },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'tour-tf-1',
+        name: 'Tischfussball Cup',
+        game: 'Tischfussball',
+        points: 750,
+        completed: false,
+        rounds: [
+            {
+                name: 'Halbfinale',
+                matches: [
+                    { name: 'Match 1', teamA: { name: 'Devs', members: [tarec, bob], score: 0 }, teamB: { name: 'Design & PM', members: [charlie, diana], score: 0 } },
+                    { name: 'Match 2', teamA: { name: 'QA & Marketing', members: [ethan, fiona], score: 0 }, teamB: { name: 'Data & DevOps', members: [hannah, george], score: 0 } },
+                ]
+            },
+             {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
+                ]
+            }
+        ]
+    }
+]
