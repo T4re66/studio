@@ -1,14 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, BrainCircuit, Coffee, Refrigerator, Users } from "lucide-react";
+import { ArrowRight, BrainCircuit, Refrigerator, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { AppSidebar } from "@/components/app-sidebar";
-import { AppHeader } from "@/components/app-header";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/toaster";
-import { FloatingWalkieTalkie } from "@/components/walkie-talkie/floating-walkie-talkie";
 import { Icons } from "@/components/icons";
 
 const features = [
@@ -62,12 +56,9 @@ export default function LandingPage() {
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
                         OfficeZen ist die All-in-One-Lösung, die den Büroalltag vereinfacht, die Zusammenarbeit fördert und mit smarten Funktionen und Gamification für mehr Spass bei der Arbeit sorgt.
                     </p>
-                    <div className="mt-8 flex justify-center gap-4">
+                    <div className="mt-8 flex justify-center">
                         <Link href="/dashboard">
-                          <Button size="lg">Jetzt loslegen</Button>
-                        </Link>
-                        <Link href="#">
-                           <Button size="lg" variant="outline">Mehr erfahren</Button>
+                          <Button size="lg">Anmelden <ArrowRight className="ml-2" /></Button>
                         </Link>
                     </div>
                 </section>
