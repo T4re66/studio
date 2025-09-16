@@ -26,6 +26,7 @@ export function PartyConfetti() {
       animationDelay: `${Math.random() * 5}s`,
       animationDuration: `${2 + Math.random() * 3}s`,
       transform: `rotate(${Math.random() * 360}deg)`,
+      animationName: 'drop'
     };
     return <div key={i} className="confetti-piece" style={style}></div>;
   }), []);
@@ -40,12 +41,13 @@ export function PartyConfetti() {
           height: 16px;
           top: -20px;
           opacity: 0;
-          animation: drop linear infinite;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
         }
 
         @keyframes drop {
           0% {
-            transform: translateY(0) rotate(0deg);
+            transform: translateY(0vh) rotate(0deg);
             opacity: 1;
           }
           100% {
