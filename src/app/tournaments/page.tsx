@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Darts, Sword, TableTennis, Trophy } from 'lucide-react';
+import { Target, Sword, TableTennis, Trophy } from 'lucide-react';
 import { tournaments as initialTournaments, teamMembers as initialTeamMembers } from '@/lib/data';
 import type { Tournament, Match, Team, User } from '@/lib/data';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
@@ -149,7 +149,7 @@ export default function TournamentsPage() {
 
             <Tabs defaultValue="darts" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="darts"><Darts /> Dart</TabsTrigger>
+                    <TabsTrigger value="darts"><Target /> Dart</TabsTrigger>
                     <TabsTrigger value="ping-pong"><TableTennis/> Ping Pong</TabsTrigger>
                     <TabsTrigger value="table-football"><Sword/> Tischfussball</TabsTrigger>
                 </TabsList>
