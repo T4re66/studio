@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -157,7 +158,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6">
                     <div 
-                        className="absolute w-[60%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-20 blur-3xl"
+                        className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-40 blur-3xl"
                         style={{ background: 'var(--gradient)'}}
                     />
 
@@ -294,6 +295,8 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
 
