@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { teamMembers, breaks as initialBreaks } from "@/lib/data";
-import { Plus, Coffee, Lunch } from "lucide-react";
+import { Plus, Coffee, Utensils } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -108,7 +108,7 @@ export default function BreaksPage() {
       <div className="grid md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Lunch />Mittagspausen-Matches</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Utensils />Mittagspausen-Matches</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
              {lunchMatches.map((match, i) => (
