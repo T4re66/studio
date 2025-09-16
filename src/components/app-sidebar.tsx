@@ -139,10 +139,10 @@ export function AppSidebar() {
             </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup>
-            <SidebarGroupLabel>Werkzeuge</SidebarGroupLabel>
+         <SidebarGroup>
+            <SidebarGroupLabel>Büro</SidebarGroupLabel>
             <SidebarMenu>
-                 {toolsMenuItems.map(item => (
+                 {officeMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                         <SidebarMenuButton
@@ -158,10 +158,10 @@ export function AppSidebar() {
             </SidebarMenu>
         </SidebarGroup>
 
-         <SidebarGroup>
-            <SidebarGroupLabel>Büro</SidebarGroupLabel>
+        <SidebarGroup>
+            <SidebarGroupLabel>Werkzeuge</SidebarGroupLabel>
             <SidebarMenu>
-                 {officeMenuItems.map(item => (
+                 {toolsMenuItems.map(item => (
                     <SidebarMenuItem key={item.href}>
                     <Link href={item.href}>
                         <SidebarMenuButton
