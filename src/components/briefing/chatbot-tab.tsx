@@ -34,6 +34,7 @@ export function ChatbotTab() {
         setIsLoading(true);
 
         try {
+            // Rerunning the query updates the calendar events after a new one is made.
             const botResponse = await chatbotFlow({
                 question: input,
                 emails: emails,
@@ -67,7 +68,7 @@ export function ChatbotTab() {
                          <div className="flex h-full items-center justify-center text-muted-foreground text-center">
                             <div>
                                 <Bot className="h-12 w-12 mx-auto mb-2" />
-                                <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Was sind meine wichtigsten Aufgaben heute?"</p>
+                                <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Was sind meine wichtigsten Aufgaben heute?" oder "Erstelle ein Meeting für morgen um 10 Uhr mit dem Titel 'Projekt-Update'."</p>
                             </div>
                         </div>
                     ) : (
