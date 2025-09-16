@@ -26,6 +26,7 @@ import {
   ListChecks,
   CalendarDays,
   BookMarked,
+  ShoppingCart,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -46,6 +47,7 @@ const teamMenuItems = [
 const gamificationMenuItems = [
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { href: "/tasks", label: "Aufgaben", icon: ListChecks },
+    { href: "/shop", label: "Shop", icon: ShoppingCart },
 ]
 
 const toolsMenuItems = [

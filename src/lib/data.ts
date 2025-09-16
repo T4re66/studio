@@ -68,6 +68,15 @@ export type Grade = {
   notes?: string;
 };
 
+export type ShopItem = {
+    id: string;
+    title: string;
+    description: string;
+    cost: number;
+    category: 'Essen & Trinken' | 'Büro-Vorteile' | 'Freizeit';
+    icon: string;
+};
+
 
 export const teamMembers: User[] = [
   { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' },
@@ -163,4 +172,11 @@ export const grades: Grade[] = [
     { id: 'g30', subject: 'Geographie', grade: 2.3, date: '2024-05-14', type: 'Klausur', weight: 2, notes: 'Klimazonen' },
 ];
 
-
+export const shopItems: ShopItem[] = [
+    { id: 's1', title: 'Kaffee für eine Woche', description: 'Eine Woche lang kostenloser Kaffee aus der Büro-Barista-Maschine.', cost: 500, category: 'Essen & Trinken', icon: 'Coffee' },
+    { id: 's2', title: 'Team-Pizza', description: 'Eine Pizza-Session für dich und dein unmittelbares Team.', cost: 2000, category: 'Essen & Trinken', icon: 'Pizza' },
+    { id: 's3', title: 'Fokus-Kopfhörer', description: 'Hochwertige Noise-Cancelling-Kopfhörer für einen Tag ausleihen.', cost: 300, category: 'Büro-Vorteile', icon: 'Headphones' },
+    { id: 's4', title: 'Ein Tag frei', description: 'Ein zusätzlicher bezahlter Urlaubstag. Muss mit dem Management abgestimmt werden.', cost: 10000, category: 'Freizeit', icon: 'CalendarOff' },
+    { id: 's5', title: 'Ergonomischer Stuhl-Upgrade', description: 'Upgrade deinen Bürostuhl für eine Woche auf ein Premium-Modell.', cost: 1500, category: 'Büro-Vorteile', icon: 'Armchair' },
+    { id: 's6', title: 'Wunsch-Snack', description: 'Wünsche dir einen Snack, der für eine Woche in der Küche bereitgestellt wird.', cost: 750, category: 'Essen & Trinken', icon: 'Cookie' },
+];
