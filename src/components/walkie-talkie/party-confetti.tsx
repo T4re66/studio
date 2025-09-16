@@ -38,9 +38,11 @@ export function PartyConfetti() {
         animationTimingFunction: 'linear',
         animationFillMode: 'forwards',
       };
+      
+      // Use React.Fragment with a key to group the style and div
       return (
-        <>
-            <style key={`anim-${i}`}>{`
+        <React.Fragment key={i}>
+            <style>{`
                 @keyframes fall-${i} {
                     from {
                         transform: translate(0, 0) rotate(${rotation}deg);
@@ -50,8 +52,8 @@ export function PartyConfetti() {
                     }
                 }
             `}</style>
-            <div key={i} className="confetti-piece" style={style}></div>
-        </>
+            <div className="confetti-piece" style={style}></div>
+        </React.Fragment>
       );
     });
     setPieces(newPieces);
