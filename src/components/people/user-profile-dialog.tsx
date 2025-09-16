@@ -37,6 +37,9 @@ const statusInfo: {
   away: { label: "Abwesend", className: "bg-gray-100 text-gray-800 dark:bg-gray-700/50 dark:text-gray-300" },
 };
 
+const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
+
+
 export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialogProps) {
   const { toast } = useToast();
   const [chatInput, setChatInput] = useState("");
@@ -47,6 +50,8 @@ export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialo
   if (!user) return null;
 
   const info = statusInfo[user.status];
+  const moodEmoji = user.mood ? moodEmojis[user.mood - 1] : null;
+
 
   const handleCall = () => {
     toast({
@@ -91,7 +96,10 @@ export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialo
                 <AvatarImage src={user.avatar} />
                 <AvatarFallback className="text-3xl">{user.name.slice(0, 2)}</AvatarFallback>
             </Avatar>
-            <DialogTitle className="font-headline text-2xl">{user.name}</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle className="font-headline text-2xl">{user.name}</DialogTitle>
+              {moodEmoji && <span className="text-3xl" title={`Stimmung: ${moodEmoji}`}>{moodEmoji}</span>}
+            </div>
             <DialogDescription>{user.role} &middot; {user.department}</DialogDescription>
             <Badge variant="outline" className={`mt-2 text-xs border-0 ${info.className}`}>
                 {info.label} {user.seat && `(Tisch ${user.seat})`}

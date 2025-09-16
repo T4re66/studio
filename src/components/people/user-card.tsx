@@ -19,8 +19,13 @@ const statusDotClasses = {
   away: "bg-gray-400",
 };
 
+const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
+
+
 export function UserCard({ user }: { user: User }) {
   const info = statusInfo[user.status];
+  const moodEmoji = user.mood ? moodEmojis[user.mood - 1] : null;
+
   return (
     <Card className="hover:bg-muted/50 transition-colors h-full">
       <CardContent className="p-4 flex items-center gap-4">
@@ -40,6 +45,7 @@ export function UserCard({ user }: { user: User }) {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-base">{user.name}</h3>
+            {moodEmoji && <span className="text-lg" title={`Stimmung: ${moodEmoji}`}>{moodEmoji}</span>}
             {user.dnd && (
               <Badge variant="secondary" className="px-1.5 py-0.5 h-fit" title="Nicht stören">
                 <Moon className="h-3 w-3" />

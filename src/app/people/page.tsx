@@ -4,7 +4,7 @@ import { useState } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-import { teamMembers } from "@/lib/data"
+import { teamMembers as initialTeamMembers } from "@/lib/data"
 import { UserCard } from "@/components/people/user-card"
 import { UserProfileDialog } from "@/components/people/user-profile-dialog"
 import type { User } from "@/lib/data"
@@ -12,6 +12,7 @@ import type { User } from "@/lib/data"
 export default function PeoplePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [teamMembers, setTeamMembers] = useState<User[]>(initialTeamMembers)
 
   const filteredMembers = teamMembers.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

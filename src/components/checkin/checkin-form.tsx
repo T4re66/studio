@@ -25,13 +25,15 @@ export function CheckinForm() {
         });
         return;
     }
-    // In a real app, this would send anonymous data to a backend.
+    // In a real app, this would send data to a backend.
+    // Here we'll just simulate it and show a toast.
     console.log({ mood: mood[0], seat: selectedSeat });
     toast({
       title: "Check-in erfolgreich",
-      description: `Danke für dein anonymes Feedback. Dein Platz ${selectedSeat} wurde registriert.`,
+      description: `Danke für dein Feedback! Dein Platz ${selectedSeat} wurde für heute registriert.`,
     });
-    setSelectedSeat(null);
+    // In a real app, you would update the user's state globally.
+    setSelectedSeat(null); 
   };
 
   return (
@@ -39,7 +41,7 @@ export function CheckinForm() {
       <CardHeader>
         <CardTitle className="font-headline">Täglicher Check-in</CardTitle>
         <CardDescription>
-          Wie fühlst du dich und wo sitzt du heute? Deine Stimmungs-Angabe ist 100% anonym.
+          Wie fühlst du dich und wo sitzt du heute?
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -51,7 +53,7 @@ export function CheckinForm() {
             </div>
 
           <div className="space-y-4">
-            <label className="text-sm font-medium">Deine aktuelle Stimmung (Anonym)</label>
+            <label className="text-sm font-medium">Deine aktuelle Stimmung</label>
             <div className="flex items-center gap-4">
               <span className="text-3xl w-8">{moodEmojis[mood[0] - 1]}</span>
               <Slider
@@ -68,10 +70,10 @@ export function CheckinForm() {
         </CardContent>
         <CardFooter className="flex flex-col items-start gap-4 border-t px-6 py-4 bg-muted/50">
           <Button type="submit">Check-in abschliessen</Button>
-          <div className="flex items-start gap-2.5 text-xs text-muted-foreground">
+           <div className="flex items-start gap-2.5 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
             <p>
-              Deine Stimmung wird ohne persönliche Kennungen gespeichert. Dein Sitzplatz wird für die heutige Übersicht im Team geteilt.
+             Dein Sitzplatz wird für die heutige Übersicht im Team geteilt. Deine Stimmung wird Team-Mitgliedern angezeigt, um die soziale Interaktion zu fördern.
             </p>
           </div>
         </CardFooter>
