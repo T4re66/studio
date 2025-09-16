@@ -3,16 +3,44 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { notes } from "@/lib/data";
+import { notes as initialNotes } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Plus, Archive } from "lucide-react";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import { de } from 'date-fns/locale';
+import { useToast } from "@/hooks/use-toast";
+import type { Note } from "@/lib/data";
+
 
 export default function NotesPage() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [notes, setNotes] = useState<Note[]>(initialNotes);
+    const { toast } = useToast();
+
+    const handleSaveNote = (newNote: Omit<Note, 'id' | 'date'>) => {
+        if (!newNote.title || !newNote.content) {
+            toast({
+                variant: 'destructive',
+                title: "Notiz unvollständig",
+                description: "Bitte gib einen Titel und Inhalt für deine Notiz ein."
+            });
+            return;
+        }
+
+        const noteWithIdAndDate: Note = {
+            ...newNote,
+            id: `n${notes.length + 1}`,
+            date: new Date().toISOString(),
+        }
+        setNotes(prev => [noteWithIdAndDate, ...prev]);
+        setIsEditorOpen(false);
+        toast({
+            title: "Notiz gespeichert!",
+            description: `"${newNote.title}" wurde zu deiner Ablage hinzugefügt.`
+        })
+    }
 
     return (
         <div className="flex flex-col gap-8">
@@ -29,16 +57,7 @@ export default function NotesPage() {
 
             {isEditorOpen && (
                  <Card className="fade-in">
-                    <CardHeader>
-                        <CardTitle>Neue Notiz erstellen</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <NoteEditor />
-                    </CardContent>
-                    <CardFooter className="gap-2">
-                        <Button>Speichern</Button>
-                        <Button variant="ghost" onClick={() => setIsEditorOpen(false)}>Abbrechen</Button>
-                    </CardFooter>
+                    <NoteEditor onSave={handleSaveNote} onCancel={() => setIsEditorOpen(false)}/>
                 </Card>
             )}
 
@@ -48,12 +67,12 @@ export default function NotesPage() {
                     <CardDescription>Deine gespeicherten Notizen.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {notes.map(note => (
+                    {notes.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()).map(note => (
                          <div key={note.id} className="border p-4 rounded-lg group hover:bg-muted/50 transition-colors">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="font-semibold">{note.title}</h3>
-                                    <p className="text-xs text-muted-foreground">{format(parseISO(note.date), 'dd. MMMM yyyy', { locale: de })}</p>
+                                    <p className="text-xs text-muted-foreground">{format(parseISO(note.date), 'dd. MMMM yyyy, HH:mm', { locale: de })}</p>
                                 </div>
                                  <div className="flex items-center gap-2">
                                     {note.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}

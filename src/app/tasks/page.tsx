@@ -1,10 +1,15 @@
+'use client'
+
+import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { officeTasks } from "@/lib/data";
+import { officeTasks as initialTasks } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Check, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useToast } from '@/hooks/use-toast';
+import type { OfficeTask } from '@/lib/data';
 
 const categoryColors = {
     'Soziales': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -13,6 +18,22 @@ const categoryColors = {
 };
 
 export default function TasksPage() {
+  const [tasks, setTasks] = useState<OfficeTask[]>(initialTasks);
+  const { toast } = useToast();
+
+  const handleCompleteTask = (taskId: string, taskPoints: number) => {
+    setTasks(currentTasks => 
+        currentTasks.map(task => 
+            task.id === taskId ? { ...task, isCompleted: true } : task
+        )
+    );
+    toast({
+        title: "Aufgabe erledigt!",
+        description: `Super! Du hast ${taskPoints} Punkte verdient.`
+    });
+    // In a real app, you would also update the user's total points.
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -21,7 +42,7 @@ export default function TasksPage() {
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {officeTasks.map(task => (
+        {tasks.map(task => (
           <Card key={task.id} className="flex flex-col">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -42,9 +63,9 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
-                <Button className="w-full">
+                <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)}>
                   <Plus className="mr-2" />
-                  Aufgabe annehmen
+                  Als erledigt markieren
                 </Button>
               )}
             </CardFooter>

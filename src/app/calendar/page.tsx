@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
-import { calendarEvents, teamMembers } from "@/lib/data";
+import { calendarEvents as initialEvents, teamMembers } from "@/lib/data";
 import { format, isSameDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
 import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
+import type { CalendarEvent } from "@/lib/data";
 
 const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -24,11 +25,12 @@ const categoryColors: { [key: string]: string } = {
 export default function CalendarPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
   
   const selectedDayEvents = useMemo(() => {
     if (!date) return [];
-    return calendarEvents.filter(event => isSameDay(new Date(event.date), date));
-  }, [date]);
+    return allEvents.filter(event => isSameDay(new Date(event.date), date));
+  }, [date, allEvents]);
 
   const [summary, setSummary] = useState("Zusammenfassung wird geladen...");
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
@@ -36,11 +38,17 @@ export default function CalendarPage() {
   useEffect(() => {
     const fetchSummary = async () => {
       setIsLoadingSummary(true);
-      if (selectedDayEvents.length > 0) {
-        const result = await summarizeCalendar(selectedDayEvents);
+      const eventsForSummary = selectedDayEvents.map(e => ({
+        title: e.title,
+        startTime: e.startTime,
+        endTime: e.endTime,
+        category: e.category,
+      }));
+      if (eventsForSummary.length > 0) {
+        const result = await summarizeCalendar(eventsForSummary);
         setSummary(result.summary);
       } else {
-        setSummary("Für heute stehen keine Termine im Kalender. Geniesse den freien Tag!");
+        setSummary("Für den gewählten Tag stehen keine Termine im Kalender.");
       }
       setIsLoadingSummary(false);
     };
@@ -50,6 +58,15 @@ export default function CalendarPage() {
 
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
+  
+  const handleAddEvent = (newEvent: Omit<CalendarEvent, 'id' | 'participants'>) => {
+    const eventWithId: CalendarEvent = { 
+        ...newEvent, 
+        id: `evt${allEvents.length + 1}`,
+        participants: ['1'] // Add current user
+    };
+    setAllEvents(prevEvents => [...prevEvents, eventWithId]);
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -87,7 +104,7 @@ export default function CalendarPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {selectedDayEvents.length > 0 ? (
-                        selectedDayEvents.map(event => (
+                        selectedDayEvents.sort((a,b) => a.startTime.localeCompare(b.startTime)).map(event => (
                             <div key={event.id} className="flex gap-4">
                                 <div className="font-mono text-sm text-muted-foreground flex flex-col items-center">
                                     <span>{event.startTime}</span>
@@ -134,7 +151,7 @@ export default function CalendarPage() {
             </Card>
         </div>
       </div>
-      <AddEventDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} selectedDate={date}/>
+      <AddEventDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} selectedDate={date} onAddEvent={handleAddEvent}/>
     </div>
   );
 }
