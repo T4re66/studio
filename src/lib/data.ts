@@ -10,6 +10,7 @@ export type User = {
   dnd: boolean;
   points: number;
   birthday: string; // YYYY-MM-DD
+  seat?: string; // e.g., 'A1', 'B2'
 };
 
 export type FridgeItem = {
@@ -79,14 +80,14 @@ export type ShopItem = {
 
 
 export const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' },
+  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4' },
   { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', lastSeen: '2h ago', dnd: true, points: 800, birthday: '1988-11-22' },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30' },
-  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05' },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2' },
+  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1' },
   { id: '5', name: 'Ethan Davis', avatar: 'https://picsum.photos/seed/user5/200/200', status: 'away', role: 'QA Engineer', department: 'Engineering', lastSeen: 'yesterday', dnd: false, points: 600, birthday: '1993-12-10' },
   { id: '6', name: 'Fiona Garcia', avatar: 'https://picsum.photos/seed/user6/200/200', status: 'remote', role: 'Marketing Specialist', department: 'Marketing', lastSeen: '30m ago', dnd: false, points: 950, birthday: '1991-06-18' },
-  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25' },
-  { id: '8', name: 'Hannah Lewis', avatar: 'https://picsum.photos/seed/user8/200/200', status: 'office', role: 'Data Scientist', department: 'Data', lastSeen: '1h ago', dnd: false, points: 1400, birthday: '1994-01-20' },
+  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'D3' },
+  { id: '8', name: 'Hannah Lewis', avatar: 'https://picsum.photos/seed/user8/200/200', status: 'office', role: 'Data Scientist', department: 'Data', lastSeen: '1h ago', dnd: false, points: 1400, birthday: '1994-01-20', seat: 'D4' },
 ];
 
 export const fridgeItems: FridgeItem[] = [
@@ -180,3 +181,14 @@ export const shopItems: ShopItem[] = [
     { id: 's5', title: 'Ergonomischer Stuhl-Upgrade', description: 'Upgrade deinen Bürostuhl für eine Woche auf ein Premium-Modell.', cost: 1500, category: 'Büro-Vorteile', icon: 'Armchair' },
     { id: 's6', title: 'Wunsch-Snack', description: 'Wünsche dir einen Snack, der für eine Woche in der Küche bereitgestellt wird.', cost: 750, category: 'Essen & Trinken', icon: 'Cookie' },
 ];
+
+export const officeLayout = {
+    "rows": [
+      { "type": "desks", "count": 4, "id": "A" },
+      { "type": "desks", "count": 4, "id": "B" },
+      { "type": "space", "size": "2rem" },
+      { "type": "desks", "count": 2, "id": "C" },
+      { "type": "space", "size": "1rem" },
+      { "type": "desks", "count": 4, "id": "D" }
+    ]
+  }

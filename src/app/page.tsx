@@ -1,12 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { teamMembers, emails } from "@/lib/data";
+import { teamMembers, emails, calendarEvents } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { Coffee, Gift, Mail, Medal, Users, Sparkles } from "lucide-react";
+import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
+import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
+import { isToday } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -43,20 +47,40 @@ function getNextBirthday() {
     return { member: nextBirthdayMember, days: minDays };
 }
 
+// Function to get seating positions around an oval table
+const getSeatPosition = (index: number, total: number, tableWidth: number, tableHeight: number) => {
+    const angle = (index / total) * 2 * Math.PI;
+    const x = 50 + (tableWidth / 2) * Math.cos(angle);
+    const y = 50 + (tableHeight / 2) * Math.sin(angle);
+    return { left: `${x}%`, top: `${y}%` };
+};
+
 
 export default async function Home() {
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const currentUser = teamMembers[0]; // Assuming current user is Alice
   const nextBirthday = getNextBirthday();
+  const todayEvents = calendarEvents.filter(e => isToday(new Date(e.date)));
   
   let emailSummary;
+  let calendarSummary;
+
   try {
     emailSummary = await summarizeEmails(emails.filter(e => !e.isRead));
   } catch (e) {
     console.error(e);
-    emailSummary = { summary: "Zusammenfassung konnte nicht geladen werden. Bitte versuchen Sie es später erneut." };
+    emailSummary = { summary: "Zusammenfassung konnte nicht geladen werden." };
   }
 
+  try {
+    calendarSummary = await summarizeCalendar(todayEvents);
+  } catch (e) {
+    console.error(e);
+    calendarSummary = { summary: "Zusammenfassung konnte nicht geladen werden." };
+  }
+
+  const tableWidth = 45; // in percentage of parent
+  const tableHeight = 90; // in percentage of parent
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -64,126 +88,123 @@ export default async function Home() {
         title={`Hallo, ${currentUser.name.split(' ')[0]}!`}
         description="Willkommen zurück! Hier ist dein Überblick für heute."
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-8 grid-cols-12">
         
-        {/* Who is where */}
-        <Card className="xl:col-span-2 transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="font-headline">Wer ist im Büro?</CardTitle>
-              <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind da.</CardDescription>
-            </div>
-             <Link href="/people">
-              <Button variant="ghost" size="sm">Alle anzeigen</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              {onlineMembers.slice(0, 7).map((member) => (
-                <Link href="/people" key={member.id}>
-                  <div className="flex flex-col items-center gap-2 group">
-                    <Avatar className="h-14 w-14 border-2 border-transparent group-hover:border-primary transition-all duration-300 transform group-hover:scale-110">
-                      <AvatarImage src={member.avatar} alt={member.name} />
-                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                       <span
-                        className={cn(
-                          "absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-card",
-                          statusClasses[member.status]
-                        )}
-                      />
-                    </Avatar>
-                    <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">{member.name.split(' ')[0]}</span>
-                  </div>
-                </Link>
-              ))}
-               {onlineMembers.length > 7 && (
-                 <div className="flex flex-col items-center justify-center gap-2">
-                    <Avatar className="h-14 w-14 bg-muted">
-                      <AvatarFallback>+{onlineMembers.length - 7}</AvatarFallback>
-                    </Avatar>
-                     <span className="text-xs font-medium text-muted-foreground">Weitere</span>
-                  </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Break Matcher */}
-        <Link href="/breaks">
-          <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-primary/50 hover:bg-primary/5">
-            <CardHeader>
-              <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen-Matcher</CardTitle>
-              <CardDescription>Finde Kollegen für eine gemeinsame Pause.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm font-semibold">Nächster Match:</p>
-              <p className="text-sm text-muted-foreground">Mittagessen mit Charlie um 12:30</p>
-            </CardContent>
-             <CardFooter>
-              <Button className="w-full">Pausenzeit eintragen</Button>
-            </CardFooter>
-          </Card>
-        </Link>
-        
-        {/* Leaderboard */}
-         <Link href="/leaderboard">
-            <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-accent/50 hover:bg-accent/5">
-                <CardHeader>
-                  <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punktestand</CardTitle>
-                  <CardDescription>Dein aktueller Rang im Team.</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                    <p className="text-4xl font-bold text-accent">{currentUser.points}</p>
-                    <p className="text-sm text-muted-foreground">Punkte</p>
-                    <p className="font-semibold mt-2">Rang 3 von {teamMembers.length}</p>
-                </CardContent>
-                 <CardFooter>
-                    <p className="text-xs text-muted-foreground text-center w-full">Mach weiter so!</p>
-                </CardFooter>
-            </Card>
-        </Link>
-
-        {/* AI Inbox */}
-        <Card className="xl:col-span-2 transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
-           <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="font-headline flex items-center gap-2"><Sparkles className="text-primary w-5 h-5"/>KI-Posteingang</CardTitle>
-              <CardDescription>Deine wichtigsten E-Mails zusammengefasst.</CardDescription>
-            </div>
-             <Link href="/inbox">
-              <Button variant="ghost" size="sm">Alle anzeigen</Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <p className="text-sm text-muted-foreground">{emailSummary.summary}</p>
-          </CardContent>
-        </Card>
-        
-        {/* Birthday calendar */}
-        <Link href="/birthdays">
-            <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+        {/* Main Content: Office Table */}
+        <div className="col-span-12 lg:col-span-8 xl:col-span-6">
+            <Card className="h-[500px] flex flex-col">
                  <CardHeader>
-                  <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
+                    <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
+                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
-                <CardContent className="text-center">
-                   {nextBirthday.member && nextBirthday.member.birthday && (
-                    <>
-                        <Avatar className="h-20 w-20 mx-auto border-4 border-pink-300">
-                            <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name} />
-                            <AvatarFallback>{nextBirthday.member.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <p className="font-semibold mt-3">{nextBirthday.member.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                            {nextBirthday.days === 0 ? 'hat heute Geburtstag!' : `wird in ${nextBirthday.days} Tagen ${new Date().getFullYear() - new Date(nextBirthday.member.birthday).getFullYear()}!`}
-                        </p>
-                    </>
-                   )}
+                <CardContent className="flex-1 flex items-center justify-center relative">
+                    <div className="absolute w-[60%] h-[90%] bg-muted/70 rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+
+                    {onlineMembers.map((member, index) => {
+                        const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
+                        return (
+                             <TooltipProvider key={member.id}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link href={`/people#${member.id}`}>
+                                            <Avatar 
+                                                className="h-14 w-14 border-2 border-card absolute transition-transform duration-300 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 hover:border-primary"
+                                                style={position}
+                                            >
+                                                <AvatarImage src={member.avatar} alt={member.name} />
+                                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                                <span className={cn("absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-background", statusClasses[member.status])} />
+                                            </Avatar>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="font-semibold">{member.name}</p>
+                                        <p className="text-muted-foreground">Tisch {member.seat}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )
+                    })}
                 </CardContent>
-                 <CardFooter>
-                    <Button variant="outline" className="w-full">Zum Kalender</Button>
+            </Card>
+        </div>
+        
+        {/* Side Content */}
+        <div className="col-span-12 lg:col-span-4 xl:col-span-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            <Card className="md:col-span-2 xl:col-span-3 bg-primary/5 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                        <Sparkles className="text-primary h-5 w-5"/>
+                        Tages-Briefing
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
+                        <p className="text-sm text-foreground/80">
+                            {emailSummary.summary}
+                        </p>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
+                        <p className="text-sm text-foreground/80">
+                            {calendarSummary.summary}
+                        </p>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                    <Link href="/inbox">
+                        <Button variant="ghost" size="sm">Zum Posteingang <ArrowRight className="ml-2"/></Button>
+                    </Link>
                 </CardFooter>
             </Card>
-        </Link>
+
+            <Link href="/breaks" className="xl:col-span-1">
+                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <p className="text-sm font-semibold">Nächster Match:</p>
+                    <p className="text-sm text-muted-foreground">Mittagessen mit Charlie um 12:30</p>
+                    </CardContent>
+                </Card>
+            </Link>
+
+             <Link href="/leaderboard" className="xl:col-span-1">
+                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <CardHeader>
+                    <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <p className="text-4xl font-bold text-accent">{currentUser.points}</p>
+                        <p className="font-semibold mt-2">Rang 3 von {teamMembers.length}</p>
+                    </CardContent>
+                </Card>
+            </Link>
+            
+            <Link href="/birthdays" className="xl:col-span-1">
+                <Card className="h-full flex flex-col justify-between items-center text-center transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <CardHeader>
+                        <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    {nextBirthday.member && (
+                        <>
+                            <Avatar className="h-16 w-16 mx-auto border-4 border-pink-300">
+                                <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name} />
+                                <AvatarFallback>{nextBirthday.member.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold mt-3 text-sm">{nextBirthday.member.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {nextBirthday.days === 0 ? 'hat heute Geburtstag!' : `wird in ${nextBirthday.days} Tagen ${new Date().getFullYear() - new Date(nextBirthday.member.birthday).getFullYear()}!`}
+                            </p>
+                        </>
+                    )}
+                    </CardContent>
+                </Card>
+            </Link>
+        </div>
       </div>
     </div>
   );
