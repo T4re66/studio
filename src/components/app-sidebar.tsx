@@ -29,6 +29,7 @@ import {
   Swords,
   BookText,
   FolderKanban,
+  Bot,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -37,6 +38,7 @@ import { Icons } from "./icons"
 const mainMenuItems = [
   { href: "/dashboard", label: "Übersicht", icon: Home },
   { href: "/briefing", label: "Briefing", icon: BookText },
+  { href: "/chatbot", label: "Chatbot", icon: Bot },
 ]
 
 const teamMenuItems = [

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ type Message = {
     content: string;
 };
 
-export function ChatbotTab() {
+export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -61,8 +62,11 @@ export function ChatbotTab() {
 
     return (
         <div className="flex flex-col gap-8">
-            <h2 className="text-xl font-semibold font-headline">Dein persönlicher Assistent</h2>
-            <Card className="flex flex-col h-[600px]">
+            <PageHeader
+                title="Dein persönlicher Assistent"
+                description="Frage die KI nach allem, was in deinen Daten zu finden ist, oder lasse sie Aufgaben für dich erledigen."
+            />
+            <Card className="flex flex-col h-[70vh]">
                 <CardContent className="flex-1 p-4 space-y-4 overflow-y-auto">
                     {messages.length === 0 ? (
                          <div className="flex h-full items-center justify-center text-muted-foreground text-center">
