@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { teamMembers } from "@/lib/data"
 import { UserCard } from "@/components/people/user-card"
+import { UserProfileDialog } from "@/components/people/user-profile-dialog"
+import type { User } from "@/lib/data"
 
 export default function PeoplePage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const filteredMembers = teamMembers.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -35,12 +38,20 @@ export default function PeoplePage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredMembers.length > 0 ? (
           filteredMembers.map((member) => (
-            <UserCard key={member.id} user={member} />
+            <button key={member.id} onClick={() => setSelectedUser(member)} className="text-left h-full w-full">
+              <UserCard user={member} />
+            </button>
           ))
         ) : (
           <p className="text-muted-foreground col-span-full text-center py-12">Keine Teammitglieder gefunden.</p>
         )}
       </div>
+      
+      <UserProfileDialog 
+        user={selectedUser} 
+        open={!!selectedUser} 
+        onOpenChange={(open) => !open && setSelectedUser(null)} 
+      />
     </div>
   );
 }
