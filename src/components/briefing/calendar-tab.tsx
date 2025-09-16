@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from "react";
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
@@ -11,7 +10,6 @@ import { format, isSameDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
 import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
 import type { CalendarEvent } from "@/lib/data";
@@ -22,7 +20,7 @@ const categoryColors: { [key: string]: string } = {
     'Team Event': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
-export default function CalendarPage() {
+export function CalendarTab() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
@@ -71,10 +69,7 @@ export default function CalendarPage() {
   return (
     <div className="flex flex-col gap-8">
        <div className="flex justify-between items-start flex-wrap gap-4">
-            <PageHeader
-                title="Kalender"
-                description="Behalte den Überblick über Termine und Ereignisse."
-            />
+            <h2 className="text-xl font-semibold font-headline">Kalenderübersicht</h2>
              <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Termin hinzufügen

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { notes as initialNotes } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Plus, Archive } from "lucide-react";
@@ -14,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Note } from "@/lib/data";
 
 
-export default function NotesPage() {
+export function NotesTab() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [notes, setNotes] = useState<Note[]>(initialNotes);
     const { toast } = useToast();
@@ -55,10 +54,7 @@ export default function NotesPage() {
     return (
         <div className="flex flex-col gap-8">
              <div className="flex justify-between items-start flex-wrap gap-4">
-                <PageHeader
-                    title="Notizen"
-                    description="Erfasse und organisiere deine Gedanken und Ideen."
-                />
+                <h2 className="text-xl font-semibold font-headline">Notizen-Ablage</h2>
                  <Button onClick={() => setIsEditorOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Neue Notiz
@@ -72,11 +68,7 @@ export default function NotesPage() {
             )}
 
             <Card>
-                 <CardHeader>
-                    <CardTitle>Ablage</CardTitle>
-                    <CardDescription>Deine gespeicherten Notizen.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-6">
                     {notes.length === 0 && <p className="text-muted-foreground text-center py-12">Keine Notizen vorhanden. Erstelle eine neue!</p>}
                     {notes.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()).map(note => (
                          <div key={note.id} className="border p-4 rounded-lg group hover:bg-muted/50 transition-colors">

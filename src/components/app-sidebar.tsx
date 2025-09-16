@@ -22,14 +22,12 @@ import {
   Coffee,
   Gift,
   Trophy,
-  Mail,
   ListChecks,
-  CalendarDays,
   BookMarked,
   ShoppingCart,
   Map,
-  Notebook,
-  Swords
+  Swords,
+  BookText,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -37,9 +35,7 @@ import { Icons } from "./icons"
 
 const mainMenuItems = [
   { href: "/", label: "Übersicht", icon: Home },
-  { href: "/inbox", label: "Inbox", icon: Mail },
-  { href: "/calendar", label: "Kalender", icon: CalendarDays },
-  { href: "/notes", label: "Notizen", icon: Notebook },
+  { href: "/briefing", label: "Briefing", icon: BookText },
 ]
 
 const teamMenuItems = [

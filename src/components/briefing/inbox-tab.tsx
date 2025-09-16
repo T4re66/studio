@@ -1,17 +1,16 @@
 'use client';
 
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { emails as initialEmails, teamMembers } from "@/lib/data";
-import { Archive, Mail, Reply, Trash, Sparkles } from "lucide-react";
+import { Archive, Reply, Trash, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Email } from "@/lib/data";
 
-export default function InboxPage() {
+export function InboxTab() {
   const [emails, setEmails] = useState<Email[]>(initialEmails);
   const [emailSummary, setEmailSummary] = useState("Zusammenfassung wird geladen...");
   const { toast } = useToast();
@@ -44,11 +43,6 @@ export default function InboxPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title="KI-Posteingang"
-        description="Eine priorisierte Ansicht deiner wichtigsten E-Mails."
-      />
-      
       <Card className="bg-primary/5 border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-headline">
