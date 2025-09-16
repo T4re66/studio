@@ -12,7 +12,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
         <AppSidebar />
-        <div className="flex flex-col flex-1 md:ml-[var(--sidebar-width-icon)] group-data-[state=expanded]:md:ml-[var(--sidebar-width)] transition-[margin-left] ease-in-out duration-300">
+        <div className="flex flex-col flex-1">
             <AppHeader />
             <main className="p-4 sm:p-6 lg:p-8">
               {children}
