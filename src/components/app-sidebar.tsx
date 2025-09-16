@@ -34,7 +34,7 @@ import Link from "next/link"
 import { Icons } from "./icons"
 
 const mainMenuItems = [
-  { href: "/", label: "Übersicht", icon: Home },
+  { href: "/dashboard", label: "Übersicht", icon: Home },
   { href: "/briefing", label: "Briefing", icon: BookText },
 ]
 
@@ -62,12 +62,12 @@ const toolsMenuItems = [
 export function AppSidebar() {
   const pathname = usePathname()
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => pathname.startsWith(href);
 
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
           <div className="flex size-8 items-center justify-center rounded-lg bg-card text-primary-foreground">
             <Icons.logo className="size-5" />
           </div>
@@ -82,7 +82,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                     <SidebarMenuButton
-                    isActive={isActive(item.href)}
+                    isActive={pathname === item.href}
                     tooltip={{ children: item.label }}
                     >
                     <item.icon />
