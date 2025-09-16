@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Mic, MicOff, Signal, X, Radio } from 'lucide-react';
+import { Mic, MicOff, Signal, X, Radio, PartyPopper } from 'lucide-react';
 import { teamMembers } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/lib/data';
+import { PartyConfetti } from './party-confetti';
 
 export function FloatingWalkieTalkie() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isTalking, setIsTalking] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isPartyMode, setIsPartyMode] = useState(false);
     const { toast } = useToast();
 
     const onlineUsers = teamMembers.filter(u => u.online && u.status !== 'away');
@@ -50,8 +52,20 @@ export function FloatingWalkieTalkie() {
         setIsTalking(false);
     };
 
+    const handlePartyPanic = () => {
+        setIsPartyMode(true);
+        toast({
+            title: 'PARTY ALARM!',
+            description: 'Zeit für eine spontane Feier! Alle sind eingeladen.',
+        });
+        setTimeout(() => {
+            setIsPartyMode(false);
+        }, 5000); // Confetti for 5 seconds
+    }
+
     return (
         <>
+            {isPartyMode && <PartyConfetti />}
             <div className="fixed bottom-6 right-6 z-50">
                 <Button 
                     size="icon"
@@ -110,6 +124,14 @@ export function FloatingWalkieTalkie() {
                                     disabled={!selectedUser}
                                 >
                                     <Mic className="h-8 w-8" />
+                                </Button>
+                                <Button 
+                                    size="icon" 
+                                    variant='outline'
+                                    className="rounded-full h-12 w-12 text-amber-500 border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-600"
+                                    onClick={handlePartyPanic}
+                                >
+                                    <PartyPopper className="h-5 w-5" />
                                 </Button>
                              </div>
                              <p className="text-xs text-muted-foreground">Zum Sprechen gedrückt halten</p>
