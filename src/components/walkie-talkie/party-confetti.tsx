@@ -21,16 +21,38 @@ export function PartyConfetti() {
 
   useEffect(() => {
     const newPieces = Array.from({ length: CONFETTI_COUNT }).map((_, i) => {
+      const duration = 2.5 + Math.random() * 2.5; // 2.5s to 5s
+      const delay = Math.random() * 5; // Start at different times over 5s
+      const initialX = Math.random() * 100;
+      const rotation = Math.random() * 360;
+      const finalX = initialX + (Math.random() - 0.5) * 200;
+
       const style: React.CSSProperties = {
-        left: `${45 + Math.random() * 10}%`,
-        top: `${45 + Math.random() * 10}%`,
+        left: `${initialX}vw`,
+        top: '-15px',
         backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-        transform: `rotate(${Math.random() * 360}deg)`,
-        animationName: 'explode',
-        animationDuration: `${0.5 + Math.random() * 1.5}s`,
-        animationDelay: `${Math.random() * 0.2}s`,
+        transform: `rotate(${rotation}deg)`,
+        animationName: `fall-${i}`,
+        animationDuration: `${duration}s`,
+        animationDelay: `${delay}s`,
+        animationTimingFunction: 'linear',
+        animationFillMode: 'forwards',
       };
-      return <div key={i} className="confetti-piece" style={style}></div>;
+      return (
+        <>
+            <style key={`anim-${i}`}>{`
+                @keyframes fall-${i} {
+                    from {
+                        transform: translate(0, 0) rotate(${rotation}deg);
+                    }
+                    to {
+                        transform: translate(${finalX - initialX}px, 110vh) rotate(${rotation + 360}deg);
+                    }
+                }
+            `}</style>
+            <div key={i} className="confetti-piece" style={style}></div>
+        </>
+      );
     });
     setPieces(newPieces);
   }, []);
@@ -44,20 +66,7 @@ export function PartyConfetti() {
           position: absolute;
           width: 8px;
           height: 12px;
-          opacity: 1;
-          animation-timing-function: cubic-bezier(0.1, 0.5, 0.5, 1);
-          animation-fill-mode: forwards;
-        }
-
-        @keyframes explode {
-          0% {
-            transform: translate(0, 0) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translate(calc(${Math.random() * 100 - 50}vw), calc(${Math.random() * 100 - 50}vh)) rotate(720deg);
-            opacity: 0;
-          }
+          opacity: 0.9;
         }
       `}</style>
     </div>
