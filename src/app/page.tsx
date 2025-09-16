@@ -140,11 +140,11 @@ export default function Home() {
         title={`Hallo, ${currentUser.name.split(' ')[0]}!`}
         description="Willkommen zurück! Hier ist dein Überblick für heute."
       />
-      <div className="grid gap-8 grid-cols-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Main Content: Office Table */}
-        <div className="col-span-12 lg:col-span-8 xl:col-span-6">
-            <Card className="h-[500px] flex flex-col">
+        {/* Main Content: Office Table & Briefing */}
+        <div className="lg:col-span-2 grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <Card className="xl:col-span-2 h-[500px] flex flex-col">
                  <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
                     <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
@@ -179,39 +179,41 @@ export default function Home() {
                     })}
                 </CardContent>
             </Card>
+
+            <div className="xl:col-span-1 h-[500px] flex flex-col">
+                <Card className="flex-1 flex flex-col bg-primary/5 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                            <Sparkles className="text-primary h-5 w-5"/>
+                            Tages-Briefing
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-4">
+                        <div>
+                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
+                            <p className="text-sm text-foreground/80">
+                                {emailSummary.summary}
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
+                            <p className="text-sm text-foreground/80">
+                                {calendarSummary.summary}
+                            </p>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end">
+                        <Link href="/inbox">
+                            <Button variant="ghost" size="sm">Zum Posteingang <ArrowRight className="ml-2"/></Button>
+                        </Link>
+                    </CardFooter>
+                </Card>
+            </div>
         </div>
         
         {/* Side Content */}
-        <div className="col-span-12 lg:col-span-4 xl:col-span-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            <Card className="md:col-span-2 xl:col-span-3 bg-primary/5 border-primary/20">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 font-headline text-lg">
-                        <Sparkles className="text-primary h-5 w-5"/>
-                        Tages-Briefing
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div>
-                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
-                        <p className="text-sm text-foreground/80">
-                            {emailSummary.summary}
-                        </p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
-                        <p className="text-sm text-foreground/80">
-                            {calendarSummary.summary}
-                        </p>
-                    </div>
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                    <Link href="/inbox">
-                        <Button variant="ghost" size="sm">Zum Posteingang <ArrowRight className="ml-2"/></Button>
-                    </Link>
-                </CardFooter>
-            </Card>
-
-            <Link href="/breaks" className="xl:col-span-1">
+        <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
+            <Link href="/breaks" className="sm:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
@@ -233,7 +235,7 @@ export default function Home() {
                 </Card>
             </Link>
 
-             <Link href="/leaderboard" className="xl:col-span-1">
+             <Link href="/leaderboard" className="sm:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
@@ -247,7 +249,7 @@ export default function Home() {
                 </Card>
             </Link>
             
-            <Link href="/birthdays" className="xl:col-span-1">
+            <Link href="/birthdays" className="sm:col-span-2 lg:col-span-1">
                  <Card className={cn(
                     "h-full flex flex-col justify-center items-center text-center transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden",
                     nextBirthday?.days === 0 && "bg-pink-100/50 border-pink-400"
@@ -277,3 +279,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
