@@ -29,7 +29,6 @@ import {
   ShoppingCart,
   Map,
   Notebook,
-  Mic,
   Swords
 } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -62,7 +61,6 @@ const toolsMenuItems = [
     { href: "/check-in", label: "Check-in", icon: HeartPulse },
     { href: "/grades", label: "Notenblatt", icon: BookMarked },
     { href: "/map", label: "Bürokarte", icon: Map },
-    { href: "/walkie-talkie", label: "Walkie-Talkie", icon: Mic },
 ];
 
 export function AppSidebar() {

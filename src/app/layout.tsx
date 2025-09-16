@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { cn } from '@/lib/utils';
+import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 
 export const metadata: Metadata = {
   title: 'OfficeZen',
@@ -34,6 +35,7 @@ export default function RootLayout({
             </SidebarInset>
         </SidebarProvider>
         <Toaster />
+        <FloatingWalkieTalkie />
       </body>
     </html>
   );
