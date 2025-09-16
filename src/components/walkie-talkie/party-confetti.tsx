@@ -1,8 +1,7 @@
 
 'use client'
 
-import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 const CONFETTI_COUNT = 150;
 
@@ -18,40 +17,45 @@ const colors = [
 ];
 
 export function PartyConfetti() {
+  const [pieces, setPieces] = useState<React.ReactNode[]>([]);
 
-  const confetti = useMemo(() => Array.from({ length: CONFETTI_COUNT }).map((_, i) => {
-    const style: React.CSSProperties = {
-      left: `${Math.random() * 100}%`,
-      backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-      animationDelay: `${Math.random() * 5}s`,
-      animationDuration: `${2 + Math.random() * 3}s`,
-      transform: `rotate(${Math.random() * 360}deg)`,
-      animationName: 'drop'
-    };
-    return <div key={i} className="confetti-piece" style={style}></div>;
-  }), []);
+  useEffect(() => {
+    const newPieces = Array.from({ length: CONFETTI_COUNT }).map((_, i) => {
+      const style: React.CSSProperties = {
+        left: `${45 + Math.random() * 10}%`,
+        top: `${45 + Math.random() * 10}%`,
+        backgroundColor: colors[Math.floor(Math.random() * colors.length)],
+        transform: `rotate(${Math.random() * 360}deg)`,
+        animationName: 'explode',
+        animationDuration: `${0.5 + Math.random() * 1.5}s`,
+        animationDelay: `${Math.random() * 0.2}s`,
+      };
+      return <div key={i} className="confetti-piece" style={style}></div>;
+    });
+    setPieces(newPieces);
+  }, []);
+
 
   return (
     <div className="fixed inset-0 z-[200] pointer-events-none overflow-hidden">
-      {confetti}
+      {pieces}
       <style jsx>{`
         .confetti-piece {
           position: absolute;
           width: 8px;
-          height: 16px;
-          top: -20px;
-          opacity: 0;
-          animation-timing-function: linear;
-          animation-iteration-count: infinite;
+          height: 12px;
+          opacity: 1;
+          animation-timing-function: cubic-bezier(0.1, 0.5, 0.5, 1);
+          animation-fill-mode: forwards;
         }
 
-        @keyframes drop {
+        @keyframes explode {
           0% {
-            transform: translateY(0vh) rotate(0deg);
+            transform: translate(0, 0) rotate(0deg);
             opacity: 1;
           }
           100% {
-            transform: translateY(105vh) rotate(720deg);
+            transform: translate(calc(${Math.random() * 100 - 50}vw), calc(${Math.random() * 100 - 50}vh)) rotate(720deg);
             opacity: 0;
           }
         }
