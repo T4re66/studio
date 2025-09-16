@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -154,8 +155,11 @@ export default function DashboardPage() {
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
                     <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1 flex items-center justify-center relative">
-                    <div className="absolute w-[60%] h-[90%] bg-muted/70 rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+                <CardContent className="flex-1 flex items-center justify-center relative p-6">
+                    <div 
+                        className="absolute w-[60%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-20 blur-3xl"
+                        style={{ background: 'var(--gradient)'}}
+                    />
 
                     {onlineMembers.map((member, index) => {
                         const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
@@ -290,6 +294,8 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
 
