@@ -55,12 +55,12 @@ export function FocusTimer() {
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline">Fokus-Timer</CardTitle>
         <CardDescription>Nutze die Pomodoro-Technik, um produktiv zu bleiben.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center gap-6">
+      <CardContent className="flex flex-col items-center gap-6 flex-grow justify-center">
         <div className="flex gap-2">
             {Object.entries(presets).map(([key, value]) => (
                 <Button key={key} variant={mode === key ? "secondary" : "ghost"} size="sm" onClick={() => handleModeChange(key as 'pomodoro' | 'shortBreak' | 'longBreak')}>

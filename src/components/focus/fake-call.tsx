@@ -1,12 +1,13 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
 import { FakeCallScreen } from "./fake-call-screen"
 import { useToast } from "@/hooks/use-toast"
+import { PhoneForwarded } from "lucide-react"
 
 const timerOptions = [
   { label: '15s', value: 15 },
@@ -57,17 +58,21 @@ export function FakeCall() {
     });
   }
 
+  const startCallImmediately = () => {
+    setIsCalling(true);
+  }
+
   if (isCalling) {
     return <FakeCallScreen callerName={callerName} onHangUp={() => setIsCalling(false)} />
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline">Fake-Anruf</CardTitle>
         <CardDescription>Simuliere einen Anruf, um diskret aus einer Situation auszusteigen.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 flex-grow">
         <div className="space-y-2">
           <Label htmlFor="callerName">Anrufername</Label>
           <Input 
@@ -101,6 +106,12 @@ export function FakeCall() {
           </div>
         )}
       </CardContent>
+       <CardFooter>
+            <Button className="w-full" onClick={startCallImmediately} disabled={countdown !== null}>
+                <PhoneForwarded className="mr-2 h-4 w-4" />
+                Sofort anrufen
+            </Button>
+        </CardFooter>
     </Card>
   )
 }
