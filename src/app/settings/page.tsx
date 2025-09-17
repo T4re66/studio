@@ -5,9 +5,9 @@ import { PageHeader } from "@/components/page-header";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Cloud, Link, LogOut } from 'lucide-react';
+import { CheckCircle, Cloud, Link as LinkIcon, LogOut } from 'lucide-react';
 import { useSession } from "next-auth/react";
-import { signIn, signOut } from "@/auth";
+import { handleGoogleSignIn, handleSignOut } from "./actions";
 
 function GoogleAccountIntegration() {
     const { data: session, status } = useSession();
@@ -39,9 +39,9 @@ function GoogleAccountIntegration() {
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <form action={async () => await signIn('google')}>
+                        <form action={handleGoogleSignIn}>
                             <Button size="lg" type="submit">
-                                <Link className="mr-2"/>
+                                <LinkIcon className="mr-2"/>
                                 Mit Google verbinden
                             </Button>
                         </form>
@@ -50,7 +50,7 @@ function GoogleAccountIntegration() {
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <form action={async () => await signOut()}>
+                    <form action={handleSignOut}>
                         <Button variant="destructive" type="submit">
                             <LogOut className="mr-2"/>
                             Verbindung trennen
