@@ -9,6 +9,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
+import { ThemeProvider } from '@/components/theme-provider';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,14 +43,20 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
-        {isLandingPage ? (
-          children
-        ) : (
-          <AppLayout>
-            {children}
-          </AppLayout>
-        )}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+        >
+          {isLandingPage ? (
+            children
+          ) : (
+            <AppLayout>
+              {children}
+            </AppLayout>
+          )}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

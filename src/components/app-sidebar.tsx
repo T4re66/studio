@@ -181,10 +181,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
             <SidebarMenuItem>
-                 <SidebarMenuButton tooltip={{ children: "Einstellungen" }}>
-                    <Settings/>
-                    <span>Einstellungen</span>
-                </SidebarMenuButton>
+                 <Link href="/settings">
+                    <SidebarMenuButton 
+                        isActive={isActive('/settings')}
+                        tooltip={{ children: "Einstellungen" }}
+                    >
+                        <Settings/>
+                        <span>Einstellungen</span>
+                    </SidebarMenuButton>
+                 </Link>
             </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
