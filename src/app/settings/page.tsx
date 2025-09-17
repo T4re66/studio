@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Cloud, Link, LogOut } from 'lucide-react';
 import { useSession } from "next-auth/react";
-import { signIn, signOut } from "@/auth";
+import { signInWithGoogle, signOutAndRedirect } from "./actions";
 import { useToast } from "@/hooks/use-toast";
 
 function GoogleAccountIntegration() {
@@ -36,14 +36,12 @@ function GoogleAccountIntegration() {
                         <CheckCircle className="h-8 w-8 text-green-600" />
                         <div>
                             <h3 className="font-semibold text-green-800 dark:text-green-300">Verbindung aktiv</h3>
-                            <p className="text-sm text-green-700 dark:text-green-400">Verbunden mit: {userEmail}</p>
+                            <p className="text-sm text-green-700 dark:text-green-400">Verbunden als: {userEmail}</p>
                         </div>
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <form action={async () => {
-                            await signIn('google');
-                        }}>
+                        <form action={signInWithGoogle}>
                             <Button size="lg" type="submit">
                                 <Link className="mr-2"/>
                                 Mit Google verbinden
@@ -54,9 +52,7 @@ function GoogleAccountIntegration() {
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <form action={async () => {
-                        await signOut();
-                    }}>
+                    <form action={signOutAndRedirect}>
                         <Button variant="destructive" type="submit">
                             <LogOut className="mr-2"/>
                             Verbindung trennen
