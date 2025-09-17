@@ -1,11 +1,12 @@
+
 'use client'
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
-import { calendarEvents as initialEvents, teamMembers, deadlines } from "@/lib/data";
+import { teamMembers, deadlines } from "@/lib/data";
 import { format, isSameDay } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,13 +23,18 @@ const categoryColors: { [key: string]: string } = {
 
 interface CalendarTabProps {
   summary: string | undefined;
+  events: CalendarEvent[];
 }
 
-export function CalendarTab({ summary }: CalendarTabProps) {
+export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
   
+  useEffect(() => {
+    setAllEvents(initialEvents);
+  }, [initialEvents]);
+
   const selectedDayEvents = useMemo(() => {
     if (!date) return [];
     return allEvents.filter(event => isSameDay(new Date(event.date), date));

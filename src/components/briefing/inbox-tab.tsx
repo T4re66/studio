@@ -1,21 +1,28 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { emails as initialEmails, teamMembers } from "@/lib/data";
+import { teamMembers } from "@/lib/data";
 import { Archive, Reply, Trash, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Email } from "@/lib/data";
 
 interface InboxTabProps {
   summary: string | undefined;
+  emails: Email[];
 }
 
-export function InboxTab({ summary }: InboxTabProps) {
+export function InboxTab({ summary, emails: initialEmails }: InboxTabProps) {
   const [emails, setEmails] = useState<Email[]>(initialEmails);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setEmails(initialEmails);
+  }, [initialEmails]);
+
 
   const findSender = (senderName: string) => {
     return teamMembers.find(m => m.name.includes(senderName.split(" ")[0])) || null;

@@ -10,6 +10,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
+import { Microsoft365Provider } from '@/components/microsoft365-provider';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -48,14 +49,16 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          {isLandingPage ? (
-            children
-          ) : (
-            <AppLayout>
-              {children}
-            </AppLayout>
-          )}
-          <Toaster />
+          <Microsoft365Provider>
+            {isLandingPage ? (
+              children
+            ) : (
+              <AppLayout>
+                {children}
+              </AppLayout>
+            )}
+            <Toaster />
+          </Microsoft365Provider>
         </ThemeProvider>
       </body>
     </html>

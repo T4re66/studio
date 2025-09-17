@@ -1,21 +1,15 @@
 
 'use client'
 
-import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Cloud, Link } from 'lucide-react';
+import { CheckCircle, Cloud, Link, LogOut } from 'lucide-react';
+import { useMicrosoft365 } from '@/components/microsoft365-provider';
 
 function Microsoft365Integration() {
-    const [isConnected, setIsConnected] = useState(false);
-
-    const handleConnect = () => {
-        // In a real application, this would trigger the OAuth flow.
-        // For this demo, we'll just simulate the connection.
-        setIsConnected(true);
-    };
+    const { isConnected, connect, disconnect } = useMicrosoft365();
 
     return (
         <Card>
@@ -36,18 +30,26 @@ function Microsoft365Integration() {
                         <CheckCircle className="h-8 w-8 text-green-600" />
                         <div>
                             <h3 className="font-semibold text-green-800 dark:text-green-300">Verbindung aktiv</h3>
-                            <p className="text-sm text-green-700 dark:text-green-400">OfficeZen hat jetzt Lesezugriff auf deine Daten.</p>
+                            <p className="text-sm text-green-700 dark:text-green-400">OfficeZen hat Lesezugriff auf deine Live-Daten.</p>
                         </div>
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <Button size="lg" onClick={handleConnect}>
+                        <Button size="lg" onClick={connect}>
                             <Link className="mr-2"/>
                             Mit Microsoft 365 verbinden
                         </Button>
                     </div>
                 )}
             </CardContent>
+            {isConnected && (
+                <CardFooter>
+                    <Button variant="destructive" onClick={disconnect}>
+                        <LogOut className="mr-2"/>
+                        Verbindung trennen
+                    </Button>
+                </CardFooter>
+            )}
         </Card>
     );
 }

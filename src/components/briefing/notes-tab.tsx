@@ -1,8 +1,8 @@
+
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { notes as initialNotes } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Plus, Archive, Sparkles } from "lucide-react";
 import { NoteEditor } from "@/components/notes/note-editor";
@@ -14,12 +14,17 @@ import type { Note } from "@/lib/data";
 
 interface NotesTabProps {
     summary: string | undefined;
+    notes: Note[];
 }
 
-export function NotesTab({ summary }: NotesTabProps) {
+export function NotesTab({ summary, notes: initialNotes }: NotesTabProps) {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [notes, setNotes] = useState<Note[]>(initialNotes);
     const { toast } = useToast();
+
+    useEffect(() => {
+        setNotes(initialNotes);
+    }, [initialNotes]);
 
     const handleSaveNote = (newNote: Omit<Note, 'id' | 'date'>) => {
         if (!newNote.title || !newNote.content) {

@@ -345,7 +345,25 @@ export const tournaments: Tournament[] = [
 ]
 
 
+// --- LIVE DATA (MOCKED) FOR MS365 CONNECTION ---
+export const liveEmails: Email[] = [
+  { id: 'live-e1', sender: 'Satya Nadella', subject: 'Vision & Strategy 2025', snippet: 'Team, I want to share our forward-looking strategy for the upcoming year, focusing on AI and cloud...', isRead: false, timestamp: '09:30' },
+  { id: 'live-e2', sender: 'Outlook Calendar', subject: 'Accepted: Quarterly Business Review', snippet: 'Your meeting has been accepted by all participants.', isRead: true, timestamp: '08:15' },
+  { id: 'live-e3', sender: 'Microsoft Viva', subject: 'Your weekly briefing is ready', snippet: 'Stay on top of your collaboration habits and make time for focus...', isRead: false, timestamp: 'yesterday' },
+  { id: 'live-e4', sender: 'Azure DevOps', subject: '[PR updated] #12345: Add new login flow', snippet: 'Your pull request was updated by Bob Williams.', isRead: false, timestamp: '11:50' },
+];
 
+const liveToday = new Date();
+const formatLiveDate = (date: Date) => date.toISOString().split('T')[0];
 
+export const liveCalendarEvents: CalendarEvent[] = [
+  { id: 'live-evt1', title: 'Quarterly Business Review', date: formatLiveDate(liveToday), startTime: '09:00', endTime: '11:00', category: 'Meeting', participants: ['1', '2', '3'] },
+  { id: 'live-evt2', title: 'Lunch with Marketing Team', date: formatLiveDate(liveToday), startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['1', '6'] },
+  { id: 'live-evt3', title: 'Focus Time: Work on feature X', date: formatLiveDate(liveToday), startTime: '14:00', endTime: '16:00', category: 'Personal', participants: ['1'] },
+];
 
+export const liveNotes: Note[] = [
+    { id: 'live-n1', title: 'OneNote: QBR Prep', content: '<p>Key talking points for the Quarterly Business Review:</p><ul><li>Show YoY growth metrics.</li><li>Highlight the success of Project Phoenix.</li><li>Propose budget for the new AI initiative.</li></ul>', date: '2024-07-21', tags: ['qbr', 'microsoft'] },
+    { id: 'live-n2', title: 'OneNote: AI Initiative Ideas', content: '<p>We could leverage the new <strong>Azure AI Vision SDK</strong> to automate image tagging in our app. Need to discuss with the backend team.</p>', date: '2024-07-20', tags: ['ai', 'azure', 'planning'] },
+];
     
