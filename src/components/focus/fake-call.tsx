@@ -18,6 +18,7 @@ const timerOptions = [
 
 export function FakeCall() {
   const [callerName, setCallerName] = useState('Mama')
+  const [callerNumber, setCallerNumber] = useState('+41 79 123 45 67')
   const [selectedTimer, setSelectedTimer] = useState<number | null>(null)
   const [isCalling, setIsCalling] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
@@ -63,7 +64,7 @@ export function FakeCall() {
   }
 
   if (isCalling) {
-    return <FakeCallScreen callerName={callerName} onHangUp={() => setIsCalling(false)} />
+    return <FakeCallScreen callerName={callerName} callerNumber={callerNumber} onHangUp={() => setIsCalling(false)} />
   }
 
   return (
@@ -73,14 +74,25 @@ export function FakeCall() {
         <CardDescription>Simuliere einen Anruf, um diskret aus einer Situation auszusteigen.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 flex-grow">
-        <div className="space-y-2">
-          <Label htmlFor="callerName">Anrufername</Label>
-          <Input 
-            id="callerName" 
-            value={callerName} 
-            onChange={(e) => setCallerName(e.target.value)} 
-            placeholder="z.B. Mama, Wichtiger Kunde"
-          />
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="callerName">Anrufername</Label>
+              <Input 
+                id="callerName" 
+                value={callerName} 
+                onChange={(e) => setCallerName(e.target.value)} 
+                placeholder="z.B. Mama"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="callerNumber">Telefonnummer (optional)</Label>
+              <Input 
+                id="callerNumber" 
+                value={callerNumber} 
+                onChange={(e) => setCallerNumber(e.target.value)} 
+                placeholder="+41 79 123 45 67"
+              />
+            </div>
         </div>
         <div className="space-y-2">
             <Label>Timer</Label>

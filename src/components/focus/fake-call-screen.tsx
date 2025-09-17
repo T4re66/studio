@@ -7,10 +7,11 @@ import { useEffect, useState } from "react"
 
 interface FakeCallScreenProps {
   callerName: string
+  callerNumber?: string
   onHangUp: () => void
 }
 
-export function FakeCallScreen({ callerName, onHangUp }: FakeCallScreenProps) {
+export function FakeCallScreen({ callerName, callerNumber, onHangUp }: FakeCallScreenProps) {
   const [time, setTime] = useState('00:00');
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export function FakeCallScreen({ callerName, onHangUp }: FakeCallScreenProps) {
           </AvatarFallback>
         </Avatar>
         <h1 className="text-4xl font-light">{callerName}</h1>
-        <p className="text-lg text-gray-400 mt-1">iPhone</p>
+        <p className="text-lg text-gray-400 mt-1">{callerNumber || 'iPhone'}</p>
       </div>
 
       <div className="w-full max-w-xs">
