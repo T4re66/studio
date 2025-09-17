@@ -59,8 +59,7 @@ export const authConfig = {
     async signIn({ account, profile }) {
         if (account?.provider === "google") {
             // Allow only the specific email address
-            const isAllowed = profile?.email === "t4re66@gmail.com";
-            if (isAllowed) {
+            if (profile?.email === "t4re66@gmail.com") {
                 return true;
             } else {
                  console.log(`Login blocked for email: ${profile?.email}`);

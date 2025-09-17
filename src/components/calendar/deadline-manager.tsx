@@ -1,9 +1,10 @@
+
 'use client'
 
 import { useState, useEffect } from 'react';
 import type { Deadline } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { differenceInDays, differenceInHours, differenceInMinutes, parseISO } from 'date-fns';
+import { differenceInDays, differenceInHours, differenceInMinutes, parseISO, format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { Timer } from 'lucide-react';
 
@@ -74,17 +75,3 @@ export function DeadlineManager({ deadlines }: DeadlineManagerProps) {
         </Card>
     );
 }
-
-// Minimal date-fns format function to avoid pulling in the whole library
-function format(date: Date, formatStr: string): string {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-
-    return formatStr
-        .replace('dd', day)
-        .replace('MM', month)
-        .replace('yyyy', String(year));
-}
-
-    
