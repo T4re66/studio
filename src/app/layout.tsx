@@ -10,7 +10,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
-import { GoogleAccountProvider } from '@/components/google-account-provider';
+import { SessionProvider } from 'next-auth/react';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -49,7 +49,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <GoogleAccountProvider>
+          <SessionProvider>
             {isLandingPage ? (
               children
             ) : (
@@ -58,7 +58,7 @@ export default function RootLayout({
               </AppLayout>
             )}
             <Toaster />
-          </GoogleAccountProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

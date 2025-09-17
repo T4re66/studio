@@ -12,10 +12,11 @@ import { FilingCabinetTab } from "@/components/briefing/filing-cabinet-tab";
 import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { emails as staticEmails, calendarEvents as staticCalendarEvents, notes as staticNotes, liveEmails, liveCalendarEvents, liveNotes } from "@/lib/data";
 import { isSameDay } from "date-fns";
-import { useGoogleAccount } from "@/components/google-account-provider";
+import { useSession } from "next-auth/react";
 
 export default function BriefingPage() {
-    const { isConnected } = useGoogleAccount();
+    const { data: session, status } = useSession();
+    const isConnected = status === 'authenticated';
     const [briefing, setBriefing] = useState<{ emailSummary: string; calendarSummary: string; notesSummary: string; } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 

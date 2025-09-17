@@ -6,10 +6,41 @@ import { ThemeSelector } from "@/components/settings/theme-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Cloud, Link, LogOut } from 'lucide-react';
-import { useGoogleAccount } from '@/components/google-account-provider';
+import { useSession } from "next-auth/react";
+import { signIn, signOut } from "@/auth";
+import { useToast } from "@/hooks/use-toast";
 
 function GoogleAccountIntegration() {
-    const { isConnected, connect, disconnect, userEmail } = useGoogleAccount();
+    const { data: session, status } = useSession();
+    const { toast } = useToast();
+
+    const isConnected = status === "authenticated";
+    const userEmail = session?.user?.email;
+
+    const handleConnect = async () => {
+        try {
+            await signIn("google");
+        } catch (error) {
+            console.error("Sign in error", error);
+            if (error instanceof Error && error.message.includes("OAuthAccountNotLinked")) {
+                toast({
+                    variant: "destructive",
+                    title: "Fehler bei der Anmeldung",
+                    description: "Dieses Google-Konto ist nicht für die Anmeldung autorisiert."
+                })
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Fehler bei der Anmeldung",
+                    description: "Es ist ein unbekannter Fehler aufgetreten."
+                })
+            }
+        }
+    }
+
+    const handleDisconnect = async () => {
+        await signOut();
+    }
 
     return (
         <Card>
@@ -35,19 +66,23 @@ function GoogleAccountIntegration() {
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <Button size="lg" onClick={() => connect('t4re66@gmail.com')}>
-                            <Link className="mr-2"/>
-                            Mit Google verbinden
-                        </Button>
+                        <form action={() => handleConnect()}>
+                            <Button size="lg" type="submit">
+                                <Link className="mr-2"/>
+                                Mit Google verbinden
+                            </Button>
+                        </form>
                     </div>
                 )}
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <Button variant="destructive" onClick={disconnect}>
-                        <LogOut className="mr-2"/>
-                        Verbindung trennen
-                    </Button>
+                    <form action={() => handleDisconnect()}>
+                        <Button variant="destructive" type="submit">
+                            <LogOut className="mr-2"/>
+                            Verbindung trennen
+                        </Button>
+                    </form>
                 </CardFooter>
             )}
         </Card>
