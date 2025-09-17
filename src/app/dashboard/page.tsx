@@ -254,15 +254,18 @@ export default function DashboardPage() {
             </Link>
 
              <Link href="/leaderboard" className="sm:col-span-1">
-                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl">
+                <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center flex-1 flex flex-col justify-center py-8">
-                        <p className="text-5xl font-bold text-accent">
+                    <CardContent className="text-center flex-1 flex flex-col justify-center relative py-8">
+                         <div 
+                            className="absolute w-[80%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1 bg-accent/50"
+                         />
+                        <p className="text-5xl font-bold text-accent z-10">
                            <AnimatedCounter to={currentUser.points} />
                         </p>
-                        <p className="font-semibold mt-1">Dein Rang: 3.</p>
+                        <p className="font-semibold mt-1 z-10">Dein Rang: 3.</p>
                     </CardContent>
                 </Card>
             </Link>
@@ -297,3 +300,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
