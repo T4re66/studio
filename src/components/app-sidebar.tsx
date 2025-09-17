@@ -30,7 +30,6 @@ import {
   Swords,
   BookText,
   Bot,
-  Cloud,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -66,9 +65,6 @@ const officeMenuItems = [
     { href: "/fridge", label: "Kühlschrank", icon: Refrigerator },
 ]
 
-const integrationMenuItems = [
-    { href: "/microsoft365", label: "Microsoft 365", icon: Cloud },
-];
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -182,27 +178,6 @@ export function AppSidebar() {
             </SidebarMenu>
         </SidebarGroup>
         
-        <SidebarSeparator />
-
-        <SidebarGroup>
-            <SidebarGroupLabel>Integrationen</SidebarGroupLabel>
-            <SidebarMenu>
-                 {integrationMenuItems.map(item => (
-                    <SidebarMenuItem key={item.href}>
-                    <Link href={item.href}>
-                        <SidebarMenuButton
-                        isActive={isActive(item.href)}
-                        tooltip={{ children: item.label }}
-                        >
-                        <item.icon />
-                        <span>{item.label}</span>
-                        </SidebarMenuButton>
-                    </Link>
-                    </SidebarMenuItem>
-                ))}
-            </SidebarMenu>
-        </SidebarGroup>
-
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
