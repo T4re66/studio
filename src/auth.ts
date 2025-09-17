@@ -1,8 +1,22 @@
 import type { NextAuthConfig } from 'next-auth';
 import NextAuth from 'next-auth';
+import Google from 'next-auth/providers/google';
  
 export const authConfig = {
-  providers: [], // Providers are defined in the route.ts file
+  providers: [
+    Google({
+        clientId: process.env.GMAIL_CLIENT_ID,
+        clientSecret: process.env.GMAIL_CLIENT_SECRET,
+        authorization: {
+            params: {
+                prompt: "consent",
+                access_type: "offline",
+                response_type: "code",
+                scope: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly"
+            }
+        }
+    })
+  ],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
