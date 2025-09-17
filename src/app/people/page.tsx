@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
@@ -12,7 +12,18 @@ import type { User } from "@/lib/data"
 export default function PeoplePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [teamMembers, setTeamMembers] = useState<User[]>(initialTeamMembers)
+  // We use state to hold teamMembers so UI can re-render when check-in updates it.
+  const [teamMembers, setTeamMembers] = useState<User[]>(initialTeamMembers);
+
+  useEffect(() => {
+    // This effect ensures that if the underlying data changes (e.g. via check-in),
+    // the component reflects the change. A more robust solution might involve a global state manager.
+    const interval = setInterval(() => {
+      setTeamMembers([...initialTeamMembers]);
+    }, 1000); // Check for updates every second
+
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredMembers = teamMembers.filter((member) =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

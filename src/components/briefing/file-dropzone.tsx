@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useState, useCallback, useEffect } from 'react';
+import { useDropzone, FileWithPath } from 'react-dropzone';
 import { UploadCloud, File as FileIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
@@ -14,7 +14,7 @@ interface FileDropzoneProps {
 export function FileDropzone({ onFilesDrop, disabled }: FileDropzoneProps) {
   const [files, setFiles] = useState<File[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
     setFiles(prev => [...prev, ...acceptedFiles]);
   }, []);
 
@@ -40,6 +40,16 @@ export function FileDropzone({ onFilesDrop, disabled }: FileDropzoneProps) {
       setFiles([]);
     }
   }
+  
+  useEffect(() => {
+    // Revoke object URLs on unmount to prevent memory leaks
+    return () => files.forEach(file => {
+        if ('path' in file) {
+             URL.revokeObjectURL((file as FileWithPath).path!);
+        }
+    });
+  }, [files]);
+
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,7 +88,7 @@ export function FileDropzone({ onFilesDrop, disabled }: FileDropzoneProps) {
                         </li>
                     ))}
                  </ul>
-                 <Button onClick={handleUpload} disabled={disabled} className="w-full">
+                 <Button onClick={handleUpload} disabled={disabled || files.length === 0} className="w-full">
                     {files.length} {files.length === 1 ? 'Datei' : 'Dateien'} hochladen & organisieren
                 </Button>
             </div>

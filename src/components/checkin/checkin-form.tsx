@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck } from "lucide-react";
 import { OfficeMap } from "@/components/office-map";
+import { teamMembers } from "@/lib/data";
 
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
@@ -14,6 +15,9 @@ export function CheckinForm() {
   const [mood, setMood] = useState([3]);
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // In a real app, this would come from an auth context
+  const currentUserId = '1'; 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,15 +29,23 @@ export function CheckinForm() {
         });
         return;
     }
-    // In a real app, this would send data to a backend.
-    // Here we'll just simulate it and show a toast.
-    console.log({ mood: mood[0], seat: selectedSeat });
+    
+    // This is where you would typically make an API call to update the backend.
+    // For this demo, we'll mutate the local data directly.
+    const userIndex = teamMembers.findIndex(u => u.id === currentUserId);
+    if(userIndex !== -1) {
+        teamMembers[userIndex].status = 'office';
+        teamMembers[userIndex].seat = selectedSeat;
+        teamMembers[userIndex].mood = mood[0];
+    }
+    
     toast({
       title: "Check-in erfolgreich",
       description: `Danke für dein Feedback! Dein Platz ${selectedSeat} wurde für heute registriert.`,
     });
-    // In a real app, you would update the user's state globally.
-    setSelectedSeat(null); 
+    
+    // Reset selection after submit
+    setSelectedSeat(null);
   };
 
   return (

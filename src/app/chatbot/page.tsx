@@ -10,7 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { chatbotFlow } from '@/ai/flows/chatbot-flow';
 import { useToast } from '@/hooks/use-toast';
-import { emails, calendarEvents, notes, teamMembers } from '@/lib/data';
+import { emails, calendarEvents as initialCalendarEvents, notes, teamMembers } from '@/lib/data';
+import type { CalendarEvent } from '@/lib/data';
 
 type Message = {
     role: 'user' | 'bot';
@@ -21,6 +22,7 @@ export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
     const { toast } = useToast();
 
     const currentUser = teamMembers.find(m => m.id === '1')!;
@@ -35,13 +37,18 @@ export default function ChatbotPage() {
         setIsLoading(true);
 
         try {
-            // Rerunning the query updates the calendar events after a new one is made.
             const botResponse = await chatbotFlow({
                 question: input,
                 emails: emails,
                 events: calendarEvents,
                 notes: notes,
             });
+            
+            // This is a simple way to check if an event was created.
+            // In a real app, the tool could return the new event object.
+            if (calendarEvents.length < initialCalendarEvents.length) {
+                setCalendarEvents([...initialCalendarEvents]);
+            }
 
             const botMessage: Message = { role: 'bot', content: botResponse.answer };
             setMessages(prev => [...prev, botMessage]);
