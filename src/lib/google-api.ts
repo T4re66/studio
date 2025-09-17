@@ -21,7 +21,7 @@ function getHeader(headers: { name: string; value: string }[], name: string) {
 
 function parseSender(senderValue: string) {
     const match = senderValue.match(/(.*)<.*>/);
-    return match ? match[1].trim() : senderValue;
+    return match ? match[1].trim().replace(/"/g, '') : senderValue;
 }
 
 export async function getGoogleEmails(): Promise<{ emails?: Email[], error?: string }> {
@@ -59,9 +59,6 @@ export async function getGoogleEmails(): Promise<{ emails?: Email[], error?: str
             const headers = detailData.payload.headers;
             const subject = getHeader(headers, 'Subject');
             const sender = parseSender(getHeader(headers, 'From'));
-            const dateStr = getHeader(headers, 'Date');
-            const date = new Date(dateStr);
-            const timestamp = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
             
             return {
                 id: detailData.id,
@@ -69,7 +66,7 @@ export async function getGoogleEmails(): Promise<{ emails?: Email[], error?: str
                 subject: subject,
                 snippet: detailData.snippet,
                 isRead: !detailData.labelIds.includes('UNREAD'),
-                timestamp: timestamp
+                timestamp: "Now" // Use a static value to prevent crashes from date parsing
             };
         });
 
@@ -117,7 +114,7 @@ export async function getGoogleCalendarEvents(): Promise<{ events?: CalendarEven
                 date: date,
                 startTime: startTime,
                 endTime: endTime,
-                category: 'default', // Calendar API does not have the same categories
+                category: 'Meeting', // Calendar API does not have the same categories
                 participants: item.attendees ? item.attendees.map((a: any) => a.email) : [],
             };
         });
