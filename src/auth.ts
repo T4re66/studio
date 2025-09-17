@@ -1,3 +1,4 @@
+
 import type { NextAuthConfig } from 'next-auth';
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
@@ -59,10 +60,12 @@ export const authConfig = {
         if (account?.provider === "google") {
             // Allow only the specific email address
             const isAllowed = profile?.email === "t4re66@gmail.com";
-            if (!isAllowed) {
-                console.log(`Login blocked for email: ${profile?.email}`);
+            if (isAllowed) {
+                return true;
+            } else {
+                 console.log(`Login blocked for email: ${profile?.email}`);
+                 return false;
             }
-            return isAllowed;
         }
         return false; // Block other providers
     }
