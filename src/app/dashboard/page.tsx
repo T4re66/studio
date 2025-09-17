@@ -12,7 +12,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
-import { isToday, isSameDay } from "date-fns";
+import { isSameDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
@@ -150,13 +150,13 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Main Content: Office Table & Briefing */}
-        <div className="lg:col-span-2 grid grid-cols-1 xl:grid-cols-3 gap-8">
-            <Card className="xl:col-span-2 h-[500px] flex flex-col">
+        <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card>
                  <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
                     <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1 flex items-center justify-center relative p-6">
+                <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 
                         className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
                         style={{ background: 'var(--gradient)'}}
@@ -190,41 +190,39 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            <div className="xl:col-span-1 h-[500px] flex flex-col">
-                <Card className="flex-1 flex flex-col bg-primary/5 border-primary/20">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-lg">
-                            <Sparkles className="text-primary h-5 w-5"/>
-                            Tages-Briefing
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-1 space-y-4 overflow-y-auto">
+            <Card className="flex-1 flex flex-col bg-primary/5 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                        <Sparkles className="text-primary h-5 w-5"/>
+                        Tages-Briefing
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4 overflow-y-auto">
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
+                        <p className="text-sm text-foreground/80">
+                            {isLoadingBriefing ? "Wird geladen..." : briefing.emailSummary}
+                        </p>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
+                        <p className="text-sm text-foreground/80">
+                            {isLoadingBriefing ? "Wird geladen..." : briefing.calendarSummary}
+                        </p>
+                    </div>
                         <div>
-                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
-                            <p className="text-sm text-foreground/80">
-                                {isLoadingBriefing ? "Wird geladen..." : briefing.emailSummary}
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
-                            <p className="text-sm text-foreground/80">
-                                {isLoadingBriefing ? "Wird geladen..." : briefing.calendarSummary}
-                            </p>
-                        </div>
-                         <div>
-                            <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
-                            <p className="text-sm text-foreground/80">
-                                {isLoadingBriefing ? "Wird geladen..." : briefing.notesSummary}
-                            </p>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-end">
-                        <Link href="/briefing">
-                            <Button variant="ghost" size="sm">Zum Briefing <ArrowRight className="ml-2"/></Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-            </div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
+                        <p className="text-sm text-foreground/80">
+                            {isLoadingBriefing ? "Wird geladen..." : briefing.notesSummary}
+                        </p>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                    <Link href="/briefing">
+                        <Button variant="ghost" size="sm">Zum Briefing <ArrowRight className="ml-2"/></Button>
+                    </Link>
+                </CardFooter>
+            </Card>
         </div>
         
         {/* Side Content */}
@@ -234,7 +232,7 @@ export default function DashboardPage() {
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Coffee className="text-primary"/>Pausen</CardTitle>
                     </CardHeader>
-                    <CardContent className='flex flex-col items-center justify-center text-center relative'>
+                    <CardContent className='flex flex-col items-center justify-center text-center relative py-8'>
                          <div 
                             className="absolute w-full h-[80%] rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1"
                             style={{ background: 'var(--gradient)'}}
@@ -260,7 +258,7 @@ export default function DashboardPage() {
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Medal className="text-accent"/>Punkte</CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center flex-1 flex flex-col justify-center">
+                    <CardContent className="text-center flex-1 flex flex-col justify-center py-8">
                         <p className="text-5xl font-bold text-accent">
                            <AnimatedCounter to={currentUser.points} />
                         </p>
@@ -299,11 +297,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-    
