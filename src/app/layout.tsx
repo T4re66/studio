@@ -10,7 +10,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
-import { Microsoft365Provider } from '@/components/microsoft365-provider';
+import { GoogleAccountProvider } from '@/components/google-account-provider';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -49,7 +49,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <Microsoft365Provider>
+          <GoogleAccountProvider>
             {isLandingPage ? (
               children
             ) : (
@@ -58,7 +58,7 @@ export default function RootLayout({
               </AppLayout>
             )}
             <Toaster />
-          </Microsoft365Provider>
+          </GoogleAccountProvider>
         </ThemeProvider>
       </body>
     </html>

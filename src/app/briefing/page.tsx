@@ -12,10 +12,10 @@ import { FilingCabinetTab } from "@/components/briefing/filing-cabinet-tab";
 import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { emails as staticEmails, calendarEvents as staticCalendarEvents, notes as staticNotes, liveEmails, liveCalendarEvents, liveNotes } from "@/lib/data";
 import { isSameDay } from "date-fns";
-import { useMicrosoft365 } from "@/components/microsoft365-provider";
+import { useGoogleAccount } from "@/components/google-account-provider";
 
 export default function BriefingPage() {
-    const { isConnected } = useMicrosoft365();
+    const { isConnected } = useGoogleAccount();
     const [briefing, setBriefing] = useState<{ emailSummary: string; calendarSummary: string; notesSummary: string; } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +54,7 @@ export default function BriefingPage() {
         <div className="flex flex-col gap-8">
              <PageHeader
                 title="Tages-Briefing"
-                description={isConnected ? "Live-Daten aus deinem Microsoft 365 Konto." : "Dein persönliches Cockpit für E-Mails, Termine und Notizen."}
+                description={isConnected ? "Live-Daten aus deinem Google-Konto." : "Dein persönliches Cockpit für E-Mails, Termine und Notizen."}
             />
             <Tabs defaultValue="inbox" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">

@@ -345,25 +345,25 @@ export const tournaments: Tournament[] = [
 ]
 
 
-// --- LIVE DATA (MOCKED) FOR MS365 CONNECTION ---
+// --- LIVE DATA (MOCKED) FOR GOOGLE CONNECTION ---
 export const liveEmails: Email[] = [
-  { id: 'live-e1', sender: 'Satya Nadella', subject: 'Vision & Strategy 2025', snippet: 'Team, I want to share our forward-looking strategy for the upcoming year, focusing on AI and cloud...', isRead: false, timestamp: '09:30' },
-  { id: 'live-e2', sender: 'Outlook Calendar', subject: 'Accepted: Quarterly Business Review', snippet: 'Your meeting has been accepted by all participants.', isRead: true, timestamp: '08:15' },
-  { id: 'live-e3', sender: 'Microsoft Viva', subject: 'Your weekly briefing is ready', snippet: 'Stay on top of your collaboration habits and make time for focus...', isRead: false, timestamp: 'yesterday' },
-  { id: 'live-e4', sender: 'Azure DevOps', subject: '[PR updated] #12345: Add new login flow', snippet: 'Your pull request was updated by Bob Williams.', isRead: false, timestamp: '11:50' },
+  { id: 'live-e1', sender: 'Sundar Pichai', subject: 'Next-Gen AI & The Future of Search', snippet: 'Team, I want to share our forward-looking strategy for the upcoming year, focusing on Gemini and Search...', isRead: false, timestamp: '09:30' },
+  { id: 'live-e2', sender: 'Google Calendar', subject: 'Invitation: Project Meeting @ 11am', snippet: 'You have been invited to a project meeting.', isRead: true, timestamp: '08:15' },
+  { id: 'live-e3', sender: 'Google Alerts', subject: 'Your weekly digest on "AI in production"', snippet: 'New results for your Google Alert...', isRead: false, timestamp: 'yesterday' },
+  { id: 'live-e4', sender: 'gcloud-noreply', subject: 'Your latest bill is now available', snippet: 'Your bill for June 2024 is ready to be viewed and paid.', isRead: false, timestamp: '11:50' },
 ];
 
 const liveToday = new Date();
 const formatLiveDate = (date: Date) => date.toISOString().split('T')[0];
 
 export const liveCalendarEvents: CalendarEvent[] = [
-  { id: 'live-evt1', title: 'Quarterly Business Review', date: formatLiveDate(liveToday), startTime: '09:00', endTime: '11:00', category: 'Meeting', participants: ['1', '2', '3'] },
-  { id: 'live-evt2', title: 'Lunch with Marketing Team', date: formatLiveDate(liveToday), startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['1', '6'] },
-  { id: 'live-evt3', title: 'Focus Time: Work on feature X', date: formatLiveDate(liveToday), startTime: '14:00', endTime: '16:00', category: 'Personal', participants: ['1'] },
+  { id: 'live-evt1', title: 'Product Strategy Sync', date: formatLiveDate(liveToday), startTime: '09:00', endTime: '11:00', category: 'Meeting', participants: ['1', '2', '3'] },
+  { id: 'live-evt2', title: 'Lunch with Android Team', date: formatLiveDate(liveToday), startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['1', '6'] },
+  { id: 'live-evt3', title: 'Dokumentation schreiben', date: formatLiveDate(liveToday), startTime: '14:00', endTime: '16:00', category: 'Personal', participants: ['1'] },
 ];
 
 export const liveNotes: Note[] = [
-    { id: 'live-n1', title: 'OneNote: QBR Prep', content: '<p>Key talking points for the Quarterly Business Review:</p><ul><li>Show YoY growth metrics.</li><li>Highlight the success of Project Phoenix.</li><li>Propose budget for the new AI initiative.</li></ul>', date: '2024-07-21', tags: ['qbr', 'microsoft'] },
-    { id: 'live-n2', title: 'OneNote: AI Initiative Ideas', content: '<p>We could leverage the new <strong>Azure AI Vision SDK</strong> to automate image tagging in our app. Need to discuss with the backend team.</p>', date: '2024-07-20', tags: ['ai', 'azure', 'planning'] },
+    { id: 'live-n1', title: 'Google Keep: Product-Sync', content: '<p>Wichtige Punkte für das morgige Meeting:</p><ul><li>Wachstumsmetriken zeigen.</li><li>Erfolg von Projekt Gemini hervorheben.</li><li>Budget für die neue KI-Initiative vorschlagen.</li></ul>', date: '2024-07-21', tags: ['meeting', 'google'] },
+    { id: 'live-n2', title: 'Google Keep: KI-Initiative Ideen', content: '<p>Wir könnten die neue <strong>Gmail API</strong> nutzen, um E-Mail-Zusammenfassungen zu automatisieren. Muss mit dem Backend-Team besprochen werden.</p>', date: '2024-07-20', tags: ['ai', 'gmail', 'planung'] },
 ];
     
