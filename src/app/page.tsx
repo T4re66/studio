@@ -64,12 +64,12 @@ export default function LandingPage() {
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
                         <CardContent className="p-2">
                              <Image
-                                src="https://picsum.photos/seed/dashboard/1200/800"
+                                src="https://picsum.photos/seed/app-screenshot/1200/800"
                                 alt="OfficeZen Dashboard"
                                 width={1200}
                                 height={800}
                                 className="rounded-lg"
-                                data-ai-hint="app dashboard screenshot"
+                                data-ai-hint="app dashboard"
                             />
                         </CardContent>
                     </Card>
