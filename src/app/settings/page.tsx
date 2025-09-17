@@ -17,9 +17,6 @@ function GoogleAccountIntegration() {
     const isConnected = status === "authenticated";
     const userEmail = session?.user?.email;
 
-    // The connect/disconnect logic is now handled via form actions
-    // to avoid the "headers" error with next-auth v5 in client components.
-
     return (
         <Card>
             <CardHeader>
@@ -45,12 +42,7 @@ function GoogleAccountIntegration() {
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
                         <form action={async () => {
-                            try {
-                                await signIn("google");
-                            } catch (error) {
-                                console.error("Sign in error", error);
-                                // Toast notifications for errors can be added here
-                            }
+                            await signIn('google');
                         }}>
                             <Button size="lg" type="submit">
                                 <Link className="mr-2"/>
