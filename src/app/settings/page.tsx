@@ -17,30 +17,8 @@ function GoogleAccountIntegration() {
     const isConnected = status === "authenticated";
     const userEmail = session?.user?.email;
 
-    const handleConnect = async () => {
-        try {
-            await signIn("google");
-        } catch (error) {
-            console.error("Sign in error", error);
-            if (error instanceof Error && error.message.includes("OAuthAccountNotLinked")) {
-                toast({
-                    variant: "destructive",
-                    title: "Fehler bei der Anmeldung",
-                    description: "Dieses Google-Konto ist nicht für die Anmeldung autorisiert."
-                })
-            } else {
-                 toast({
-                    variant: "destructive",
-                    title: "Fehler bei der Anmeldung",
-                    description: "Es ist ein unbekannter Fehler aufgetreten."
-                })
-            }
-        }
-    }
-
-    const handleDisconnect = async () => {
-        await signOut();
-    }
+    // The connect/disconnect logic is now handled via form actions
+    // to avoid the "headers" error with next-auth v5 in client components.
 
     return (
         <Card>
@@ -66,7 +44,14 @@ function GoogleAccountIntegration() {
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <form action={() => handleConnect()}>
+                        <form action={async () => {
+                            try {
+                                await signIn("google");
+                            } catch (error) {
+                                console.error("Sign in error", error);
+                                // Toast notifications for errors can be added here
+                            }
+                        }}>
                             <Button size="lg" type="submit">
                                 <Link className="mr-2"/>
                                 Mit Google verbinden
@@ -77,7 +62,9 @@ function GoogleAccountIntegration() {
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <form action={() => handleDisconnect()}>
+                    <form action={async () => {
+                        await signOut();
+                    }}>
                         <Button variant="destructive" type="submit">
                             <LogOut className="mr-2"/>
                             Verbindung trennen
