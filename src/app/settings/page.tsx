@@ -7,12 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Cloud, Link, LogOut } from 'lucide-react';
 import { useSession } from "next-auth/react";
-import { signInWithGoogle, signOutAndRedirect } from "./actions";
-import { useToast } from "@/hooks/use-toast";
+import { signIn, signOut } from "@/auth";
 
 function GoogleAccountIntegration() {
     const { data: session, status } = useSession();
-    const { toast } = useToast();
 
     const isConnected = status === "authenticated";
     const userEmail = session?.user?.email;
@@ -41,7 +39,7 @@ function GoogleAccountIntegration() {
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <form action={signInWithGoogle}>
+                        <form action={async () => await signIn('google')}>
                             <Button size="lg" type="submit">
                                 <Link className="mr-2"/>
                                 Mit Google verbinden
@@ -52,7 +50,7 @@ function GoogleAccountIntegration() {
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <form action={signOutAndRedirect}>
+                    <form action={async () => await signOut()}>
                         <Button variant="destructive" type="submit">
                             <LogOut className="mr-2"/>
                             Verbindung trennen
