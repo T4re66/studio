@@ -279,7 +279,10 @@ export default function DashboardPage() {
                      <CardHeader>
                         <CardTitle className="font-headline flex items-center gap-3"><Gift className="text-pink-500"/>Geburtstage</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="relative">
+                        <div 
+                            className="absolute w-full h-[150%] rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1 bg-pink-500/50"
+                         />
                     {nextBirthday?.member && (
                         <>
                             <Avatar className="h-16 w-16 mx-auto border-4 border-pink-300">
