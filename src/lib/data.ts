@@ -55,10 +55,10 @@ export type OfficeTask = {
 export type CalendarEvent = {
   id: string;
   title: string;
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD string
   startTime: string; // HH:mm
   endTime: string; // HH:mm
-  category: 'Meeting' | 'Personal' | 'Team Event';
+  category: 'Meeting' | 'Personal' | 'Team Event' | 'default';
   participants: string[]; // user IDs
 };
 

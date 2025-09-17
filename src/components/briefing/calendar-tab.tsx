@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
 import { teamMembers, deadlines } from "@/lib/data";
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -19,14 +19,17 @@ const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
     'Personal': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
     'Team Event': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
+    'default': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
 
 interface CalendarTabProps {
   summary: string | undefined;
   events: CalendarEvent[];
+  isLoading: boolean;
+  isConnected: boolean;
 }
 
-export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps) {
+export function CalendarTab({ summary, events: initialEvents, isLoading, isConnected }: CalendarTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
@@ -37,7 +40,7 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
 
   const selectedDayEvents = useMemo(() => {
     if (!date) return [];
-    return allEvents.filter(event => isSameDay(new Date(event.date), date));
+    return allEvents.filter(event => isSameDay(parseISO(event.date), date));
   }, [date, allEvents]);
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
@@ -50,6 +53,48 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
     };
     setAllEvents(prevEvents => [...prevEvents, eventWithId]);
   }
+
+  const renderEvents = () => {
+     if (isLoading && isConnected) {
+      return <p className="text-muted-foreground text-center py-4">Lade Termine...</p>;
+    }
+    if (!isConnected) {
+        return <p className="text-muted-foreground text-center py-4">Verbinde dein Google-Konto, um deine Termine zu sehen.</p>;
+    }
+     if (selectedDayEvents.length === 0) {
+      return <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
+    }
+
+    return selectedDayEvents.sort((a, b) => a.startTime.localeCompare(b.startTime)).map(event => (
+        <div key={event.id} className="flex gap-4">
+            <div className="font-mono text-sm text-muted-foreground flex flex-col items-center">
+                <span>{event.startTime}</span>
+                <div className="w-px h-full bg-border my-1"></div>
+                <span>{event.endTime}</span>
+            </div>
+            <div className="flex-1 bg-muted/50 p-3 rounded-lg">
+                <div className="flex justify-between items-start">
+                    <h4 className="font-semibold">{event.title}</h4>
+                    <Badge variant="outline" className={categoryColors[event.category] || categoryColors.default}>{event.category}</Badge>
+                </div>
+                {event.participants.length > 0 && (
+                    <div className="flex -space-x-2 mt-2">
+                        {event.participants.map(id => {
+                            const user = findUser(id);
+                            return user ? (
+                                <Avatar key={id} className="h-6 w-6 border-2 border-card">
+                                    <AvatarImage src={user.avatar} />
+                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            ) : null;
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    ));
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,6 +117,8 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                         className="rounded-md"
                         weekStartsOn={1}
                         locale={de}
+                        modifiers={{ booked: allEvents.map(e => parseISO(e.date))}}
+                        modifiersStyles={{ booked: { border: "2px solid hsl(var(--primary))" } }}
                     />
                 </CardContent>
             </Card>
@@ -86,36 +133,7 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {selectedDayEvents.length > 0 ? (
-                        selectedDayEvents.sort((a,b) => a.startTime.localeCompare(b.startTime)).map(event => (
-                            <div key={event.id} className="flex gap-4">
-                                <div className="font-mono text-sm text-muted-foreground flex flex-col items-center">
-                                    <span>{event.startTime}</span>
-                                    <div className="w-px h-full bg-border my-1"></div>
-                                    <span>{event.endTime}</span>
-                                </div>
-                                <div className="flex-1 bg-muted/50 p-3 rounded-lg">
-                                    <div className="flex justify-between items-start">
-                                        <h4 className="font-semibold">{event.title}</h4>
-                                        <Badge variant="outline" className={categoryColors[event.category]}>{event.category}</Badge>
-                                    </div>
-                                    <div className="flex -space-x-2 mt-2">
-                                        {event.participants.map(id => {
-                                            const user = findUser(id);
-                                            return user ? (
-                                                <Avatar key={id} className="h-6 w-6 border-2 border-card">
-                                                    <AvatarImage src={user.avatar} />
-                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                            ) : null;
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
-                    )}
+                    {renderEvents()}
                 </CardContent>
             </Card>
 
