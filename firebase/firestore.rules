@@ -1,62 +1,35 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAuthed() {
-      return request.auth != null;
+    function isAuthed() { 
+      return request.auth != null; 
     }
-    function userId() {
-      return request.auth.uid;
-    }
-    function hasOrg(orgId) {
-      return request.auth.token.orgId == orgId;
-    }
-    function hasRole(orgId, role) {
-      return hasOrg(orgId) && request.auth.token.role == role;
-    }
-    function isSelf(orgId, uid) {
-      return hasOrg(orgId) && userId() == uid;
-    }
-    function isOwner(orgId) {
-      return hasRole(orgId, 'owner');
-    }
-    function isAdmin(orgId) {
-      return hasRole(orgId, 'admin');
+    function isSelf(uid) { 
+      return isAuthed() && request.auth.uid == uid; 
     }
 
-    match /orgs/{orgId} {
-      allow read: if isAuthed() && hasOrg(orgId);
-      allow write: if isAuthed() && isOwner(orgId);
-
-      match /users/{uid} {
-        // Jeder darf Profile im eigenen org lesen.
-        allow read: if isAuthed() && hasOrg(orgId);
-        
-        // Nutzer dürfen nur bestimmte eigene Felder updaten.
-        allow update: if isSelf(orgId, uid) &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'dnd', 'presenceHint', 'birthday', 'notificationTokens', 'termsAcceptedAt', 'privacyAcceptedAt']);
-        
-        // Admin/Owner haben volle Rechte zum Erstellen, Löschen und Updaten.
-        allow create, delete, update: if isAuthed() && (isAdmin(orgId) || isOwner(orgId));
-      }
-
-      match /roles/{roleId} {
-        allow read: if isAuthed() && hasOrg(orgId);
-        allow write: if isAuthed() && isOwner(orgId);
-      }
-
-      match /invites/{inviteId} {
-        allow read: if isAuthed() && hasOrg(orgId);
-        allow create, update, delete: if isAuthed() && (isAdmin(orgId) || isOwner(orgId));
-      }
+    match /app/{doc} {
+      allow read: if true;   // Unkritische Metadaten
+      allow write: if false; // Nur via Functions/Console
     }
 
-    // Audits sind nur durch Cloud Functions beschreibbar.
-    match /audits/{id} {
-      // Leserecht könnte auf spezielle Staff-Rollen beschränkt werden
-      allow read: if isAuthed() && request.auth.token.isStaff == true;
-      allow write: if false;
+    match /users/{uid} {
+      // Jeder authentifizierte Nutzer darf Profile lesen.
+      // In einer echten App würde man hier ggf. sensible Felder ausnehmen.
+      allow get, list: if isAuthed();
+
+      // Nutzer dürfen NUR bestimmte Felder am eigenen Profil ändern.
+      // Die Rolle oder der Aktiv-Status dürfen sie nicht selbst ändern.
+      allow update: if isSelf(uid)
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'displayName', 'photoURL', 'birthday', 'lastLoginAt'
+        ])
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.isActive == resource.data.isActive;
+
+      // Anlegen und Löschen ist nur serverseitig (durch Cloud Functions) erlaubt.
+      allow create, delete: if false;
     }
   }
 }

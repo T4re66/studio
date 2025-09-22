@@ -37,9 +37,7 @@ npm install
 Gehe zur [Firebase Console](https://console.firebase.google.com/) und aktiviere die folgenden Dienste für dein Projekt:
 1.  **Authentication**: Aktiviere die **Google**-Anmeldemethode.
 2.  **Firestore Database**: Erstelle eine neue Datenbank im **Produktionsmodus**. Wähle einen Standort (z. B. `europe-west`).
-3.  **Realtime Database**: Erstelle eine neue Datenbank im **gesperrten Modus**.
-4.  **Storage**: Aktiviere Cloud Storage.
-5.  **Functions**: Aktiviere Cloud Functions.
+3.  **Functions**: Aktiviere Cloud Functions.
 
 #### 3.2. Web-App-Konfiguration abrufen
 
