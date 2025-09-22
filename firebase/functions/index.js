@@ -1,26 +1,18 @@
 
-const {
-  onDocumentWritten,
-} = require("firebase-functions/v2/firestore");
+require("dotenv").config();
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onObjectFinalized } = require("firebase-functions/v2/storage");
-const { onCall } = require("firebase-functions/v2/https");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
+const { getAuth } = require("firebase-admin/auth");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getDatabase } = require("firebase-admin/database");
+
 
 admin.initializeApp();
 setGlobalOptions({ region: "europe-west" });
-
-/**
- * Cloud Functions for OfficeZen, based on the user's detailed prompt.
- * 
- * NOTE: This is a comprehensive Javascript implementation of the requested functions.
- * For a production environment, this would be split into multiple files and written in TypeScript
- * with proper type definitions and error handling.
- */
-
-
-// --- AUTH TRIGGERS ---
 
 /**
  * Triggered when a new user is created in Firebase Auth.
@@ -35,32 +27,36 @@ exports.onAuthUserCreate = require("firebase-functions/v1").auth.user().onCreate
         return;
     }
 
+    const db = getFirestore();
+    const auth = getAuth();
+
     // 1. Determine Organization ID from email domain
     const domain = email.split('@')[1];
-    const orgsRef = admin.firestore().collection('orgs');
+    const orgsRef = db.collection('orgs');
     const orgSnapshot = await orgsRef.where('domainAllowlist', 'array-contains', domain).limit(1).get();
 
     if (orgSnapshot.empty) {
         logger.error(`No organization found for domain: ${domain}. User ${uid} not added.`);
-        // Optional: Delete the user if they can't be assigned to an org
-        // await admin.auth().deleteUser(uid);
+        // Optional: You could delete the user if they can't be assigned to any org.
+        // await auth.deleteUser(uid);
         return;
     }
 
     const org = orgSnapshot.docs[0];
     const orgId = org.id;
     const orgData = org.data();
+    const defaultRole = orgData.settings?.defaultRole || 'member';
 
     // 2. Create user profile in Firestore
     const userRef = orgsRef.doc(orgId).collection('users').doc(uid);
     await userRef.set({
         displayName: displayName || email,
         email,
-        photoURL,
-        role: orgData.settings.defaultRole || 'member',
+        photoURL: photoURL || null,
+        role: defaultRole,
         isActive: true,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+        lastLoginAt: FieldValue.serverTimestamp(),
         dnd: false,
         presenceHint: 'remote',
         birthday: null,
@@ -68,21 +64,21 @@ exports.onAuthUserCreate = require("firebase-functions/v1").auth.user().onCreate
         termsAcceptedAt: null,
         privacyAcceptedAt: null,
         orgId: orgId, // Denormalize for security rules
-    });
+    }, { merge: true });
 
     // 3. Set custom claims for role-based access control
-    await admin.auth().setCustomUserClaims(uid, { orgId, role: orgData.settings.defaultRole || 'member' });
+    await auth.setCustomUserClaims(uid, { orgId, role: defaultRole });
 
     // 4. Write Audit Event
-    await admin.firestore().collection('audits').add({
+    await db.collection('audits').add({
         orgId,
         actorUid: uid,
         action: 'user.create',
         targetPath: userRef.path,
-        at: admin.firestore.FieldValue.serverTimestamp(),
+        at: FieldValue.serverTimestamp(),
     });
 
-    logger.info(`User ${uid} successfully onboarded to organization ${orgId}.`);
+    logger.info(`User ${uid} successfully onboarded to organization ${orgId} with role ${defaultRole}.`);
 });
 
 /**
@@ -99,7 +95,8 @@ exports.onAuthUserDelete = require("firebase-functions/v1").auth.user().onDelete
         return;
     }
 
-    const userRef = admin.firestore().collection('orgs').doc(orgId).collection('users').doc(user.uid);
+    const db = getFirestore();
+    const userRef = db.collection('orgs').doc(orgId).collection('users').doc(user.uid);
     
     // Anonymize user data instead of deleting, to maintain data integrity
     await userRef.update({
@@ -109,46 +106,45 @@ exports.onAuthUserDelete = require("firebase-functions/v1").auth.user().onDelete
         photoURL: null,
         notificationTokens: [],
         dnd: false,
+        role: 'member',
+        birthday: null
     });
     
      // Write Audit Event
-    await admin.firestore().collection('audits').add({
+    await db.collection('audits').add({
         orgId,
         actorUid: 'system', // Deletion can be initiated by user or admin
         action: 'user.delete.anonymize',
         targetPath: userRef.path,
-        at: admin.firestore.FieldValue.serverTimestamp(),
+        at: FieldValue.serverTimestamp(),
     });
 
     logger.info(`Anonymized data for user ${user.uid} in org ${orgId}.`);
 });
 
 
-// --- PRESENCE SYSTEM ---
-
 /**
  * Mirrors presence status from Realtime Database to Firestore.
- * This is triggered by a write to the RTDB.
  */
 exports.mirrorPresence = require("firebase-functions/v1").database.ref('/status/{orgId}/{uid}')
     .onWrite(async (change, context) => {
         const status = change.after.val();
         const { orgId, uid } = context.params;
-        const userRef = admin.firestore().collection('orgs').doc(orgId).collection('users').doc(uid);
+        const userRef = getFirestore().collection('orgs').doc(orgId).collection('users').doc(uid);
 
         try {
             if (!change.after.exists()) {
-                // User went offline
-                await userRef.update({ presenceHint: 'away', lastSeen: admin.firestore.FieldValue.serverTimestamp() });
+                await userRef.update({ presenceHint: 'away', lastSeen: FieldValue.serverTimestamp() });
                 logger.info(`User ${uid} went offline.`);
                 return null;
             }
-            // User came online or changed status
+
+            const presenceHint = status.online ? 'office' : 'away'; // Simplified logic
             await userRef.update({ 
-                presenceHint: status.online ? 'office' : 'away', // Simplified for demo
-                lastSeen: admin.firestore.FieldValue.serverTimestamp() 
+                presenceHint: presenceHint,
+                lastSeen: FieldValue.serverTimestamp() 
             });
-            logger.info(`Updated presence for user ${uid} to ${status.online ? 'online' : 'offline'}.`);
+            logger.info(`Updated presence for user ${uid} to ${presenceHint}.`);
             return null;
         } catch (error) {
             logger.error(`Failed to mirror presence for user ${uid}`, error);
@@ -157,18 +153,17 @@ exports.mirrorPresence = require("firebase-functions/v1").database.ref('/status/
 });
 
 
-// --- SCHEDULED FUNCTIONS (CRON) ---
-
 /**
  * Runs on a schedule (e.g., every hour) to mark expired invites.
  */
 exports.rotateExpiredInvites = require("firebase-functions/v1").pubsub.schedule('every 60 minutes').onRun(async () => {
     logger.info('Running rotateExpiredInvites cron job.');
-    const now = admin.firestore.Timestamp.now();
-    const invitesRef = admin.firestore().collectionGroup('invites');
+    const db = getFirestore();
+    const now = FieldValue.serverTimestamp();
+    const invitesRef = db.collectionGroup('invites');
     
-    // Assume invites expire after 7 days
-    const sevenDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - 7 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const snapshot = await invitesRef.where('status', '==', 'pending').where('createdAt', '<', sevenDaysAgo).get();
 
@@ -177,7 +172,7 @@ exports.rotateExpiredInvites = require("firebase-functions/v1").pubsub.schedule(
         return null;
     }
 
-    const batch = admin.firestore().batch();
+    const batch = db.batch();
     snapshot.docs.forEach(doc => {
         batch.update(doc.ref, { status: 'expired' });
     });
@@ -188,39 +183,38 @@ exports.rotateExpiredInvites = require("firebase-functions/v1").pubsub.schedule(
 });
 
 
-// --- CALLABLE FUNCTIONS (for client interaction) ---
-
 /**
  * GDPR Data Export: Aggregates a user's data and provides a download link.
  */
 exports.exportMyData = onCall(async (request) => {
     if (!request.auth) {
-        throw new https.HttpsError('unauthenticated', 'You must be logged in.');
+        throw new HttpsError('unauthenticated', 'You must be logged in.');
     }
     const uid = request.auth.uid;
     const orgId = request.auth.token.orgId;
 
     if (!orgId) {
-        throw new https.HttpsError('permission-denied', 'User is not associated with an organization.');
+        throw new HttpsError('permission-denied', 'User is not associated with an organization.');
     }
 
     logger.info(`Starting data export for user ${uid} in org ${orgId}`);
+    const db = getFirestore();
+    const storage = admin.storage();
 
-    const userRef = admin.firestore().collection('orgs').doc(orgId).collection('users').doc(uid);
+    const userRef = db.collection('orgs').doc(orgId).collection('users').doc(uid);
     const userDoc = await userRef.get();
     
     if (!userDoc.exists) {
-        throw new https.HttpsError('not-found', 'User data not found.');
+        throw new HttpsError('not-found', 'User data not found.');
     }
 
     const userData = userDoc.data();
     const exportData = {
         profile: userData,
         // In a real scenario, you'd also query other collections for related data
-        // (e.g., their fridge items, their tasks, etc.)
     };
 
-    const bucket = admin.storage().bucket();
+    const bucket = storage.bucket();
     const fileName = `export-${uid}-${Date.now()}.json`;
     const file = bucket.file(`user-exports/${uid}/${fileName}`);
 
@@ -228,10 +222,9 @@ exports.exportMyData = onCall(async (request) => {
         contentType: 'application/json',
     });
     
-    // Generate a signed URL for download, valid for 15 minutes.
     const [url] = await file.getSignedUrl({
         action: 'read',
-        expires: Date.now() + 15 * 60 * 1000,
+        expires: Date.now() + 15 * 60 * 1000, // 15 minutes
     });
 
     logger.info(`Data export for user ${uid} created. URL: ${url}`);
@@ -244,42 +237,44 @@ exports.exportMyData = onCall(async (request) => {
  */
 exports.deleteMyAccount = onCall(async (request) => {
     if (!request.auth) {
-        throw new https.HttpsError('unauthenticated', 'You must be logged in.');
+        throw new HttpsError('unauthenticated', 'You must be logged in.');
     }
 
     const uid = request.auth.uid;
-    const orgId = request.auth.token.orgId;
     logger.info(`Starting account deletion for user ${uid}`);
 
-    // The onAuthUserDelete function will handle data anonymization.
-    // This function just needs to trigger the auth deletion.
-    await admin.auth().deleteUser(uid);
-
-    logger.info(`Auth user ${uid} deleted. Anonymization will be triggered.`);
-    return { message: 'Account deletion process initiated.' };
+    try {
+        // The onAuthUserDelete function will handle data anonymization.
+        // This function just needs to trigger the auth deletion.
+        await getAuth().deleteUser(uid);
+        logger.info(`Auth user ${uid} deleted. Anonymization will be triggered.`);
+        return { message: 'Account deletion process initiated.' };
+    } catch (error) {
+        logger.error(`Error deleting auth user ${uid}:`, error);
+        throw new HttpsError('internal', 'Could not delete account.');
+    }
 });
 
 /**
  * Enforce Domain Allowlist on Invite Accept (example implementation)
- * This function could be called when a user accepts an invite.
  */
 exports.enforceDomainAllowlist = onCall(async(request) => {
      if (!request.auth) {
-        throw new https.HttpsError('unauthenticated', 'You must be logged in.');
+        throw new HttpsError('unauthenticated', 'You must be logged in.');
     }
     const email = request.auth.token.email;
     const { orgId } = request.data;
     
-    const orgDoc = await admin.firestore().collection('orgs').doc(orgId).get();
+    const orgDoc = await getFirestore().collection('orgs').doc(orgId).get();
     if (!orgDoc.exists) {
-        throw new https.HttpsError('not-found', 'Organization not found.');
+        throw new HttpsError('not-found', 'Organization not found.');
     }
 
     const allowlist = orgDoc.data().domainAllowlist || [];
     const userDomain = email.split('@')[1];
 
     if (!allowlist.includes(userDomain)) {
-         throw new https.HttpsError('permission-denied', 'Your email domain is not allowed for this organization.');
+         throw new HttpsError('permission-denied', `Your email domain (${userDomain}) is not allowed for this organization.`);
     }
 
     return { success: true };
