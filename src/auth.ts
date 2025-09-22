@@ -66,10 +66,15 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async signIn({ account, profile }) {
         if (account?.provider === "google") {
+            // This is a security measure for the demo app.
+            // In a real-world application, you would typically allow any user from your organization
+            // or manage a user whitelist in a database.
+            // For this demo, only the specified email is allowed to log in.
             if (profile?.email === "t4re66@gmail.com") {
                 return true;
             }
-            console.log(`Login blocked for email: ${profile?.email}`);
+            console.log(`Login blocked for email: ${profile?.email}. This demo is restricted to a specific user.`);
+            // You can redirect to an unauthorized page or simply return false
             return false; // Block login for any other email
         }
         return false; // Block all other providers

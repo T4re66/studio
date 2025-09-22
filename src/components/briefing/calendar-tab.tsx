@@ -19,7 +19,6 @@ const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
     'Personal': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
     'Team Event': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
-    'default': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
 
 interface CalendarTabProps {
@@ -75,7 +74,7 @@ export function CalendarTab({ summary, events: initialEvents, isLoading, isConne
             <div className="flex-1 bg-muted/50 p-3 rounded-lg">
                 <div className="flex justify-between items-start">
                     <h4 className="font-semibold">{event.title}</h4>
-                    <Badge variant="outline" className={categoryColors[event.category] || categoryColors.default}>{event.category}</Badge>
+                    <Badge variant="outline" className={categoryColors[event.category]}>{event.category}</Badge>
                 </div>
                 {event.participants.length > 0 && (
                     <div className="flex -space-x-2 mt-2">

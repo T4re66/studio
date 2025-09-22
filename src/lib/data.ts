@@ -58,7 +58,7 @@ export type CalendarEvent = {
   date: string; // YYYY-MM-DD string
   startTime: string; // HH:mm
   endTime: string; // HH:mm
-  category: 'Meeting' | 'Personal' | 'Team Event' | 'default';
+  category: 'Meeting' | 'Personal' | 'Team Event';
   participants: string[]; // user IDs
 };
 
