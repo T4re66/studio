@@ -3,10 +3,12 @@ import { getAuth, type Auth, GoogleAuthProvider, signInWithPopup } from 'firebas
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  projectId: "studio-2690327910-465d5",
-  appId: "1:547939753801:web:ec6d65567d0ddc09264498",
-  apiKey: "AIzaSyCniorXfxA-sdXX7yBKviMZMCEAnuw98KU",
-  authDomain: "studio-2690327910-465d5.firebaseapp.com",
+  projectId: "officezen-prod",
+  appId: "1:550306371720:web:d38e213381283a5416b2b4",
+  storageBucket: "officezen-prod.appspot.com",
+  apiKey: "AIzaSyAz_T9_OPPAoTlLgsjD-sPyZhlc4s8d-5M",
+  authDomain: "officezen-prod.firebaseapp.com",
+  messagingSenderId: "550306371720",
 };
 
 // Initialize Firebase
