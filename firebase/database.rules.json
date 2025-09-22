@@ -1,0 +1,13 @@
+
+{
+  "rules": {
+    "status": {
+      "$orgId": {
+        "$uid": {
+          ".read": "auth != null && auth.token.orgId === $orgId",
+          ".write": "auth != null && auth.uid === $uid && auth.token.orgId === $orgId"
+        }
+      }
+    }
+  }
+}

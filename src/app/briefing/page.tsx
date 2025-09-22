@@ -12,14 +12,13 @@ import { FilingCabinetTab } from "@/components/briefing/filing-cabinet-tab";
 import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { notes as staticNotes, liveNotes } from "@/lib/data";
 import type { Email, CalendarEvent } from "@/lib/data";
-import { useSession } from "next-auth/react";
-import { getGoogleEmails, getGoogleCalendarEvents } from "@/lib/google-api";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
 
 export default function BriefingPage() {
-    const { data: session, status } = useSession();
+    const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();
-    const isConnected = status === 'authenticated';
+    const isConnected = !!user;
     
     const [briefing, setBriefing] = useState<{ emailSummary: string; calendarSummary: string; notesSummary: string; } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -28,9 +27,10 @@ export default function BriefingPage() {
 
     const currentNotes = isConnected ? liveNotes : staticNotes;
 
+    // This is a placeholder for the real Google API calls, which would now use the Firebase user's token
     useEffect(() => {
         async function fetchData() {
-            if (status !== 'authenticated') {
+            if (!isConnected) {
                 setEmails([]);
                 setCalendarEvents([]);
                 setIsLoading(false);
@@ -39,24 +39,14 @@ export default function BriefingPage() {
 
             setIsLoading(true);
             try {
-                const [emailData, eventData] = await Promise.all([
-                    getGoogleEmails(),
-                    getGoogleCalendarEvents()
-                ]);
+                // In a real scenario, you'd replace these with functions that use the Firebase auth token
+                // For now, we simulate a successful data fetch with mock data.
+                const { liveEmails } = await import("@/lib/data");
+                const { liveCalendarEvents } = await import("@/lib/data");
 
-                if(emailData.error || eventData.error){
-                    toast({
-                        variant: 'destructive',
-                        title: 'Fehler beim Laden der Google-Daten',
-                        description: emailData.error || eventData.error || 'Bitte überprüfe deine Verbindung und versuche es erneut.'
-                    });
-                    setEmails([]);
-                    setCalendarEvents([]);
-                } else {
-                    setEmails(emailData.emails || []);
-                    setCalendarEvents(eventData.events || []);
-                }
-
+                setEmails(liveEmails || []);
+                setCalendarEvents(liveCalendarEvents || []);
+                 
             } catch (e) {
                 console.error('Failed to fetch google data', e);
                  toast({
@@ -69,15 +59,16 @@ export default function BriefingPage() {
             }
         }
 
-        fetchData();
-    }, [status, toast]);
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [isConnected, authLoading, toast]);
 
 
     useEffect(() => {
         async function fetchBriefing() {
-            if (isLoading) return; // Wait for data to be fetched
+            if (isLoading || authLoading) return; // Wait for data to be fetched
             
-            // For summarization, only use unread emails and today's events.
             const unreadEmails = emails.filter(e => !e.isRead);
 
             try {
@@ -97,7 +88,7 @@ export default function BriefingPage() {
             }
         }
         fetchBriefing();
-    }, [isConnected, emails, calendarEvents, currentNotes, isLoading]);
+    }, [isConnected, emails, calendarEvents, currentNotes, isLoading, authLoading]);
 
     return (
         <div className="flex flex-col gap-8">
@@ -113,7 +104,7 @@ export default function BriefingPage() {
                     <TabsTrigger value="ablage"><FolderKanban className="mr-2"/>Ablage</TabsTrigger>
                 </TabsList>
 
-                {isLoading && status === 'authenticated' ? (
+                {(isLoading || authLoading) && isConnected ? (
                     <div className="flex justify-center items-center py-20">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     </div>
