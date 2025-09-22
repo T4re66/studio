@@ -1,3 +1,4 @@
+
 'use client'
 
 import './globals.css';
@@ -12,6 +13,13 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/context/auth-context';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLandingPage = pathname === '/';
+
+  if (isLandingPage) {
+    return <>{children}</>;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -31,9 +39,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-
-  const isLandingPage = pathname === '/';
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,13 +54,9 @@ export default function RootLayout({
           enableSystem
         >
           <AuthProvider>
-            {isLandingPage ? (
-              children
-            ) : (
-              <AppLayout>
-                {children}
-              </AppLayout>
-            )}
+            <AppLayout>
+              {children}
+            </AppLayout>
             <Toaster />
           </AuthProvider>
         </ThemeProvider>
