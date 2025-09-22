@@ -2,33 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isAuthed() { 
-      return request.auth != null; 
-    }
-    function isSelf(uid) { 
-      return isAuthed() && request.auth.uid == uid; 
-    }
+    function isAuthed() { return request.auth != null; }
+    function isSelf(uid) { return isAuthed() && request.auth.uid == uid; }
 
     match /app/{doc} {
-      allow read: if true;   // Unkritische Metadaten
-      allow write: if false; // Nur via Functions/Console
+      allow read: if true;
+      allow write: if false;
     }
 
     match /users/{uid} {
-      // Jeder authentifizierte Nutzer darf Profile lesen.
-      // In einer echten App würde man hier ggf. sensible Felder ausnehmen.
+      // lesen erlaubt fuer alle eingeloggten Nutzer
       allow get, list: if isAuthed();
 
-      // Nutzer dürfen NUR bestimmte Felder am eigenen Profil ändern.
-      // Die Rolle oder der Aktiv-Status dürfen sie nicht selbst ändern.
+      // nur eigene whiteliste Felder duerfen geaendert werden
       allow update: if isSelf(uid)
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-          'displayName', 'photoURL', 'birthday', 'lastLoginAt'
-        ])
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(
+             ['displayName','photoURL','birthday','lastLoginAt']
+           )
         && request.resource.data.role == resource.data.role
         && request.resource.data.isActive == resource.data.isActive;
 
-      // Anlegen und Löschen ist nur serverseitig (durch Cloud Functions) erlaubt.
+      // create/delete nur per Functions
       allow create, delete: if false;
     }
   }

@@ -2,8 +2,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, User } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth, db, loginWithGoogle } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -21,10 +21,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) {
-        setLoading(false);
-        return;
-    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userRef = doc(db, 'users', user.uid);
@@ -32,16 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Check if user is marked as inactive
         if (userDoc.exists() && userDoc.data().isActive === false) {
-          await firebaseSignOut(auth);
+          await auth.signOut();
           setUser(null);
-          setLoading(false);
-          return;
+        } else {
+          setUser(user);
+           // Update last login time on sign-in
+          await setDoc(userRef, { lastLoginAt: serverTimestamp() }, { merge: true });
         }
-
-        setUser(user);
-        // Update last login time on sign-in
-        await setDoc(userRef, { lastLoginAt: serverTimestamp() }, { merge: true });
-
       } else {
         setUser(null);
       }
@@ -52,13 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
-    if (!auth) {
-        console.error("Firebase Auth is not initialized. Check your environment variables.");
-        return;
-    }
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await loginWithGoogle();
     } catch (error) {
       console.error('Error signing in with Google', error);
       throw error;
@@ -66,12 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    if (!auth) {
-        console.error("Firebase Auth is not initialized.");
-        return;
-    }
     try {
-      await firebaseSignOut(auth);
+      await auth.signOut();
     } catch (error) {
       console.error('Error signing out', error);
       throw error;
