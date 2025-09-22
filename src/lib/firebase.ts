@@ -1,9 +1,9 @@
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getDatabase } from 'firebase/database';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getDatabase, type Database } from 'firebase/database';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,12 +17,23 @@ const firebaseConfig = {
 // Check if all required environment variables are set before initializing
 const isConfigValid = firebaseConfig.apiKey && firebaseConfig.projectId;
 
-// Initialize Firebase
-const app = !getApps().length && isConfigValid ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(app);
-const storage = getStorage(app);
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let rtdb: Database | null = null;
+let storage: FirebaseStorage | null = null;
+
+if (isConfigValid) {
+    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    if (app) {
+        auth = getAuth(app);
+        db = getFirestore(app);
+        rtdb = getDatabase(app);
+        storage = getStorage(app);
+    }
+} else {
+    console.error("Firebase config is invalid. Please check your .env.local file.");
+}
 
 
 export { app, auth, db, rtdb, storage };
