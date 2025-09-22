@@ -8,6 +8,7 @@ import { InboxTab } from "@/components/briefing/inbox-tab";
 import { CalendarTab } from "@/components/briefing/calendar-tab";
 import { NotesTab } from "@/components/briefing/notes-tab";
 import { FilingCabinetTab } from "@/components/briefing/filing-cabinet-tab";
+<<<<<<< HEAD
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { fetchGmail, fetchCalendar } from "@/lib/google-api";
@@ -20,6 +21,12 @@ const getNotes = async (userId: string): Promise<Note[]> => {
     return [];
 }
 
+=======
+import { notes as staticNotes, liveNotes } from "@/lib/data";
+import type { Email, CalendarEvent } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 
 export default function BriefingPage() {
     const { user, accessToken } = useAuth();
@@ -73,6 +80,43 @@ export default function BriefingPage() {
         loadData();
     }, [user, accessToken]);
 
+<<<<<<< HEAD
+=======
+                setEmails(liveEmails || []);
+                setCalendarEvents(liveCalendarEvents || []);
+                 
+            } catch (e) {
+                console.error('Failed to fetch google data', e);
+                 toast({
+                    variant: 'destructive',
+                    title: 'Fehler',
+                    description: 'Ein unerwarteter Fehler ist beim Laden der Google-Daten aufgetreten.'
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        if (!authLoading) {
+            fetchData();
+        }
+    }, [isConnected, authLoading, toast]);
+
+
+    useEffect(() => {
+        async function fetchBriefing() {
+            if (isLoading || authLoading) return; // Wait for data to be fetched
+            
+            // This is a placeholder now. In a real app you would fetch this.
+            setBriefing({
+                emailSummary: "Dein Posteingang ist aufgeräumt. Wichtige E-Mail von 'Projekt Phoenix' bezüglich der Action Items.",
+                calendarSummary: "Dein Tag ist voll! Wichtigstes Ereignis: 'Project Phoenix Sync' um 10:00 Uhr.",
+                notesSummary: "Deine Notizen deuten auf offene Punkte beim 'Project Phoenix' hin. Dies scheint heute Priorität zu haben."
+            });
+        }
+        fetchBriefing();
+    }, [isConnected, emails, calendarEvents, currentNotes, isLoading, authLoading]);
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 
     return (
         <div className="flex flex-col gap-8">

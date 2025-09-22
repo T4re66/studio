@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+<<<<<<< HEAD
 import { useAuth } from '@/hooks/use-auth';
 import type { User, Email, CalendarEvent, Note } from '@/lib/data';
 import { useState, useEffect, useRef } from 'react';
 import { chat } from '@/ai/flows/chatbot-flow';
 import { fetchGmail, fetchCalendar } from '@/lib/google-api';
+=======
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 import { useToast } from '@/hooks/use-toast';
 
 type Message = {
@@ -34,9 +37,13 @@ export default function ChatbotPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
     const [context, setContext] = useState<{ emails: Email[], events: CalendarEvent[], notes: Note[] }>({ emails: [], events: [], notes: [] });
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
+=======
+    const { toast } = useToast();
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,12 +81,18 @@ export default function ChatbotPage() {
         setIsLoading(true);
 
         try {
+<<<<<<< HEAD
             const response = await chat({
                 message: input,
                 history: messages,
                 context: context,
             });
             const botMessage: Message = { role: 'bot', content: response };
+=======
+            // Placeholder for chatbot response
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const botMessage: Message = { role: 'bot', content: "Die Chatbot-Funktionalität ist zurzeit deaktiviert." };
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
             setMessages(prev => [...prev, botMessage]);
         } catch (error) {
             console.error('Chatbot error:', error);

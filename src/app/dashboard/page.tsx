@@ -9,6 +9,10 @@ import { Coffee, Gift, Medal, Sparkles, ArrowRight, Loader2, Users } from "lucid
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+<<<<<<< HEAD
+=======
+import { isSameDay } from "date-fns";
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TeamMember } from "@/lib/data";
 import { useAuth } from '@/hooks/use-auth';
@@ -119,6 +123,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadBriefing = async () => {
         setIsLoadingBriefing(true);
+<<<<<<< HEAD
         if (isPreview) {
             const summary = await getDailyBriefing({ emails: liveEmails, events: liveCalendarEvents });
             setBriefing(summary);
@@ -142,6 +147,15 @@ export default function DashboardPage() {
     };
     if (!loading) { // Only load briefing when auth is done
         loadBriefing();
+=======
+        // This is a placeholder now. In a real app you would fetch this.
+        setBriefing({
+            emailSummary: "Dein Posteingang ist aufgeräumt. Wichtige E-Mail von 'Projekt Phoenix' bezüglich der Action Items.",
+            calendarSummary: "Dein Tag ist voll! Wichtigstes Ereignis: 'Project Phoenix Sync' um 10:00 Uhr.",
+            notesSummary: "Deine Notizen deuten auf offene Punkte beim 'Project Phoenix' hin. Dies scheint heute Priorität zu haben."
+        });
+        setIsLoadingBriefing(false);
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
     }
   }, [accessToken, isPreview, loading]);
 

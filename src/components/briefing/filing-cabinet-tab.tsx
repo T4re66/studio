@@ -4,6 +4,10 @@
 import { useState } from 'react';
 import { FileDropzone } from './file-dropzone';
 import { FileExplorer } from './file-explorer';
+<<<<<<< HEAD
+=======
+import type { OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Loader2 } from 'lucide-react';
 import { organizeFiles, type OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
@@ -27,6 +31,7 @@ export function FilingCabinetTab() {
 
   const handleFilesDrop = async (files: File[]) => {
     setIsProcessing(true);
+<<<<<<< HEAD
     setOrganizedData(null);
     try {
       const filesToProcess = await Promise.all(
@@ -54,6 +59,46 @@ export function FilingCabinetTab() {
     } finally {
       setIsProcessing(false);
     }
+=======
+    toast({
+      title: 'Verarbeite Dateien...',
+      description: 'Die KI-Funktion ist zurzeit deaktiviert.',
+    });
+
+    // Placeholder for AI organization
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const result = {
+        folders: [
+            {
+                name: "Unsortiert",
+                files: files.map(f => ({ name: f.name, path: `/Unsortiert/${f.name}`}))
+            }
+        ]
+    };
+    
+    // Merge new results with existing ones
+    setOrganizedData(prevData => {
+        if (!prevData) return result;
+
+        const newFolders = new Map(prevData.folders.map(f => [f.name, [...f.files]]));
+        
+        result.folders.forEach(newFolder => {
+            if(newFolders.has(newFolder.name)) {
+                newFolders.get(newFolder.name)!.push(...newFolder.files);
+            } else {
+                newFolders.set(newFolder.name, newFolder.files);
+            }
+        });
+
+        return {
+            folders: Array.from(newFolders.entries()).map(([name, files]) => ({ name, files }))
+        };
+    });
+
+
+    setIsProcessing(false);
+>>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
   };
 
   return (
