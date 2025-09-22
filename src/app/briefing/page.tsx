@@ -9,7 +9,6 @@ import { InboxTab } from "@/components/briefing/inbox-tab";
 import { CalendarTab } from "@/components/briefing/calendar-tab";
 import { NotesTab } from "@/components/briefing/notes-tab";
 import { FilingCabinetTab } from "@/components/briefing/filing-cabinet-tab";
-import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { notes as staticNotes, liveNotes } from "@/lib/data";
 import type { Email, CalendarEvent } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
@@ -69,23 +68,12 @@ export default function BriefingPage() {
         async function fetchBriefing() {
             if (isLoading || authLoading) return; // Wait for data to be fetched
             
-            const unreadEmails = emails.filter(e => !e.isRead);
-
-            try {
-                const result = await summarizeBriefing({
-                    emails: unreadEmails.map(e => ({ sender: e.sender, subject: e.subject, snippet: e.snippet })),
-                    events: calendarEvents.map(e => ({ title: e.title, startTime: e.startTime, endTime: e.endTime, category: e.category })),
-                    notes: currentNotes,
-                });
-                setBriefing(result);
-            } catch (e) {
-                console.error(e);
-                setBriefing({
-                    emailSummary: "Zusammenfassung der E-Mails konnte nicht geladen werden.",
-                    calendarSummary: "Zusammenfassung des Kalenders konnte nicht geladen werden.",
-                    notesSummary: "Zusammenfassung der Notizen konnte nicht geladen werden."
-                });
-            }
+            // This is a placeholder now. In a real app you would fetch this.
+            setBriefing({
+                emailSummary: "Dein Posteingang ist aufgeräumt. Wichtige E-Mail von 'Projekt Phoenix' bezüglich der Action Items.",
+                calendarSummary: "Dein Tag ist voll! Wichtigstes Ereignis: 'Project Phoenix Sync' um 10:00 Uhr.",
+                notesSummary: "Deine Notizen deuten auf offene Punkte beim 'Project Phoenix' hin. Dies scheint heute Priorität zu haben."
+            });
         }
         fetchBriefing();
     }, [isConnected, emails, calendarEvents, currentNotes, isLoading, authLoading]);

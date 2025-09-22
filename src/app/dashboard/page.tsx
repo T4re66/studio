@@ -11,7 +11,6 @@ import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight } 
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { summarizeBriefing } from "@/ai/flows/summarize-briefing-flow";
 import { isSameDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -104,26 +103,13 @@ export default function DashboardPage() {
     // Summaries fetching
     async function fetchBriefing() {
         setIsLoadingBriefing(true);
-        const todayEvents = calendarEvents.filter(e => isSameDay(new Date(e.date), new Date()));
-        const unreadEmails = emails.filter(e => !e.isRead);
-
-        try {
-            const result = await summarizeBriefing({
-                emails: unreadEmails,
-                events: todayEvents,
-                notes: notes,
-            });
-            setBriefing(result);
-        } catch (e) {
-            console.error(e);
-            setBriefing({
-                emailSummary: "Zusammenfassung der E-Mails konnte nicht geladen werden.",
-                calendarSummary: "Zusammenfassung des Kalenders konnte nicht geladen werden.",
-                notesSummary: "Zusammenfassung der Notizen konnte nicht geladen werden."
-            });
-        } finally {
-            setIsLoadingBriefing(false);
-        }
+        // This is a placeholder now. In a real app you would fetch this.
+        setBriefing({
+            emailSummary: "Dein Posteingang ist aufgeräumt. Wichtige E-Mail von 'Projekt Phoenix' bezüglich der Action Items.",
+            calendarSummary: "Dein Tag ist voll! Wichtigstes Ereignis: 'Project Phoenix Sync' um 10:00 Uhr.",
+            notesSummary: "Deine Notizen deuten auf offene Punkte beim 'Project Phoenix' hin. Dies scheint heute Priorität zu haben."
+        });
+        setIsLoadingBriefing(false);
     }
     fetchBriefing();
 
@@ -260,7 +246,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="text-center flex-1 flex flex-col justify-center relative py-8">
                          <div 
-                            className="absolute w-[80%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1 bg-accent/50"
+                            className="absolute w-[80%] h-full rounded-[50%] transform -translate-x-1-2 -translate-y-1-2 top-1-2 left-1-2 opacity-30 blur-2xl -z-1 bg-accent/50"
                          />
                         <p className="text-5xl font-bold text-accent z-10">
                            <AnimatedCounter to={currentUser.points} />
@@ -281,7 +267,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="relative">
                         <div 
-                            className="absolute w-full h-[150%] rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1 bg-pink-500/50"
+                            className="absolute w-full h-[150%] rounded-[50%] transform -translate-x-1-2 -translate-y-1-2 top-1-2 left-1-2 opacity-30 blur-2xl -z-1 bg-pink-500/50"
                          />
                     {nextBirthday?.member && (
                         <>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FileDropzone } from './file-dropzone';
 import { FileExplorer } from './file-explorer';
-import { organizeFiles, OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
+import type { OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -28,51 +28,42 @@ export function FilingCabinetTab() {
     setIsProcessing(true);
     toast({
       title: 'Verarbeite Dateien...',
-      description: 'Die KI analysiert und sortiert deine Dokumente. Das kann einen Moment dauern.',
+      description: 'Die KI-Funktion ist zurzeit deaktiviert.',
     });
 
-    try {
-      const fileInputs = await Promise.all(files.map(async (file) => {
-          const content = await fileToDataURI(file);
-          return { name: file.name, content: content };
-      }));
-      
-      const result = await organizeFiles({ files: fileInputs });
+    // Placeholder for AI organization
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Merge new results with existing ones
-      setOrganizedData(prevData => {
-          if (!prevData) return result;
+    const result = {
+        folders: [
+            {
+                name: "Unsortiert",
+                files: files.map(f => ({ name: f.name, path: `/Unsortiert/${f.name}`}))
+            }
+        ]
+    };
+    
+    // Merge new results with existing ones
+    setOrganizedData(prevData => {
+        if (!prevData) return result;
 
-          const newFolders = new Map(prevData.folders.map(f => [f.name, [...f.files]]));
-          
-          result.folders.forEach(newFolder => {
-              if(newFolders.has(newFolder.name)) {
-                  newFolders.get(newFolder.name)!.push(...newFolder.files);
-              } else {
-                  newFolders.set(newFolder.name, newFolder.files);
-              }
-          });
+        const newFolders = new Map(prevData.folders.map(f => [f.name, [...f.files]]));
+        
+        result.folders.forEach(newFolder => {
+            if(newFolders.has(newFolder.name)) {
+                newFolders.get(newFolder.name)!.push(...newFolder.files);
+            } else {
+                newFolders.set(newFolder.name, newFolder.files);
+            }
+        });
 
-          return {
-              folders: Array.from(newFolders.entries()).map(([name, files]) => ({ name, files }))
-          };
-      });
+        return {
+            folders: Array.from(newFolders.entries()).map(([name, files]) => ({ name, files }))
+        };
+    });
 
-      toast({
-        title: 'Ablage aktualisiert!',
-        description: 'Deine Dateien wurden erfolgreich von der KI organisiert.',
-      });
 
-    } catch (error) {
-      console.error("Error organizing files:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Fehler bei der Organisation',
-        description: 'Die KI konnte die Dateien nicht verarbeiten. Bitte versuche es erneut.',
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    setIsProcessing(false);
   };
 
   return (
