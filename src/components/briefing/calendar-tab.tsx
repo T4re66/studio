@@ -79,6 +79,7 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
   const renderEvents = () => {
      if (selectedDayEvents.length === 0) {
       return <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
@@ -116,6 +117,8 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
 
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
+=======
+>>>>>>> fd216b7 (fix den build error)
   return (
     <div className="flex flex-col gap-8">
        <div className="flex justify-between items-start flex-wrap gap-4">
@@ -195,7 +198,7 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Tages-Zusammenfassung
-                    </Title>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                      {summary === undefined ? (
