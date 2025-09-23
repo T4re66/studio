@@ -27,7 +27,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             setUser(user);
              if (!user) {
                 setAccessToken(null);
-                setLoading(false);
+                // setLoading(false) was removed here as it was causing a race condition
             }
         });
         return () => unsubscribe();
@@ -35,6 +35,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     useEffect(() => {
         const handleRedirectResult = async () => {
+            setLoading(true);
             try {
                 const result = await getRedirectResult(auth);
                 if (result) {
@@ -51,18 +52,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     }
                 }
             } catch (error: any) {
-                console.error("Authentication redirect error:", error);
-                toast({
-                    variant: "destructive",
-                    title: "Anmeldung fehlgeschlagen",
-                    description: "Die Anmeldung über Google konnte nicht abgeschlossen werden.",
-                });
+                // Nur Fehler anzeigen, wenn es ein echter Fehler ist, nicht nur, weil keine Weiterleitung stattgefunden hat
+                if (error.code !== 'auth/no-redirect-result') {
+                    console.error("Authentication redirect error:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Anmeldung fehlgeschlagen",
+                        description: "Die Anmeldung über Google konnte nicht abgeschlossen werden.",
+                    });
+                }
                 setAccessToken(null);
             } finally {
-                // This will be false if there was no redirect result to process
-                if (auth.currentUser) {
-                    setLoading(false);
-                }
+                setLoading(false);
             }
         };
 
