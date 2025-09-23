@@ -10,12 +10,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2 } from "lucide-react";
 import type { ShopItem } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
-
-
-// Placeholder for fetching shop items and user points from Firestore
-const getShopData = async (): Promise<{ items: ShopItem[], userPoints: number }> => {
-    return { items: [], userPoints: 0 };
-}
+import { getTeamMember, getShopItems, purchaseShopItem } from '@/lib/team-api';
+import { useToast } from '@/hooks/use-toast';
 
 
 const iconComponents: { [key: string]: React.ElementType } = {
@@ -29,24 +25,60 @@ const iconComponents: { [key: string]: React.ElementType } = {
 
 export default function ShopPage() {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
     const [points, setPoints] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    const fetchShopData = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            const [items, member] = await Promise.all([
+                getShopItems(),
+                getTeamMember(user.uid)
+            ]);
+            setShopItems(items);
+            setPoints(member?.points || 0);
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Fehler beim Laden',
+                description: 'Shop-Daten konnten nicht geladen werden.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (user) {
-            setLoading(true);
-            getShopData().then(({ items, userPoints }) => {
-                setShopItems(items);
-                setPoints(userPoints);
-                setLoading(false);
-            });
+            fetchShopData();
         } else {
             setShopItems([]);
             setPoints(0);
             setLoading(false);
         }
     }, [user]);
+
+    const handlePurchase = async (item: ShopItem) => {
+        if (!user) return;
+        try {
+            await purchaseShopItem(user.uid, item);
+            toast({
+                title: 'Kauf erfolgreich!',
+                description: `Du hast "${item.title}" für ${item.cost} Punkte gekauft.`
+            });
+            await fetchShopData(); // Refetch data to update points
+        } catch (error) {
+            const errorMessage = (error instanceof Error) ? error.message : 'Unbekannter Fehler';
+            toast({
+                variant: 'destructive',
+                title: 'Kauf fehlgeschlagen',
+                description: errorMessage,
+            });
+        }
+    }
 
     if (loading) {
          return (
@@ -81,6 +113,7 @@ export default function ShopPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {shopItems.map(item => {
             const Icon = iconComponents[item.icon];
+            const canAfford = points >= item.cost;
             return (
                 <Card key={item.id} className="flex flex-col">
                     <CardHeader>
@@ -99,7 +132,7 @@ export default function ShopPage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" disabled={points < item.cost}>
+                        <Button className="w-full" disabled={!canAfford || !user} onClick={() => handlePurchase(item)}>
                             Kaufen
                         </Button>
                     </CardFooter>

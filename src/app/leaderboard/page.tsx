@@ -8,12 +8,7 @@ import { Crown, Loader2 } from "lucide-react";
 import type { TeamMember } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-
-// This is a placeholder for fetching team data with points.
-// In a real app, this would come from Firestore.
-const getLeaderboard = async (): Promise<TeamMember[]> => {
-    return [];
-};
+import { getTeamMembers } from "@/lib/team-api";
 
 export default function LeaderboardPage() {
     const { user } = useAuth();
@@ -24,7 +19,7 @@ export default function LeaderboardPage() {
         if (user) {
             const fetchLeaderboard = async () => {
                 setLoading(true);
-                const members = await getLeaderboard();
+                const members = await getTeamMembers();
                 const sortedMembers = members.sort((a, b) => b.points - a.points);
                 setLeaderboard(sortedMembers);
                 setLoading(false);
@@ -117,13 +112,12 @@ export default function LeaderboardPage() {
                 </Avatar>
                 <div className="ml-4 flex-1">
                     <p className="font-semibold">{member.name}</p>
-                    <p className="text-sm text-muted-foreground">{member.role}</p>
                 </div>
                 <p className="text-lg font-bold">{member.points} <span className="text-sm text-muted-foreground font-normal">Punkte</span></p>
               </div>
-            )) : (
-                <p className="text-muted-foreground text-center p-6">Keine weiteren Platzierungen.</p>
-            )}
+            )) : leaderboard.length === 0 ? (
+                <p className="text-muted-foreground text-center p-6">Keine Teammitglieder gefunden.</p>
+            ) : null}
           </div>
         </CardContent>
       </Card>

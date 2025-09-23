@@ -10,6 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { OfficeTask } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
+import { getTasks, completeTask } from '@/lib/team-api';
+import { useToast } from '@/hooks/use-toast';
+import { AddTaskDialog } from '@/components/tasks/add-task-dialog';
+
 
 const categoryColors = {
     'Soziales': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -17,36 +21,57 @@ const categoryColors = {
     'Spass': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
-// Placeholder for fetching tasks from Firestore
-const getTasks = async (): Promise<OfficeTask[]> => {
-    return [];
-}
 
 export default function TasksPage() {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [tasks, setTasks] = useState<OfficeTask[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const fetchTasks = async () => {
+        setLoading(true);
+        try {
+            const fetchedTasks = await getTasks();
+            setTasks(fetchedTasks);
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Fehler',
+                description: 'Aufgaben konnten nicht geladen werden.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (user) {
-            setLoading(true);
-            getTasks().then(tasks => {
-                setTasks(tasks);
-                setLoading(false);
-            });
+            fetchTasks();
         } else {
             setTasks([]);
             setLoading(false);
         }
     }, [user]);
 
-    const handleCompleteTask = (taskId: string) => {
-        // In a real app, update this in Firestore
-        setTasks(currentTasks => currentTasks.map(task => 
-            task.id === taskId ? { ...task, isCompleted: true } : task
-        ));
+    const handleCompleteTask = async (taskId: string, points: number) => {
+        if (!user) return;
+        try {
+            await completeTask(taskId, user.uid);
+            toast({
+                title: 'Aufgabe erledigt!',
+                description: `Du hast ${points} Punkte erhalten!`
+            });
+            await fetchTasks();
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Fehler',
+                description: 'Aufgabe konnte nicht als erledigt markiert werden.'
+            });
+        }
     }
-    
+
     if (loading) {
         return (
             <div className="flex flex-col gap-8">
@@ -62,15 +87,23 @@ export default function TasksPage() {
         );
     }
 
+    const openTasks = tasks.filter(task => !task.isCompleted);
+
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Aufgaben & Challenges"
-        description="Sammle Punkte, indem du lustige und nützliche Aufgaben im Büro erledigst."
-      />
+        <div className="flex justify-between items-start flex-wrap gap-4">
+            <PageHeader
+                title="Aufgaben & Challenges"
+                description="Sammle Punkte, indem du lustige und nützliche Aufgaben im Büro erledigst."
+            />
+            <Button onClick={() => setIsDialogOpen(true)} disabled={!user}>
+                <Plus />
+                Aufgabe hinzufügen
+            </Button>
+        </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map(task => (
+        {openTasks.map(task => (
           <Card key={task.id} className="flex flex-col">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -91,7 +124,7 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
-                <Button className="w-full" onClick={() => handleCompleteTask(task.id)}>
+                <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)} disabled={!user}>
                   <Plus className="mr-2" />
                   Als erledigt markieren
                 </Button>
@@ -99,12 +132,13 @@ export default function TasksPage() {
             </CardFooter>
           </Card>
         ))}
-        {tasks.length === 0 && !loading && (
+        {openTasks.length === 0 && !loading && (
             <p className="text-muted-foreground col-span-full text-center py-12">
-                Aktuell sind keine Aufgaben verfügbar.
+                Aktuell sind keine Aufgaben verfügbar. Erstelle eine neue!
             </p>
         )}
       </div>
+      <AddTaskDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onTaskAdded={fetchTasks} />
     </div>
   );
 }

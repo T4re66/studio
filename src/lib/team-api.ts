@@ -1,7 +1,7 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, arrayUnion, writeBatch } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, writeBatch, addDoc, runTransaction, serverTimestamp, increment } from "firebase/firestore";
 import { db, auth } from "./firebase";
-import type { TeamMember, Tournament, Match } from "./data";
+import type { TeamMember, Tournament, Match, OfficeTask, ShopItem } from "./data";
 
 // For now, we assume a single team. In a multi-team app, this would be dynamic.
 const TEAM_ID = "main_team"; 
@@ -25,10 +25,24 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 
     } catch (error) {
         console.error("Error fetching team members from Firestore:", error);
-        // In a real app, you might want to show a toast or a specific error message.
         return [];
     }
 }
+
+export async function getTeamMember(userId: string): Promise<TeamMember | null> {
+    try {
+        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+        const docSnap = await getDoc(memberDocRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as TeamMember;
+        }
+        return null;
+    } catch (error) {
+         console.error("Error fetching team member from Firestore:", error);
+        return null;
+    }
+}
+
 
 export async function getTournaments(): Promise<Tournament[]> {
     try {
@@ -105,4 +119,87 @@ export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string):
         console.error("Error updating break times in Firestore:", error);
         throw new Error("Pausenzeiten konnten nicht aktualisiert werden.");
     }
+}
+
+
+// --- Gamification API Functions ---
+
+export async function getTasks(): Promise<OfficeTask[]> {
+    try {
+        const tasksCollectionRef = collection(db, 'tasks');
+        const querySnapshot = await getDocs(tasksCollectionRef);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfficeTask));
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+        return [];
+    }
+}
+
+export async function addTask(task: Omit<OfficeTask, 'id' | 'isCompleted'>): Promise<void> {
+    try {
+        const tasksCollectionRef = collection(db, 'tasks');
+        await addDoc(tasksCollectionRef, {
+            ...task,
+            isCompleted: false,
+            createdAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error adding task:", error);
+        throw new Error("Aufgabe konnte nicht hinzugefügt werden.");
+    }
+}
+
+export async function completeTask(taskId: string, userId: string): Promise<void> {
+    const taskDocRef = doc(db, 'tasks', taskId);
+    const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+
+    await runTransaction(db, async (transaction) => {
+        const taskDoc = await transaction.get(taskDocRef);
+        if (!taskDoc.exists() || taskDoc.data().isCompleted) {
+            throw new Error("Diese Aufgabe ist nicht verfügbar oder wurde bereits erledigt.");
+        }
+        
+        const points = taskDoc.data().points;
+        transaction.update(taskDocRef, { isCompleted: true, completedBy: userId, completedAt: serverTimestamp() });
+        transaction.update(memberDocRef, { points: increment(points) });
+    });
+}
+
+export async function getShopItems(): Promise<ShopItem[]> {
+     try {
+        const shopItemsRef = collection(db, 'shop_items');
+        const querySnapshot = await getDocs(shopItemsRef);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShopItem));
+    } catch (error) {
+        console.error("Error fetching shop items:", error);
+        return [];
+    }
+}
+
+export async function purchaseShopItem(userId: string, item: ShopItem): Promise<void> {
+    const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+
+    await runTransaction(db, async (transaction) => {
+        const memberDoc = await transaction.get(memberDocRef);
+        if (!memberDoc.exists()) {
+            throw new Error("Benutzer nicht gefunden.");
+        }
+
+        const currentPoints = memberDoc.data().points || 0;
+        if (currentPoints < item.cost) {
+            throw new Error("Nicht genügend Punkte für diesen Artikel.");
+        }
+
+        transaction.update(memberDocRef, { points: increment(-item.cost) });
+
+        // Optional: Log the purchase
+        const purchaseLogRef = collection(db, 'purchase_logs');
+        transaction.set(doc(purchaseLogRef), {
+            userId,
+            itemId: item.id,
+            itemTitle: item.title,
+            cost: item.cost,
+            purchasedAt: serverTimestamp()
+        });
+    });
 }
