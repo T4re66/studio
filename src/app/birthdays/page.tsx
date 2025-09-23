@@ -10,12 +10,7 @@ import type { TeamMember } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-
-// This is a placeholder for fetching team data.
-// In a real app, this would come from Firestore.
-const getTeamMembers = async (): Promise<TeamMember[]> => {
-    return [];
-};
+import { getTeamMembers } from "@/lib/team-api";
 
 
 export default function BirthdaysPage() {
@@ -85,7 +80,7 @@ export default function BirthdaysPage() {
                 <CardContent className="p-4">
                     <h3 className="font-headline text-lg mb-4">{format(new Date(2024, month, 1), 'MMMM', {locale: de})}</h3>
                     <div className="space-y-3">
-                        {membersByMonth[month] ? (
+                        {membersByMonth[month] && membersByMonth[month].length > 0 ? (
                             membersByMonth[month].map(member => (
                                 <div key={member.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -95,7 +90,6 @@ export default function BirthdaysPage() {
                                         </Avatar>
                                         <div>
                                             <p className="font-semibold">{member.name}</p>
-                                            <p className="text-sm text-muted-foreground">{member.role}</p>
                                         </div>
                                     </div>
                                     <p className="font-mono text-sm">{format(parseISO(member.birthday), 'dd.')}</p>
