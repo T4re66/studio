@@ -1,18 +1,28 @@
 
-
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { teamMembers, emails, calendarEvents, notes } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { isSameDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { User } from "@/lib/data";
+
+
+// --- Placeholder Data for UI Shell ---
+const placeholderMembers: User[] = [
+  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
+  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
+  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
+];
+const currentUser = placeholderMembers[0];
+const nextBirthday = { member: placeholderMembers[1], days: 10 };
+const nextBreakMatch = { user1: placeholderMembers[0], user2: placeholderMembers[1], time: "12:30" };
+// --- End Placeholder Data ---
 
 
 const statusClasses: { [key: string]: string } = {
@@ -21,13 +31,6 @@ const statusClasses: { [key: string]: string } = {
   away: "bg-gray-400",
 };
 
-type NextBirthday = {
-    member: (typeof teamMembers[0]) | null;
-    days: number;
-} | null;
-
-
-// Function to get seating positions around an oval table
 const getSeatPosition = (index: number, total: number, tableWidth: number, tableHeight: number) => {
     const angle = (index / total) * 2 * Math.PI;
     const x = 50 + (tableWidth / 2) * Math.cos(angle);
@@ -36,96 +39,15 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
-    const [count, setCount] = useState(0);
-
-    useEffect(() => {
-        if (to === 0) return;
-        const animation = requestAnimationFrame(animateCount);
-        let start: number | undefined;
-
-        function animateCount(timestamp: number) {
-            if (start === undefined) start = timestamp;
-            const elapsed = timestamp - start;
-            const progress = Math.min(elapsed / 2000, 1); // Animate over 2 seconds
-            const current = Math.floor(progress * to);
-            setCount(current);
-            if (progress < 1) {
-                requestAnimationFrame(animateCount);
-            }
-        }
-
-        return () => cancelAnimationFrame(animation);
-    }, [to]);
-
-    return <>{count.toLocaleString()}</>;
+    // State and animation logic removed for UI shell
+    return <>{to.toLocaleString()}</>;
 }
 
 
 export default function DashboardPage() {
-  const [briefing, setBriefing] = useState({ emailSummary: "", calendarSummary: "", notesSummary: "" });
-  const [isLoadingBriefing, setIsLoadingBriefing] = useState(true);
-  const [nextBirthday, setNextBirthday] = useState<NextBirthday>(null);
-
-  useEffect(() => {
-    // --- Client-side only calculations to prevent hydration errors ---
-
-    // Birthday calculation
-    const getNextBirthday = () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); 
-        const currentYear = today.getFullYear();
-
-        let nextBirthdayMember: (typeof teamMembers[0]) | null = null;
-        let minDays = Infinity;
-
-        teamMembers.forEach(member => {
-            if (!member.birthday) return;
-            const birthday = new Date(member.birthday);
-            birthday.setFullYear(currentYear);
-
-            if (birthday < today) {
-                birthday.setFullYear(currentYear + 1);
-            }
-
-            const diffTime = birthday.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays < minDays) {
-                minDays = diffDays;
-                nextBirthdayMember = member;
-            }
-        });
-
-        return { member: nextBirthdayMember, days: minDays };
-    }
-    setNextBirthday(getNextBirthday());
-
-    // Summaries fetching
-    async function fetchBriefing() {
-        setIsLoadingBriefing(true);
-        // This is a placeholder now. In a real app you would fetch this.
-        setBriefing({
-            emailSummary: "Dein Posteingang ist aufgeräumt. Wichtige E-Mail von 'Projekt Phoenix' bezüglich der Action Items.",
-            calendarSummary: "Dein Tag ist voll! Wichtigstes Ereignis: 'Project Phoenix Sync' um 10:00 Uhr.",
-            notesSummary: "Deine Notizen deuten auf offene Punkte beim 'Project Phoenix' hin. Dies scheint heute Priorität zu haben."
-        });
-        setIsLoadingBriefing(false);
-    }
-    fetchBriefing();
-
-  }, [])
-
-
-  const onlineMembers = teamMembers.filter(m => m.status === 'office');
-  const currentUser = teamMembers.find(m => m.id === '1')!; 
-  const tableWidth = 45; // in percentage of parent
-  const tableHeight = 90; // in percentage of parent
-
-  const nextBreakMatch = {
-    user1: teamMembers.find(m => m.id === '1')!,
-    user2: teamMembers.find(m => m.id === '3')!,
-    time: "12:30"
-  };
+  const onlineMembers = placeholderMembers.filter(m => m.status === 'office');
+  const tableWidth = 45;
+  const tableHeight = 90;
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -140,7 +62,7 @@ export default function DashboardPage() {
             <Card>
                  <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
+                    <CardDescription>{onlineMembers.length} von {placeholderMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 
@@ -187,19 +109,19 @@ export default function DashboardPage() {
                     <div>
                         <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
                         <p className="text-sm text-foreground/80">
-                            {isLoadingBriefing ? "Wird geladen..." : briefing.emailSummary}
+                            Zusammenfassung des Posteingangs wird hier angezeigt.
                         </p>
                     </div>
                     <div>
                         <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
                         <p className="text-sm text-foreground/80">
-                            {isLoadingBriefing ? "Wird geladen..." : briefing.calendarSummary}
+                            Zusammenfassung des Kalenders wird hier angezeigt.
                         </p>
                     </div>
                         <div>
                         <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
                         <p className="text-sm text-foreground/80">
-                            {isLoadingBriefing ? "Wird geladen..." : briefing.notesSummary}
+                            Zusammenfassung der Notizen wird hier angezeigt.
                         </p>
                     </div>
                 </CardContent>
@@ -289,5 +211,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

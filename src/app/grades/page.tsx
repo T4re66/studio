@@ -1,34 +1,37 @@
+
 'use client'
 
 import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { Plus, Sigma, GraduationCap } from "lucide-react"
+import { Plus, Sigma } from "lucide-react"
 import { AddGradeDialog } from "@/components/grades/add-grade-dialog"
 import { GradesChart } from "@/components/grades/grades-chart"
 import { GradesTable } from "@/components/grades/grades-table"
-import { grades } from "@/lib/data"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import type { Grade } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 
+// Placeholder data for UI shell
+const grades: Grade[] = [
+    { id: 'g1', subject: 'Mathematik', grade: 1.3, date: '2024-03-10', type: 'Klausur', weight: 2, notes: 'Analysis' },
+    { id: 'g2', subject: 'Mathematik', grade: 2.0, date: '2024-04-22', type: 'Mündlich', weight: 1, notes: 'Lineare Algebra' },
+    { id: 'g3', subject: 'Deutsch', grade: 2.3, date: '2024-03-15', type: 'Klausur', weight: 2, notes: 'Gedichtanalyse' },
+    { id: 'g4', subject: 'Englisch', grade: 1.7, date: '2024-03-20', type: 'Klausur', weight: 2, notes: 'Vokabeltest' },
+];
+
 export default function GradesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [allGrades, setAllGrades] = useState(grades);
-
-    const handleAddGrade = (newGrade: Omit<Grade, 'id'>) => {
-        const gradeWithId = { ...newGrade, id: `g${allGrades.length + 1}` };
-        setAllGrades(prevGrades => [...prevGrades, gradeWithId]);
-    }
 
     const { overallAverage, subjectAverages } = useMemo(() => {
-        const totalPoints = allGrades.reduce((acc, g) => acc + g.grade * g.weight, 0);
-        const totalWeight = allGrades.reduce((acc, g) => acc + g.weight, 0);
+        if (grades.length === 0) return { overallAverage: 0, subjectAverages: [] };
+        const totalPoints = grades.reduce((acc, g) => acc + g.grade * g.weight, 0);
+        const totalWeight = grades.reduce((acc, g) => acc + g.weight, 0);
         const overallAverage = totalPoints / totalWeight;
 
-        const subjects = [...new Set(allGrades.map(g => g.subject))];
+        const subjects = [...new Set(grades.map(g => g.subject))];
         const subjectAverages = subjects.map(subject => {
-            const subjectGrades = allGrades.filter(g => g.subject === subject);
+            const subjectGrades = grades.filter(g => g.subject === subject);
             const subjectTotalPoints = subjectGrades.reduce((acc, g) => acc + g.grade * g.weight, 0);
             const subjectTotalWeight = subjectGrades.reduce((acc, g) => acc + g.weight, 0);
             return {
@@ -38,7 +41,7 @@ export default function GradesPage() {
         }).sort((a,b) => a.average - b.average);
 
         return { overallAverage, subjectAverages };
-    }, [allGrades]);
+    }, []);
 
     return (
         <div className="flex flex-col gap-8">
@@ -84,7 +87,7 @@ export default function GradesPage() {
                             <CardDescription>Deine Noten über die Zeit visualisiert.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <GradesChart grades={allGrades} />
+                            <GradesChart grades={grades} />
                         </CardContent>
                     </Card>
                 </div>
@@ -97,11 +100,11 @@ export default function GradesPage() {
                     <CardDescription>Eine detaillierte Liste all deiner erfassten Noten.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <GradesTable grades={allGrades} />
+                    <GradesTable grades={grades} />
                 </CardContent>
             </Card>
 
-            <AddGradeDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddGrade={handleAddGrade} />
+            <AddGradeDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddGrade={() => {}} />
         </div>
     )
 }

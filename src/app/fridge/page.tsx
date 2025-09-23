@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from "react"
@@ -6,30 +7,24 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, User, Users, Clock, Refrigerator } from "lucide-react"
 import { AddItemDialog } from "@/components/fridge/add-item-dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { fridgeItems as initialFridgeItems } from "@/lib/data"
 import { FridgeCard } from "@/components/fridge/fridge-card"
 import type { FridgeItem } from "@/lib/data"
 
+// Placeholder data for UI shell
+const fridgeItems: FridgeItem[] = [
+  { id: 'f1', name: 'Milch', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/milk/400/300', shelf: 'A2', expiryDays: 2 },
+  { id: 'f2', name: 'Joghurt', owner: 'Charlie Brown', ownerId: '3', image: 'https://picsum.photos/seed/yogurt/400/300', shelf: 'C1', expiryDays: 1 },
+  { id: 'f3', name: 'Sandwich', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/sandwich/400/300', shelf: 'B3', expiryDays: 0 },
+  { id: 'f4', name: 'Salat', owner: 'Diana Miller', ownerId: '4', image: 'https://picsum.photos/seed/salad/400/300', shelf: 'A1', expiryDays: 5 },
+  { id: 'f5', name: 'Orangensaft', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/juice/400/300', shelf: 'Door', expiryDays: 12 },
+  { id: 'f8', name: 'Kuchen', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/cake/400/300', shelf: 'B1', expiryDays: -1 },
+];
+const myUserId = "1";
+// ---
+
 export default function FridgePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>(initialFridgeItems);
   
-  // Assuming current user is Tarec for demo purposes
-  const myUserId = "1"; 
-
-  const handleAddItem = (newItem: Omit<FridgeItem, 'id' | 'owner' | 'ownerId' | 'image' | 'shelf'>) => {
-    const fullNewItem: FridgeItem = {
-      ...newItem,
-      id: `f${fridgeItems.length + 1}`,
-      owner: 'Tarec',
-      ownerId: '1',
-      image: `https://picsum.photos/seed/${newItem.name.toLowerCase()}/400/300`,
-      shelf: `B${Math.floor(Math.random() * 3) + 1}`,
-    };
-    setFridgeItems(prev => [fullNewItem, ...prev]);
-  };
-
-
   const filters = {
     all: () => true,
     mine: (item: FridgeItem) => item.ownerId === myUserId,
@@ -79,7 +74,7 @@ export default function FridgePage() {
         </TabsContent>
       </Tabs>
 
-      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddItem={handleAddItem}/>
+      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddItem={() => {}}/>
     </div>
   )
 }

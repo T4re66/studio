@@ -4,22 +4,15 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from '@/context/auth-context';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isLandingPage = pathname === '/';
-
-  if (isLandingPage) {
-    return <>{children}</>;
-  }
-
+  // The logic to differentiate between landing page and app layout has been removed
+  // to create a consistent UI shell.
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -53,12 +46,11 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <AuthProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
-            <Toaster />
-          </AuthProvider>
+          {/* AuthProvider has been removed */}
+          <AppLayout>
+            {children}
+          </AppLayout>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

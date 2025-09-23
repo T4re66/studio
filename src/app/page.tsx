@@ -52,7 +52,7 @@ export default function LandingPage() {
                         OfficeZen ist die All-in-One-Lösung, die den Büroalltag vereinfacht, die Zusammenarbeit fördert und mit smarten Funktionen und Gamification für mehr Spass bei der Arbeit sorgt.
                     </p>
                     <div className="mt-8 flex flex-col items-center justify-center gap-4">
-                        <p className="text-lg">Hey Tarec, willkommen zurück!</p>
+                        <p className="text-lg">Willkommen!</p>
                         <Link href="/dashboard">
                           <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
                         </Link>
@@ -62,13 +62,13 @@ export default function LandingPage() {
                 {/* Feature Image Section */}
                 <section className="container mx-auto px-4 pb-20">
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
-                        <CardContent className="p-2">
+                        <CardContent className="p-2 relative aspect-[12/8]">
                              <Image
                                 src="https://picsum.photos/seed/app-dashboard/1200/800"
                                 alt="OfficeZen Dashboard"
-                                width={1200}
-                                height={800}
-                                className="rounded-lg"
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="rounded-lg object-cover"
                                 data-ai-hint="app dashboard"
                             />
                         </CardContent>

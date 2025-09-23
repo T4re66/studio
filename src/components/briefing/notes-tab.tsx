@@ -1,15 +1,14 @@
 
 'use client'
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Archive, Sparkles } from "lucide-react";
 import { NoteEditor } from "@/components/notes/note-editor";
 import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import { de } from 'date-fns/locale';
-import { useToast } from "@/hooks/use-toast";
 import type { Note } from "@/lib/data";
 
 interface NotesTabProps {
@@ -17,47 +16,13 @@ interface NotesTabProps {
     notes: Note[];
 }
 
-export function NotesTab({ summary, notes: initialNotes }: NotesTabProps) {
+export function NotesTab({ summary, notes }: NotesTabProps) {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
-    const [notes, setNotes] = useState<Note[]>(initialNotes);
-    const { toast } = useToast();
 
-    useEffect(() => {
-        setNotes(initialNotes);
-    }, [initialNotes]);
-
-    const handleSaveNote = (newNote: Omit<Note, 'id' | 'date'>) => {
-        if (!newNote.title || !newNote.content) {
-            toast({
-                variant: 'destructive',
-                title: "Notiz unvollständig",
-                description: "Bitte gib einen Titel und Inhalt für deine Notiz ein."
-            });
-            return;
-        }
-
-        const noteWithIdAndDate: Note = {
-            ...newNote,
-            id: `n${notes.length + 1}`,
-            date: new Date().toISOString(),
-        }
-        setNotes(prev => [noteWithIdAndDate, ...prev]);
+    const handleSaveNote = () => {
+        // Logic removed for UI shell
         setIsEditorOpen(false);
-        toast({
-            title: "Notiz gespeichert!",
-            description: `"${newNote.title}" wurde zu deiner Ablage hinzugefügt.`
-        })
     }
-    
-    const handleArchiveNote = (noteId: string) => {
-        const noteToArchive = notes.find(n => n.id === noteId);
-        setNotes(prev => prev.filter(n => n.id !== noteId));
-        toast({
-            title: "Notiz archiviert",
-            description: `"${noteToArchive?.title}" wurde archiviert.`
-        })
-    }
-
 
     return (
         <div className="flex flex-col gap-8">
@@ -80,7 +45,7 @@ export function NotesTab({ summary, notes: initialNotes }: NotesTabProps) {
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Intelligente Zusammenfassung
-                    </CardTitle>
+                    </Title>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
@@ -105,7 +70,7 @@ export function NotesTab({ summary, notes: initialNotes }: NotesTabProps) {
                             </div>
                             <div className="prose prose-sm dark:prose-invert max-w-none mt-2 text-muted-foreground" dangerouslySetInnerHTML={{ __html: note.content }} />
                              <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="outline" size="sm" onClick={() => handleArchiveNote(note.id)}><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
+                                <Button variant="outline" size="sm"><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
                             </div>
                         </div>
                     ))}

@@ -1,19 +1,30 @@
 
 'use client'
 
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
-import { teamMembers, deadlines } from "@/lib/data";
 import { format, isSameDay, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
-import type { CalendarEvent } from "@/lib/data";
+import type { CalendarEvent, Deadline, User } from "@/lib/data";
 import { DeadlineManager } from "../calendar/deadline-manager";
+
+// Placeholder data for UI shell
+const teamMembers: User[] = [
+  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
+  { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', lastSeen: '2h ago', dnd: true, points: 800, birthday: '1988-11-22', online: true, mood: 3 },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
+];
+const deadlines: Deadline[] = [
+  { id: 'd1', title: 'Frontend-Implementierung abschliessen', projectId: 'p1', projectName: 'Projekt Phoenix', dueDate: '2024-08-15' },
+  { id: 'd2', title: 'Q3-Marketingbericht erstellen', projectId: 'p2', projectName: 'Marketing-Kampagne', dueDate: '2024-07-30' },
+];
+// ---
 
 const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -24,42 +35,17 @@ const categoryColors: { [key: string]: string } = {
 interface CalendarTabProps {
   summary: string | undefined;
   events: CalendarEvent[];
-  isLoading: boolean;
-  isConnected: boolean;
 }
 
-export function CalendarTab({ summary, events: initialEvents, isLoading, isConnected }: CalendarTabProps) {
+export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [allEvents, setAllEvents] = useState<CalendarEvent[]>(initialEvents);
   
-  useEffect(() => {
-    setAllEvents(initialEvents);
-  }, [initialEvents]);
-
-  const selectedDayEvents = useMemo(() => {
-    if (!date) return [];
-    return allEvents.filter(event => isSameDay(parseISO(event.date), date));
-  }, [date, allEvents]);
+  const selectedDayEvents = initialEvents.filter(event => date && isSameDay(parseISO(event.date), date));
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
-  
-  const handleAddEvent = (newEvent: Omit<CalendarEvent, 'id' | 'participants'>) => {
-    const eventWithId: CalendarEvent = { 
-        ...newEvent, 
-        id: `evt${allEvents.length + 1}`,
-        participants: ['1'] // Add current user
-    };
-    setAllEvents(prevEvents => [...prevEvents, eventWithId]);
-  }
 
   const renderEvents = () => {
-     if (isLoading && isConnected) {
-      return <p className="text-muted-foreground text-center py-4">Lade Termine...</p>;
-    }
-    if (!isConnected) {
-        return <p className="text-muted-foreground text-center py-4">Verbinde dein Google-Konto, um deine Termine zu sehen.</p>;
-    }
      if (selectedDayEvents.length === 0) {
       return <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
     }
@@ -116,7 +102,7 @@ export function CalendarTab({ summary, events: initialEvents, isLoading, isConne
                         className="rounded-md"
                         weekStartsOn={1}
                         locale={de}
-                        modifiers={{ booked: allEvents.map(e => parseISO(e.date))}}
+                        modifiers={{ booked: initialEvents.map(e => parseISO(e.date))}}
                         modifiersStyles={{ booked: { border: "2px solid hsl(var(--primary))" } }}
                     />
                 </CardContent>
@@ -141,7 +127,7 @@ export function CalendarTab({ summary, events: initialEvents, isLoading, isConne
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Tages-Zusammenfassung
-                    </CardTitle>
+                    </Title>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
@@ -151,7 +137,7 @@ export function CalendarTab({ summary, events: initialEvents, isLoading, isConne
             </Card>
         </div>
       </div>
-      <AddEventDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} selectedDate={date} onAddEvent={handleAddEvent}/>
+      <AddEventDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} selectedDate={date} onAddEvent={() => {}}/>
     </div>
   );
 }

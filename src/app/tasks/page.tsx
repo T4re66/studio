@@ -1,14 +1,12 @@
+
 'use client'
 
-import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { officeTasks as initialTasks } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Check, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useToast } from '@/hooks/use-toast';
 import type { OfficeTask } from '@/lib/data';
 
 const categoryColors = {
@@ -17,22 +15,15 @@ const categoryColors = {
     'Spass': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
-export default function TasksPage() {
-  const [tasks, setTasks] = useState<OfficeTask[]>(initialTasks);
-  const { toast } = useToast();
+// Placeholder data for UI shell
+const tasks: OfficeTask[] = [
+  { id: 't1', title: 'Kaffeemaschine entkalken', description: 'Die Kaffeemaschine braucht etwas Liebe. Entkalke sie für das Wohl des ganzen Teams.', points: 100, category: 'Büro' },
+  { id: 't2', title: 'Bringe einem Kollegen einen Kaffee', description: 'Frage einen Kollegen, ob er einen Kaffee möchte und bringe ihn ihm an den Platz.', points: 20, category: 'Soziales' },
+  { id: 't3', title: 'Organisiere eine 5-Minuten-Dehnpause', description: 'Versammle ein paar Kollegen für eine kurze Dehnpause am Nachmittag.', points: 50, category: 'Soziales' },
+  { id: 't7', title: 'Schreibtisch-Challenge', description: 'Wer hat den ordentlichsten (oder kreativsten) Schreibtisch? Starte einen kleinen Wettbewerb.', points: 60, category: 'Spass', isCompleted: true },
+];
 
-  const handleCompleteTask = (taskId: string, taskPoints: number) => {
-    setTasks(currentTasks => 
-        currentTasks.map(task => 
-            task.id === taskId ? { ...task, isCompleted: true } : task
-        )
-    );
-    toast({
-        title: "Aufgabe erledigt!",
-        description: `Super! Du hast ${taskPoints} Punkte verdient.`
-    });
-    // In a real app, you would also update the user's total points.
-  }
+export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-8">
@@ -63,7 +54,7 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
-                <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)}>
+                <Button className="w-full">
                   <Plus className="mr-2" />
                   Als erledigt markieren
                 </Button>

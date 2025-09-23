@@ -1,144 +1,152 @@
+
 'use client'
 
-import { useState } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, Sword, Tablets, Trophy } from 'lucide-react';
-import { tournaments as initialTournaments, teamMembers as initialTeamMembers } from '@/lib/data';
-import type { Tournament, Match, Team, User } from '@/lib/data';
+import type { Tournament, User } from '@/lib/data';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 
+// Placeholder data for UI shell
+const teamMembers: User[] = [
+  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
+  { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', lastSeen: '2h ago', dnd: true, points: 800, birthday: '1988-11-22', online: true, mood: 3 },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
+  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
+  { id: '5', name: 'Ethan Davis', avatar: 'https://picsum.photos/seed/user5/200/200', status: 'away', role: 'QA Engineer', department: 'Engineering', lastSeen: 'yesterday', dnd: false, points: 600, birthday: '1993-12-10', online: false, mood: 5 },
+  { id: '6', name: 'Fiona Garcia', avatar: 'https://picsum.photos/seed/user6/200/200', status: 'remote', role: 'Marketing Specialist', department: 'Marketing', lastSeen: '30m ago', dnd: false, points: 950, birthday: '1991-06-18', online: true, mood: 4 },
+  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
+  { id: '8', name: 'Hannah Lewis', avatar: 'https://picsum.photos/seed/user8/200/200', status: 'office', role: 'Data Scientist', department: 'Data', lastSeen: '1h ago', dnd: false, points: 1400, birthday: '1994-01-20', seat: 'B4', online: false, mood: 1 },
+];
+const [tarec, bob, charlie, diana, ethan, fiona, george, hannah] = teamMembers;
+
+const tournaments: Tournament[] = [
+    {
+        id: 'tour-darts-1',
+        name: 'Dart-Meisterschaft Q3',
+        game: 'Darts',
+        points: 500,
+        completed: false,
+        rounds: [
+            {
+                name: 'Halbfinale',
+                matches: [
+                    { name: 'Match 1', teamA: { name: 'Tarec', members: [tarec], score: 0 }, teamB: { name: 'Diana', members: [diana], score: 0 } },
+                    { name: 'Match 2', teamA: { name: 'Charlie', members: [charlie], score: 0 }, teamB: { name: 'George', members: [george], score: 0 } },
+                ]
+            },
+            {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'tour-pingpong-1',
+        name: 'Ping Pong Turnier',
+        game: 'Ping Pong',
+        points: 400,
+        completed: true,
+        winner: { name: 'Fiona', members: [fiona], score: 21 },
+        rounds: [
+            {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'Fiona', members: [fiona], score: 21 }, teamB: { name: 'Bob', members: [bob], score: 18 }, winner: { name: 'Fiona', members: [fiona], score: 21 } },
+                ]
+            }
+        ]
+    },
+    {
+        id: 'tour-tf-1',
+        name: 'Tischfussball Cup',
+        game: 'Tischfussball',
+        points: 750,
+        completed: false,
+        rounds: [
+            {
+                name: 'Halbfinale',
+                matches: [
+                    { name: 'Match 1', teamA: { name: 'Devs', members: [tarec, bob], score: 0 }, teamB: { name: 'Design & PM', members: [charlie, diana], score: 0 } },
+                    { name: 'Match 2', teamA: { name: 'QA & Marketing', members: [ethan, fiona], score: 0 }, teamB: { name: 'Data & DevOps', members: [hannah, george], score: 0 } },
+                ]
+            },
+             {
+                name: 'Finale',
+                matches: [
+                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
+                ]
+            }
+        ]
+    }
+];
+
 export default function TournamentsPage() {
-    const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments);
-    const [teamMembers, setTeamMembers] = useState<User[]>(initialTeamMembers);
-    const { toast } = useToast();
-
-    const handleScoreChange = (tournamentId: string, roundIndex: number, matchIndex: number, team: 'teamA' | 'teamB', score: number) => {
-        const newTournaments = tournaments.map(t => {
-            if (t.id === tournamentId) {
-                const newRounds = [...t.rounds];
-                newRounds[roundIndex].matches[matchIndex][team].score = score;
-                return { ...t, rounds: newRounds };
-            }
-            return t;
-        });
-        setTournaments(newTournaments);
-    };
-
-    const handleDeclareWinner = (tournamentId: string, roundIndex: number, matchIndex: number) => {
-        const tournament = tournaments.find(t => t.id === tournamentId);
-        if (!tournament) return;
-
-        const match = tournament.rounds[roundIndex].matches[matchIndex];
-        if (match.teamA.score === match.teamB.score) {
-            toast({ variant: 'destructive', title: 'Unentschieden!', description: 'Das Ergebnis darf nicht unentschieden sein.' });
-            return;
-        }
-
-        const winnerTeam = match.teamA.score > match.teamB.score ? match.teamA : match.teamB;
-        const newTournaments = tournaments.map(t => {
-            if (t.id === tournamentId) {
-                const newRounds = [...t.rounds];
-                newRounds[roundIndex].matches[matchIndex].winner = winnerTeam;
-                return { ...t, rounds: newRounds };
-            }
-            return t;
-        });
-        setTournaments(newTournaments);
-
-        toast({ title: 'Gewinner erklärt!', description: `${winnerTeam.name} hat das Match gewonnen.` });
-    };
-
-    const handleFinishTournament = (tournamentId: string) => {
-        const tournament = tournaments.find(t => t.id === tournamentId);
-        if (!tournament) return;
-
-        const finalMatch = tournament.rounds[tournament.rounds.length - 1].matches[0];
-        if (!finalMatch.winner) {
-            toast({ variant: 'destructive', title: 'Fehler', description: 'Das Finale wurde noch nicht entschieden.' });
-            return;
-        }
-
-        const winnerTeam = finalMatch.winner;
-        const points = tournament.points;
-
-        const newTeamMembers = teamMembers.map(member => {
-            if (winnerTeam.members.some(m => m.id === member.id)) {
-                return { ...member, points: member.points + points };
-            }
-            return member;
-        });
-        setTeamMembers(newTeamMembers);
-
-        const newTournaments = tournaments.map(t =>
-            t.id === tournamentId ? { ...t, completed: true, winner: winnerTeam } : t
-        );
-        setTournaments(newTournaments);
-
-        toast({
-            title: `Turnier beendet: ${tournament.name}`,
-            description: `${winnerTeam.name} gewinnt ${points} Punkte!`,
-        });
-    };
     
     const findUser = (userId: string) => teamMembers.find(u => u.id === userId);
 
-    const renderTournament = (tournament: Tournament) => (
-        <div key={tournament.id} className="space-y-8">
-            {tournament.completed && tournament.winner && (
-                <Card className="bg-accent/10 border-accent/30 text-center">
-                    <CardHeader>
-                        <CardTitle className="flex items-center justify-center gap-3 font-headline">
-                            <Trophy className="text-accent" />
-                            Turnier-Gewinner: {tournament.winner.name}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex justify-center -space-x-4">
-                            {tournament.winner.members.map(user => (
-                                <Avatar key={user.id} className="h-16 w-16 border-2 border-card">
-                                    <AvatarImage src={user.avatar} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+    const renderTournament = (tournament: Tournament | undefined) => {
+        if (!tournament) {
+            return <p className="text-muted-foreground text-center py-12">Kein Turnier für diese Disziplin gefunden.</p>;
+        }
+        return (
+            <div key={tournament.id} className="space-y-8">
+                {tournament.completed && tournament.winner && (
+                    <Card className="bg-accent/10 border-accent/30 text-center">
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-center gap-3 font-headline">
+                                <Trophy className="text-accent" />
+                                Turnier-Gewinner: {tournament.winner.name}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex justify-center -space-x-4">
+                                {tournament.winner.members.map(user => (
+                                    <Avatar key={user.id} className="h-16 w-16 border-2 border-card">
+                                        <AvatarImage src={user.avatar} />
+                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                ))}
+                            </div>
+                            <p className="mt-4 text-muted-foreground">Herzlichen Glückwunsch zum Sieg und den +{tournament.points} Punkten!</p>
+                            <Button variant="link" asChild><Link href="/leaderboard">Zum Leaderboard</Link></Button>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {tournament.rounds.map((round, roundIndex) => (
+                    <div key={roundIndex}>
+                        <h3 className="text-xl font-bold font-headline mb-4">{round.name}</h3>
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {round.matches.map((match, matchIndex) => (
+                                <TournamentCard
+                                    key={matchIndex}
+                                    match={match}
+                                    onScoreChange={() => {}}
+                                    onDeclareWinner={() => {}}
+                                    disabled={tournament.completed}
+                                    findUser={findUser}
+                                />
                             ))}
                         </div>
-                        <p className="mt-4 text-muted-foreground">Herzlichen Glückwunsch zum Sieg und den +{tournament.points} Punkten!</p>
-                        <Button variant="link" asChild><Link href="/leaderboard">Zum Leaderboard</Link></Button>
-                    </CardContent>
-                </Card>
-            )}
-
-            {tournament.rounds.map((round, roundIndex) => (
-                <div key={roundIndex}>
-                    <h3 className="text-xl font-bold font-headline mb-4">{round.name}</h3>
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {round.matches.map((match, matchIndex) => (
-                            <TournamentCard
-                                key={matchIndex}
-                                match={match}
-                                onScoreChange={(team, score) => handleScoreChange(tournament.id, roundIndex, matchIndex, team, score)}
-                                onDeclareWinner={() => handleDeclareWinner(tournament.id, roundIndex, matchIndex)}
-                                disabled={tournament.completed}
-                                findUser={findUser}
-                            />
-                        ))}
                     </div>
-                </div>
-            ))}
-            {!tournament.completed && (
-                 <div className="flex justify-end pt-4">
-                    <Button onClick={() => handleFinishTournament(tournament.id)} size="lg" disabled={!tournament.rounds[tournament.rounds.length -1].matches[0].winner}>
-                       <Trophy className='mr-2'/> Turnier beenden & Punkte vergeben
-                    </Button>
-                </div>
-            )}
-        </div>
-    );
+                ))}
+                {!tournament.completed && (
+                    <div className="flex justify-end pt-4">
+                        <Button size="lg" disabled={!tournament.rounds[tournament.rounds.length -1].matches[0].winner}>
+                        <Trophy className='mr-2'/> Turnier beenden & Punkte vergeben
+                        </Button>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-8">
@@ -155,13 +163,13 @@ export default function TournamentsPage() {
                 </TabsList>
 
                 <TabsContent value="darts" className="mt-6">
-                    {renderTournament(tournaments.find(t => t.game === 'Darts')!)}
+                    {renderTournament(tournaments.find(t => t.game === 'Darts'))}
                 </TabsContent>
                 <TabsContent value="ping-pong" className="mt-6">
-                    {renderTournament(tournaments.find(t => t.game === 'Ping Pong')!)}
+                    {renderTournament(tournaments.find(t => t.game === 'Ping Pong'))}
                 </TabsContent>
                 <TabsContent value="table-football" className="mt-6">
-                    {renderTournament(tournaments.find(t => t.game === 'Tischfussball')!)}
+                    {renderTournament(tournaments.find(t => t.game === 'Tischfussball'))}
                 </TabsContent>
             </Tabs>
         </div>
