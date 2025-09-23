@@ -45,7 +45,7 @@ export function NotesTab({ summary, notes }: NotesTabProps) {
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Intelligente Zusammenfassung
-                    </Title>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
