@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -41,44 +41,13 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  useEffect(() => {
+    // This is a placeholder for UI shell and has no real effect.
+  }, []);
+
   const selectedDayEvents = initialEvents.filter(event => date && isSameDay(parseISO(event.date), date));
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
-
-  const renderEvents = () => {
-     if (selectedDayEvents.length === 0) {
-      return <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
-    }
-
-    return selectedDayEvents.sort((a, b) => a.startTime.localeCompare(b.startTime)).map(event => (
-        <div key={event.id} className="flex gap-4">
-            <div className="font-mono text-sm text-muted-foreground flex flex-col items-center">
-                <span>{event.startTime}</span>
-                <div className="w-px h-full bg-border my-1"></div>
-                <span>{event.endTime}</span>
-            </div>
-            <div className="flex-1 bg-muted/50 p-3 rounded-lg">
-                <div className="flex justify-between items-start">
-                    <h4 className="font-semibold">{event.title}</h4>
-                    <Badge variant="outline" className={categoryColors[event.category]}>{event.category}</Badge>
-                </div>
-                {event.participants.length > 0 && (
-                    <div className="flex -space-x-2 mt-2">
-                        {event.participants.map(id => {
-                            const user = findUser(id);
-                            return user ? (
-                                <Avatar key={id} className="h-6 w-6 border-2 border-card">
-                                    <AvatarImage src={user.avatar} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            ) : null;
-                        })}
-                    </div>
-                )}
-            </div>
-        </div>
-    ));
-  }
 
 
   return (
@@ -118,7 +87,40 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {renderEvents()}
+                    {selectedDayEvents.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">Keine Termine für diesen Tag.</p>
+                    ) : (
+                        [...selectedDayEvents]
+                            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                            .map(event => (
+                                <div key={event.id} className="flex gap-4">
+                                    <div className="font-mono text-sm text-muted-foreground flex flex-col items-center">
+                                        <span>{event.startTime}</span>
+                                        <div className="w-px h-full bg-border my-1"></div>
+                                        <span>{event.endTime}</span>
+                                    </div>
+                                    <div className="flex-1 bg-muted/50 p-3 rounded-lg">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-semibold">{event.title}</h4>
+                                            <Badge variant="outline" className={categoryColors[event.category]}>{event.category}</Badge>
+                                        </div>
+                                        {event.participants.length > 0 && (
+                                            <div className="flex -space-x-2 mt-2">
+                                                {event.participants.map(id => {
+                                                    const user = findUser(id);
+                                                    return user ? (
+                                                    <Avatar key={id} className="h-6 w-6 border-2 border-card">
+                                                        <AvatarImage src={user.avatar} />
+                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    ) : null;
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                    )}
                 </CardContent>
             </Card>
 
