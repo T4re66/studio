@@ -1,4 +1,3 @@
-
 'use client'
 
 import { PageHeader } from "@/components/page-header"
@@ -8,6 +7,7 @@ import { UserCard } from "@/components/people/user-card"
 import { UserProfileDialog } from "@/components/people/user-profile-dialog"
 import type { User } from "@/lib/data"
 import Link from "next/link"
+import { useState } from "react"
 
 const placeholderMembers: User[] = [
   { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
@@ -19,6 +19,7 @@ const placeholderMembers: User[] = [
 
 
 export default function PeoplePage() {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const filteredMembers = placeholderMembers;
 
   return (
@@ -38,16 +39,15 @@ export default function PeoplePage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredMembers.length > 0 ? (
           filteredMembers.map((member) => (
-            // The button is replaced by a div, onClick is removed for UI shell.
-            // A profile dialog is too complex for a UI shell, so it's removed.
-            <div key={member.id} className="text-left h-full w-full">
+            <button key={member.id} className="text-left h-full w-full" onClick={() => setSelectedUser(member)}>
               <UserCard user={member} />
-            </div>
+            </button>
           ))
         ) : (
           <p className="text-muted-foreground col-span-full text-center py-12">Keine Teammitglieder gefunden.</p>
         )}
       </div>
+      <UserProfileDialog user={selectedUser} open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)} />
     </div>
   );
 }

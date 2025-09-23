@@ -24,7 +24,7 @@ export function FocusTimer() {
       }, 1000);
     } else if (isActive && time === 0) {
       setIsActive(false);
-      // Optional: Auto-start break
+      new Audio('/sounds/ringtone.mp3').play().catch(() => {});
     }
     return () => {
       if(interval) clearInterval(interval);

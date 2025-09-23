@@ -22,7 +22,12 @@ export function FakeCall() {
   const [selectedTimer, setSelectedTimer] = useState<number | null>(null)
   const [isCalling, setIsCalling] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast()
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -63,7 +68,7 @@ export function FakeCall() {
     setIsCalling(true);
   }
 
-  if (isCalling) {
+  if (isCalling && isClient) {
     return <FakeCallScreen callerName={callerName} callerNumber={callerNumber} onHangUp={() => setIsCalling(false)} />
   }
 

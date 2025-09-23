@@ -13,8 +13,10 @@ interface FakeCallScreenProps {
 
 export function FakeCallScreen({ callerName, callerNumber, onHangUp }: FakeCallScreenProps) {
   const [time, setTime] = useState('00:00');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     const ringtone = new Audio('/sounds/ringtone.mp3');
     ringtone.loop = true;
     ringtone.play().catch(() => {}); // Autoplay might be blocked
@@ -31,6 +33,10 @@ export function FakeCallScreen({ callerName, callerNumber, onHangUp }: FakeCallS
         clearInterval(timer);
     };
   }, []);
+
+  if (!isClient) {
+    return null;
+  }
 
 
   return (
