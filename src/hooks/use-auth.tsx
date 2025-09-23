@@ -26,11 +26,14 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                  try {
-                    // Note: This only runs on page load. The access token for API calls
-                    // must be captured directly from signInWithPopup.
+                    // On page load or session restoration, get a fresh token.
+                    const token = await user.getIdToken();
+                    setAccessToken(token);
                     setUser(user);
                 } catch (error) {
-                    console.error("Error during auth state change:", error);
+                    console.error("Error getting access token:", error);
+                    setUser(null);
+                    setAccessToken(null);
                 }
             } else {
                 setUser(null);
@@ -46,6 +49,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(true);
         try {
             const result = await signInWithPopup(auth, provider);
+            // This gives you a Google Access Token. You can use it to access the Google API.
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
                 setAccessToken(credential.accessToken);
