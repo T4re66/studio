@@ -85,6 +85,35 @@ export type Note = {
     userId: string;
 };
 
+export type Team = {
+    name: string;
+    members: TeamMember[];
+    score: number;
+}
+
+export type Match = {
+    name: string;
+    teamA: Team;
+    teamB: Team;
+    winner?: Team;
+}
+
+export type TournamentRound = {
+    name: string;
+    matches: Match[];
+}
+
+export type Tournament = {
+    id: string;
+    name: string;
+    game: 'Darts' | 'Ping Pong' | 'Tischfussball';
+    points: number;
+    rounds: TournamentRound[];
+    completed: boolean;
+    winner?: Team;
+}
+
+
 export type Deadline = {
   id: string;
   title: string;
