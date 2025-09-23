@@ -5,38 +5,43 @@ import { PageHeader } from "@/components/page-header";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Cloud, Link as LinkIcon, LogOut } from 'lucide-react';
+import { CheckCircle, Cloud, Link as LinkIcon, LogOut, Loader2 } from 'lucide-react';
+import { useAuth } from "@/hooks/use-auth";
 
 
 function GoogleAccountIntegration() {
-    const isConnected = false; // Hardcoded for UI shell
-    const userEmail = "user@example.com";
+    const { user, signIn, signOut, loading } = useAuth();
+    const isConnected = !!user;
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-3">
                     <Cloud className="text-primary" />
-                    Firebase-Konto Integration
+                    Google-Konto Integration
                 </CardTitle>
                 <CardDescription>
                     {isConnected 
-                        ? "Du bist erfolgreich mit deinem Google-Konto via Firebase verbunden." 
-                        : "Verbinde dein Google-Konto, um alle Features von OfficeZen zu nutzen."}
+                        ? "Du bist erfolgreich mit deinem Google-Konto verbunden." 
+                        : "Verbinde dein Google-Konto, um persönliche Daten wie E-Mails und Kalendereinträge zu sehen."}
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {isConnected ? (
+                {loading ? (
+                    <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : isConnected ? (
                      <div className="p-6 bg-green-100/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-4">
                         <CheckCircle className="h-8 w-8 text-green-600" />
                         <div>
                             <h3 className="font-semibold text-green-800 dark:text-green-300">Verbindung aktiv</h3>
-                            <p className="text-sm text-green-700 dark:text-green-400">Verbunden als: {userEmail}</p>
+                            <p className="text-sm text-green-700 dark:text-green-400">Verbunden als: {user.email}</p>
                         </div>
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
-                        <Button size="lg">
+                        <Button size="lg" onClick={signIn}>
                             <LinkIcon className="mr-2"/>
                             Mit Google verbinden
                         </Button>
@@ -45,7 +50,7 @@ function GoogleAccountIntegration() {
             </CardContent>
             {isConnected && (
                 <CardFooter>
-                    <Button variant="destructive">
+                    <Button variant="destructive" onClick={signOut}>
                         <LogOut className="mr-2"/>
                         Verbindung trennen
                     </Button>

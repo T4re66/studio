@@ -41,10 +41,6 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  useEffect(() => {
-    // This is a placeholder for UI shell and has no real effect.
-  }, []);
-
   const selectedDayEvents = initialEvents.filter(event => date && isSameDay(parseISO(event.date), date));
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);

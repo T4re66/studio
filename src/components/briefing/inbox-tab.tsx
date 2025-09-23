@@ -15,8 +15,8 @@ interface InboxTabProps {
 export function InboxTab({ summary, emails }: InboxTabProps) {
   
   const renderContent = () => {
-    if (emails.length === 0) {
-      return <p className="text-center text-muted-foreground py-12">Posteingang leer!</p>;
+    if (!emails || emails.length === 0) {
+      return <p className="text-center text-muted-foreground py-12">Posteingang leer oder wird geladen...</p>;
     }
     return (
       <div className="divide-y">

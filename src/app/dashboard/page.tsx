@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { User } from "@/lib/data";
+import { useAuth } from '@/hooks/use-auth';
 
 
 // --- Placeholder Data for UI Shell ---
@@ -20,7 +21,7 @@ const placeholderMembers: User[] = [
   { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
   { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
 ];
-const currentUser = placeholderMembers[0];
+const defaultUser = { name: 'Gast' };
 const nextBirthday = { member: placeholderMembers[1], days: 10 };
 const nextBreakMatch = { user1: placeholderMembers[0], user2: placeholderMembers[1], time: "12:30" };
 // --- End Placeholder Data ---
@@ -40,7 +41,7 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
-    const [displayValue, setDisplayValue] = useState<string | number>(to);
+    const [displayValue, setDisplayValue] = useState(to.toLocaleString());
 
     useEffect(() => {
         // Format the number only on the client-side after hydration
@@ -52,6 +53,8 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const currentUser = user ? { name: user.displayName || 'User', points: 1250 } : { ...defaultUser, points: 0 };
   const onlineMembers = placeholderMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;

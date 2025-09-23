@@ -1,3 +1,4 @@
+
 'use client'
 
 import './globals.css';
@@ -8,6 +9,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/hooks/use-auth';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   // The logic to differentiate between landing page and app layout has been removed
@@ -45,10 +47,11 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          {/* AuthProvider has been removed */}
-          <AppLayout>
-            {children}
-          </AppLayout>
+          <AuthProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </AuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>

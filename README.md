@@ -1,6 +1,7 @@
+
 # OfficeZen - Dein smarter Büro-Assistent
 
-OfficeZen ist eine Next.js-Anwendung, die entwickelt wurde, um den Büroalltag zu vereinfachen und die Zusammenarbeit im Team zu fördern.
+OfficeZen ist eine Next.js-Anwendung, die entwickelt wurde, um den Büroalltag zu vereinfachen und die Zusammenarbeit im Team zu fördern. Sie integriert sich mit Google-Diensten, um personalisierte Informationen wie E-Mails und Kalendereinträge direkt in der App anzuzeigen.
 
 ## Lokales Setup & Ausführung
 
@@ -10,71 +11,63 @@ Folge diesen Schritten, um die Anwendung lokal auf deinem Computer auszuführen.
 
 - [Node.js](https://nodejs.org/) (Version 20 oder höher)
 - [npm](https://www.npmjs.com/) oder ein anderer Paketmanager
-- [Firebase-Konto](https://firebase.google.com/) und ein neues Firebase-Projekt.
-- [Firebase CLI](https://firebase.google.com/docs/cli) installiert und eingeloggt (`firebase login`).
+- Ein [Google Cloud-Konto](https://cloud.google.com/) mit einem aktiven Projekt.
+- [Firebase-Konto](https://firebase.google.com/) und ein neues Firebase-Projekt, das mit deinem Google Cloud-Projekt verknüpft ist.
 
-### 2. Abhängigkeiten installieren
+### 2. Umgebungsvariablen einrichten
 
-Öffne ein Terminal im Hauptverzeichnis des Projekts und installiere alle notwendigen Pakete:
+Erstelle eine Datei namens `.env.local` im Hauptverzeichnis des Projekts und füge deine Firebase-Konfigurationsdaten hinzu. Du findest diese in den Projekteinstellungen deines Firebase-Projekts unter "Web-App".
 
 ```bash
-npm install
+# .env.local
+
+NEXT_PUBLIC_FIREBASE_API_KEY="AIza..."
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project-id.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project-id"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-project-id.appspot.com"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="..."
+NEXT_PUBLIC_FIREBASE_APP_ID="1:..."
 ```
 
-### 3. Firebase-Projekt einrichten
+### 3. Google Cloud & Firebase Konfiguration
 
-#### 3.1. Firebase-Dienste aktivieren
+#### 3.1. APIs aktivieren
+Aktiviere die folgenden APIs in deiner Google Cloud Console für dein Projekt:
+- **Gmail API**
+- **Google Calendar API**
 
-1.  Gehe zur [Firebase Console](https://console.firebase.google.com/) und wähle dein Projekt aus (oder erstelle ein neues mit der Projekt-ID `officezen-prod`, falls gewünscht).
-2.  **Authentication**:
-    - Gehe zum Tab "Sign-in method".
-    - Aktiviere den **Google**-Anbieter.
-    - Gehe zum Tab "Settings" -> "Authorized domains" und füge die Domains hinzu, von denen aus du dich anmelden möchtest (z.B. `localhost`).
-3.  **Firestore Database**:
-    - Erstelle eine neue Datenbank im **Produktionsmodus**.
-    - Wähle als Standort `europe-west`.
-4.  **Functions**:
-    - Gehe zum Functions-Dashboard und klicke auf "Erste Schritte", um das Setup abzuschliessen. Die Functions selbst werden wir per CLI deployen.
+#### 3.2. OAuth-Zustimmungsbildschirm konfigurieren
+1. Gehe in der Google Cloud Console zu "APIs & Dienste" -> "OAuth-Zustimmungsbildschirm".
+2. Wähle "Extern" und erstelle einen neuen Zustimmungsbildschirm.
+3. Gib einen App-Namen an (z.B. "OfficeZen") und eine Nutzer-Support-E-Mail.
+4. **Scopes hinzufügen:** Füge die folgenden Scopes hinzu:
+   - `.../auth/userinfo.email` (wird standardmässig hinzugefügt)
+   - `.../auth/userinfo.profile` (wird standardmässig hinzugefügt)
+   - `.../auth/gmail.readonly`
+   - `.../auth/calendar.readonly`
+5. Füge deine E-Mail-Adresse als Testnutzer hinzu, während sich die App im Testmodus befindet.
 
-#### 3.2. Web-App-Konfiguration abrufen
+#### 3.3. Firebase Authentication einrichten
+1. Gehe zur [Firebase Console](https://console.firebase.google.com/) und wähle dein Projekt.
+2. Gehe zu "Authentication" -> "Sign-in method".
+3. Aktiviere den **Google**-Anbieter.
+4. **Autorisierte Domains:** Gehe zu "Authentication" -> "Settings" -> "Authorized domains" und füge `localhost` hinzu, um die lokale Entwicklung zu ermöglichen.
 
-1.  Gehe in deinem Firebase-Projekt zu den **Projekteinstellungen** (Zahnrad-Symbol oben links).
-2.  Im Tab "Allgemein", scrolle nach unten zu "Deine Apps".
-3.  Klicke auf das Web-Symbol (`</>`), um eine neue Web-App zu erstellen (oder wähle die bestehende aus).
-4.  Gib der App einen Spitznamen (z.B. "OfficeZen Web").
-5.  Kopiere das `firebaseConfig`-Objekt. **Es ist bereits in `src/lib/firebase.ts` eingefügt.** Du musst nichts weiter tun.
+### 4. Abhängigkeiten installieren & App starten
 
-### 4. Firebase Backend deployen
-
-Die App enthält vordefinierte Security Rules und Cloud Functions im `firebase/`-Verzeichnis.
-
-1.  **Firebase-Projekt verbinden:**
-    Stelle sicher, dass du mit dem richtigen Projekt verbunden bist.
+1.  **Abhängigkeiten installieren:**
     ```bash
-    firebase use officezen-prod 
-    ```
-
-2.  **Abhängigkeiten der Functions installieren:**
-    Navigiere in das `functions`-Verzeichnis und installiere die Pakete.
-    ```bash
-    cd firebase/functions
     npm install
-    cd ../.. 
     ```
-
-3.  **Backend bereitstellen:**
-    Führe den folgenden Befehl im Hauptverzeichnis des Projekts aus, um die Rules und Functions zu deployen:
+2.  **Entwicklungsserver starten:**
     ```bash
-    firebase deploy --only firestore:rules,functions
+    npm run dev
     ```
-    Nach dem Deployment sind dein Backend und deine Regeln live.
 
-### 5. Anwendung starten
+Die Anwendung ist nun unter [http://localhost:9002](http://localhost:9002) erreichbar.
 
-Sobald alles eingerichtet und deployed ist, kannst du den lokalen Entwicklungsserver starten:
+### 5. Fehlerbehebung
 
-```bash
-npm run dev
-```
-
-Die Anwendung ist nun unter [http://localhost:9002](http://localhost:9002) erreichbar. Du solltest dich jetzt mit deinem Google-Konto anmelden können.
+- **`auth/unauthorized-domain`**: Dieser Fehler tritt auf, wenn du versuchst, dich von einer Domain aus anzumelden, die nicht in der Firebase-Liste der autorisierten Domains enthalten ist. Füge die Domain (z.B. `localhost`) in den Firebase Authentication-Einstellungen hinzu.
+- **Fehlende Scopes / 403-Fehler bei API-Aufrufen**: Wenn du nach der Anmeldung Fehler beim Abrufen von Gmail- oder Kalenderdaten erhältst, stelle sicher, dass die Scopes (`gmail.readonly`, `calendar.readonly`) korrekt im OAuth-Zustimmungsbildschirm in der Google Cloud Console konfiguriert sind.
+- **Pop-up blockiert**: Der Google-Anmeldevorgang verwendet ein Pop-up-Fenster. Stelle sicher, dass dein Browser Pop-ups für `localhost` nicht blockiert.
