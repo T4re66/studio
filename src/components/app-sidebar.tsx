@@ -30,10 +30,13 @@ import {
   Swords,
   BookText,
   Bot,
+  CheckCircle,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Icons } from "./icons"
+import { useAuth } from "@/hooks/use-auth"
+import { cn } from "@/lib/utils"
 
 const mainMenuItems = [
   { href: "/dashboard", label: "Übersicht", icon: Home },
@@ -68,6 +71,8 @@ const officeMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { user } = useAuth();
+  const isConnected = !!user;
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -78,9 +83,15 @@ export function AppSidebar() {
           <div className="flex size-8 items-center justify-center rounded-lg bg-card text-primary-foreground">
             <Icons.logo className="size-5" />
           </div>
-          <span className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden">
-            OfficeZen
-          </span>
+          <div className="flex items-center gap-1.5">
+             <span className="text-lg font-semibold text-foreground group-data-[collapsible=icon]:hidden">
+                OfficeZen
+             </span>
+              <CheckCircle className={cn(
+                "size-4 transition-all group-data-[collapsible=icon]:hidden",
+                isConnected ? "text-green-500 animate-glow" : "text-muted-foreground/50"
+              )}/>
+          </div>
         </Link>
       </SidebarHeader>
       <SidebarContent>
