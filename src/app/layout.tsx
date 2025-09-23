@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
-import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
 <<<<<<< HEAD
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
@@ -65,7 +64,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
       </div>
-      <FloatingWalkieTalkie />
     </SidebarProvider>
   )
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
