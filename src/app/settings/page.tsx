@@ -22,7 +22,7 @@ function GoogleAccountIntegration() {
                 </CardTitle>
                 <CardDescription>
                     {isConnected 
-                        ? "Du bist erfolgreich mit deinem Google-Konto verbunden." 
+                        ? "Verwalte hier die Verbindung zu deinem Google-Konto." 
                         : "Verbinde dein Google-Konto, um persönliche Daten wie E-Mails und Kalendereinträge zu sehen."}
                 </CardDescription>
             </CardHeader>
@@ -32,12 +32,18 @@ function GoogleAccountIntegration() {
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : isConnected ? (
-                     <div className="p-6 bg-green-100/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-4">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
-                        <div>
-                            <h3 className="font-semibold text-green-800 dark:text-green-300">Verbindung aktiv</h3>
-                            <p className="text-sm text-green-700 dark:text-green-400">Verbunden als: {user.email}</p>
+                     <div className="p-6 bg-green-100/50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <CheckCircle className="h-8 w-8 text-green-600" />
+                            <div>
+                                <h3 className="font-semibold text-green-800 dark:text-green-300">Verbindung aktiv</h3>
+                                <p className="text-sm text-green-700 dark:text-green-400">Verbunden als: {user.email}</p>
+                            </div>
                         </div>
+                         <Button variant="destructive" size="sm" onClick={signOut}>
+                            <LogOut className="mr-2 h-4 w-4"/>
+                            Trennen
+                        </Button>
                     </div>
                 ) : (
                      <div className="p-6 bg-muted/50 border rounded-lg flex items-center justify-center">
@@ -48,14 +54,6 @@ function GoogleAccountIntegration() {
                     </div>
                 )}
             </CardContent>
-            {isConnected && (
-                <CardFooter>
-                    <Button variant="destructive" onClick={signOut}>
-                        <LogOut className="mr-2"/>
-                        Verbindung trennen
-                    </Button>
-                </CardFooter>
-            )}
         </Card>
     );
 }
