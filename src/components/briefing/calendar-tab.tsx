@@ -49,7 +49,6 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
 
   const findUser = (id: string) => teamMembers.find(u => u.id === id);
 
-
   return (
     <div className="flex flex-col gap-8">
        <div className="flex justify-between items-start flex-wrap gap-4">
@@ -129,7 +128,7 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Tages-Zusammenfassung
-                    </Title>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-foreground/80">
