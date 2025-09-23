@@ -11,17 +11,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2 } from "lucide-react"
-
-// In a real app, this would be fetched from Firestore
-const getTeamMembers = async (): Promise<TeamMember[]> => {
-    // This is a placeholder for fetching data from Firestore.
-    // Replace this with your actual Firestore query.
-    console.log("Fetching team members...");
-    // Mocking a delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // Returning an empty array as we don't have the backend yet.
-    return [];
-}
+import { getTeamMembers } from "@/lib/team-api"
 
 
 export default function PeoplePage() {
@@ -31,14 +21,15 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const fetchMembers = async () => {
+      setLoading(true);
+      const members = await getTeamMembers();
+      setTeamMembers(members);
+      setLoading(false);
+  }
+
   useEffect(() => {
     if (user) {
-        const fetchMembers = async () => {
-            setLoading(true);
-            const members = await getTeamMembers();
-            setTeamMembers(members);
-            setLoading(false);
-        }
         fetchMembers();
     } else {
         setTeamMembers([]);
@@ -90,7 +81,12 @@ export default function PeoplePage() {
         </div>
       )}
       
-      <UserProfileDialog user={selectedUser} open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)} />
+      <UserProfileDialog 
+        user={selectedUser} 
+        open={!!selectedUser} 
+        onOpenChange={(open) => !open && setSelectedUser(null)}
+        onUserUpdate={fetchMembers}
+      />
     </div>
   );
 }

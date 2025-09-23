@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import type { TeamMember } from "./data";
 
@@ -27,5 +27,17 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
         console.error("Error fetching team members from Firestore:", error);
         // In a real app, you might want to show a toast or a specific error message.
         return [];
+    }
+}
+
+export async function updateTeamMemberBirthday(userId: string, birthday: string): Promise<void> {
+    try {
+        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+        await updateDoc(memberDocRef, {
+            birthday: birthday
+        });
+    } catch (error) {
+        console.error("Error updating birthday in Firestore:", error);
+        throw new Error("Geburtstag konnte nicht aktualisiert werden.");
     }
 }

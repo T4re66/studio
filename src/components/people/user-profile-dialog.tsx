@@ -12,13 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Video, Mic, Send } from "lucide-react";
+import { Phone, Video, Mic, Send, Gift, Save } from "lucide-react";
 import type { TeamMember } from "@/lib/data";
+import { updateTeamMemberBirthday } from "@/lib/team-api";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Label } from "../ui/label";
 
 interface UserProfileDialogProps {
   user: TeamMember | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUserUpdate: () => void;
 }
 
 const statusInfo: {
@@ -32,11 +37,32 @@ const statusInfo: {
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
 
-export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialogProps) {
+export function UserProfileDialog({ user, open, onOpenChange, onUserUpdate }: UserProfileDialogProps) {
+  const { toast } = useToast();
+  const [birthday, setBirthday] = useState(user?.birthday || "");
+
   if (!user) return null;
 
   const info = statusInfo[user.status];
   const moodEmoji = user.mood ? moodEmojis[user.mood - 1] : null;
+
+  const handleSaveBirthday = async () => {
+    if (!user) return;
+    try {
+        await updateTeamMemberBirthday(user.id, birthday);
+        toast({
+            title: "Gespeichert",
+            description: `Geburtstag von ${user.name} wurde aktualisiert.`,
+        });
+        onUserUpdate();
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Fehler",
+            description: "Geburtstag konnte nicht gespeichert werden.",
+        })
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,7 +76,7 @@ export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialo
               <DialogTitle className="font-headline text-2xl">{user.name}</DialogTitle>
               {moodEmoji && <span className="text-3xl" title={`Stimmung: ${moodEmoji}`}>{moodEmoji}</span>}
             </div>
-            <DialogDescription>{user.role}</DialogDescription>
+            <DialogDescription>{user.department}</DialogDescription>
             <Badge variant="outline" className={`mt-2 text-xs border-0 ${info.className}`}>
                 {info.label} {user.seat && `(Tisch ${user.seat})`}
             </Badge>
@@ -62,8 +88,16 @@ export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialo
         </div>
 
         <div className="p-4 space-y-4">
+            <div className="grid gap-2">
+                <Label htmlFor="birthday" className="flex items-center gap-2 text-muted-foreground"><Gift className="h-4 w-4"/> Geburtstag</Label>
+                <div className="flex gap-2">
+                    <Input id="birthday" type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
+                    <Button size="icon" variant="outline" onClick={handleSaveBirthday}><Save className="h-4 w-4"/></Button>
+                </div>
+            </div>
+
             <h3 className="font-semibold text-sm px-2">Chat</h3>
-            <div className="h-64 flex flex-col space-y-3 overflow-y-auto p-2 bg-muted/50 rounded-lg">
+            <div className="h-48 flex flex-col space-y-3 overflow-y-auto p-2 bg-muted/50 rounded-lg">
                 <div className="flex items-end gap-2">
                      <Avatar className="h-6 w-6">
                         {user.avatar && <AvatarImage src={user.avatar}/>}
