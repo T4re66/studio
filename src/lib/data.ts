@@ -8,7 +8,6 @@ export type User = {
   name: string | null;
   email: string | null;
   avatar: string | null;
-  role: 'admin' | 'member';
   joinedAt: string; // ISO date string
   status: 'office' | 'remote' | 'away';
   seat?: string;
@@ -19,7 +18,6 @@ export type User = {
 export type TeamMember = Pick<User, 'id' | 'name' | 'email' | 'avatar'> & {
     online: boolean;
     status: User['status'];
-    role: User['role'];
     dnd: boolean;
     mood?: number;
     seat?: string;

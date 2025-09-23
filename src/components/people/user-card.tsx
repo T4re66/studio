@@ -1,4 +1,5 @@
 
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,6 @@ export function UserCard({ user }: { user: TeamMember }) {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{user.role}</p>
           <Badge variant="outline" className={cn("mt-2 text-xs border-0", info.className)}>
             {info.label}
           </Badge>
