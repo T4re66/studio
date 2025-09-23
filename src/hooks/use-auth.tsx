@@ -60,13 +60,13 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
         } catch (error: any) {
             console.error("Authentication error:", error);
-            // Specific check for unauthorized domain, as this is a common setup issue.
             if (error.code === 'auth/unauthorized-domain') {
+                 const domain = window.location.hostname;
                  toast({
                     variant: "destructive",
                     title: "Domain nicht autorisiert",
-                    description: "Füge die aktuelle Domain in den Firebase Authentication-Einstellungen unter 'Authorized domains' hinzu.",
-                    duration: 9000,
+                    description: `Die Domain "${domain}" ist nicht für die Anmeldung autorisiert. Bitte füge sie in den Firebase Authentication-Einstellungen unter 'Authorized domains' hinzu.`,
+                    duration: 15000,
                 });
             } else {
                 toast({
