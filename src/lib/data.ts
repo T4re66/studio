@@ -1,6 +1,7 @@
 
 
 
+
 // THIS FILE CONTAINS MOCK DATA FOR DEMONSTRATION PURPOSES.
 // IN A REAL APPLICATION, THIS DATA WOULD COME FROM FIRESTORE.
 
@@ -378,6 +379,7 @@ export const liveNotes: Note[] = [
 export interface GoogleEmail {
   id: string;
   snippet: string;
+  labelIds?: string[];
   payload: {
     headers: { name: string; value: string }[];
   };
