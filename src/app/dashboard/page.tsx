@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -39,8 +40,14 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
-    // State and animation logic removed for UI shell
-    return <>{to.toLocaleString()}</>;
+    const [displayValue, setDisplayValue] = useState<string | number>(to);
+
+    useEffect(() => {
+        // Format the number only on the client-side after hydration
+        setDisplayValue(to.toLocaleString());
+    }, [to]);
+
+    return <>{displayValue}</>;
 }
 
 
