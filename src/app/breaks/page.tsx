@@ -5,34 +5,90 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Coffee, Utensils } from "lucide-react";
+import { Coffee, Utensils, Loader2 } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { TeamMember } from '@/lib/data';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { getTeamMembers, updateMyBreakTimes } from "@/lib/team-api";
+import { useToast } from "@/hooks/use-toast";
 
-// This is a placeholder for fetching team data and matches.
-// In a real app, this would come from Firestore.
-const getMatches = async (): Promise<{ lunchMatches: any[], coffeeMatches: any[] }> => {
-    return { lunchMatches: [], coffeeMatches: [] };
-};
+type Match = {
+    time: string;
+    users: TeamMember[];
+}
 
 export default function BreaksPage() {
   const { user } = useAuth();
-  const [lunchMatches, setLunchMatches] = useState<any[]>([]);
-  const [coffeeMatches, setCoffeeMatches] = useState<any[]>([]);
+  const { toast } = useToast();
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [myLunchTime, setMyLunchTime] = useState("12:30");
+  const [myCoffeeTime, setMyCoffeeTime] = useState("15:00");
+  
+  const currentUser = teamMembers.find(m => m.id === user?.uid);
 
   useEffect(() => {
     if (user) {
-        const fetchMatches = async () => {
-            const { lunchMatches, coffeeMatches } = await getMatches();
-            setLunchMatches(lunchMatches);
-            setCoffeeMatches(coffeeMatches);
+        const fetchMembers = async () => {
+            setLoading(true);
+            const members = await getTeamMembers();
+            setTeamMembers(members);
+            
+            const me = members.find(m => m.id === user.uid);
+            if (me?.lunchTime) setMyLunchTime(me.lunchTime);
+            if (me?.coffeeTime) setMyCoffeeTime(me.coffeeTime);
+
+            setLoading(false);
         };
-        fetchMatches();
+        fetchMembers();
+    } else {
+        setLoading(false);
     }
   }, [user]);
+
+  const { lunchMatches, coffeeMatches } = useMemo(() => {
+    const groupBreaks = (breakType: 'lunchTime' | 'coffeeTime') => {
+        const groups: { [time: string]: TeamMember[] } = {};
+        teamMembers.forEach(member => {
+            const time = member[breakType];
+            if (time) {
+                if (!groups[time]) groups[time] = [];
+                groups[time].push(member);
+            }
+        });
+        return Object.entries(groups)
+            .filter(([, users]) => users.length > 1)
+            .map(([time, users]) => ({ time, users }));
+    };
+
+    return {
+        lunchMatches: groupBreaks('lunchTime'),
+        coffeeMatches: groupBreaks('coffeeTime')
+    };
+  }, [teamMembers]);
+
+  const handleSaveBreaks = async () => {
+    try {
+        await updateMyBreakTimes(myLunchTime, myCoffeeTime);
+        toast({
+            title: "Pausenzeiten gespeichert!",
+            description: "Deine Pausenzeiten wurden erfolgreich aktualisiert.",
+        });
+        // Refetch to update UI
+        const members = await getTeamMembers();
+        setTeamMembers(members);
+    } catch (e) {
+        toast({
+            variant: 'destructive',
+            title: "Fehler",
+            description: "Deine Pausenzeiten konnten nicht gespeichert werden.",
+        });
+    }
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -44,20 +100,20 @@ export default function BreaksPage() {
       <Card>
         <CardHeader>
             <CardTitle>Meine Pausenzeiten</CardTitle>
-            <CardDescription>Trage hier ein, wann du Pausen machen möchtest.</CardDescription>
+            <CardDescription>Trage hier ein, wann du Pausen machen möchtest. Andere können dann sehen, ob sie mit dir eine Pause machen können.</CardDescription>
         </CardHeader>
         <CardContent className="grid sm:grid-cols-2 gap-4">
             <div className='grid gap-2'>
                 <Label htmlFor="lunch-time">Mittagspause</Label>
-                <Input id="lunch-time" type="time" defaultValue="12:30" />
+                <Input id="lunch-time" type="time" value={myLunchTime} onChange={e => setMyLunchTime(e.target.value)} disabled={!user}/>
             </div>
              <div className='grid gap-2'>
                 <Label htmlFor="coffee-time">Kaffeepause</Label>
-                <Input id="coffee-time" type="time" defaultValue="15:00" />
+                <Input id="coffee-time" type="time" value={myCoffeeTime} onChange={e => setMyCoffeeTime(e.target.value)} disabled={!user}/>
             </div>
         </CardContent>
         <CardFooter>
-            <Button>Pausen speichern</Button>
+            <Button onClick={handleSaveBreaks} disabled={!user || loading}>Pausen speichern</Button>
         </CardFooter>
       </Card>
 
@@ -67,24 +123,30 @@ export default function BreaksPage() {
             <CardTitle className="flex items-center gap-2"><Utensils />Mittagspausen-Matches</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             {lunchMatches.map((match, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center">
-                        {match.users.map((user: TeamMember) => (
-                             <Avatar key={user.id} className="-ml-4 first:ml-0 border-2 border-card">
-                                {user.avatar && <AvatarImage src={user.avatar}/>}
-                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        ))}
-                        <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-semibold text-sm">{match.time}</p>
-                        <Button variant="ghost" size="sm" className="mt-1 h-8">Anschliessen</Button>
-                    </div>
+            {loading ? (
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
-             ))}
-             {lunchMatches.length === 0 && <p className="text-muted-foreground text-center py-8">Keine Matches gefunden.</p>}
+            ) : lunchMatches.length > 0 ? (
+                lunchMatches.map((match, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center">
+                            {match.users.map((u: TeamMember) => (
+                                 <Avatar key={u.id} className="-ml-4 first:ml-0 border-2 border-card">
+                                    {u.avatar && <AvatarImage src={u.avatar}/>}
+                                    <AvatarFallback>{u.name?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            ))}
+                            <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="font-semibold text-sm">{match.time}</p>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <p className="text-muted-foreground text-center py-8">Keine Matches gefunden.</p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -92,24 +154,30 @@ export default function BreaksPage() {
             <CardTitle className="flex items-center gap-2"><Coffee />Kaffeepausen-Matches</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {coffeeMatches.map((match, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center">
-                        {match.users.map((user: TeamMember) => (
-                             <Avatar key={user.id} className="-ml-4 first:ml-0 border-2 border-card">
-                                {user.avatar && <AvatarImage src={user.avatar}/>}
-                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        ))}
-                        <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-semibold text-sm">{match.time}</p>
-                        <Button variant="ghost" size="sm" className="mt-1 h-8">Anschliessen</Button>
-                    </div>
+             {loading ? (
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
-             ))}
-             {coffeeMatches.length === 0 && <p className="text-muted-foreground text-center py-8">Keine Matches gefunden.</p>}
+            ) : coffeeMatches.length > 0 ? (
+                coffeeMatches.map((match, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center">
+                            {match.users.map((u: TeamMember) => (
+                                 <Avatar key={u.id} className="-ml-4 first:ml-0 border-2 border-card">
+                                    {u.avatar && <AvatarImage src={u.avatar}/>}
+                                    <AvatarFallback>{u.name?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            ))}
+                            <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="font-semibold text-sm">{match.time}</p>
+                        </div>
+                    </div>
+                 ))
+            ) : (
+                <p className="text-muted-foreground text-center py-8">Keine Matches gefunden.</p>
+            )}
           </CardContent>
         </Card>
       </div>

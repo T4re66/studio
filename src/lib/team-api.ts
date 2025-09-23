@@ -1,6 +1,6 @@
 
 import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 import type { TeamMember } from "./data";
 
 // For now, we assume a single team. In a multi-team app, this would be dynamic.
@@ -39,5 +39,23 @@ export async function updateTeamMemberBirthday(userId: string, birthday: string)
     } catch (error) {
         console.error("Error updating birthday in Firestore:", error);
         throw new Error("Geburtstag konnte nicht aktualisiert werden.");
+    }
+}
+
+export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string): Promise<void> {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        throw new Error("User not authenticated.");
+    }
+
+    try {
+        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, currentUser.uid);
+        await updateDoc(memberDocRef, {
+            lunchTime,
+            coffeeTime,
+        });
+    } catch (error) {
+        console.error("Error updating break times in Firestore:", error);
+        throw new Error("Pausenzeiten konnten nicht aktualisiert werden.");
     }
 }

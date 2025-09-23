@@ -23,6 +23,8 @@ export type TeamMember = Pick<User, 'id' | 'name' | 'email' | 'avatar'> & {
     seat?: string;
     points: number;
     birthday: string;
+    lunchTime?: string; // e.g. "12:30"
+    coffeeTime?: string; // e.g. "15:00"
 }
 
 
