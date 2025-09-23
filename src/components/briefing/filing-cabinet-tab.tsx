@@ -6,27 +6,54 @@ import { FileDropzone } from './file-dropzone';
 import { FileExplorer } from './file-explorer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Loader2 } from 'lucide-react';
+import { organizeFiles, type OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
+import { useToast } from '@/hooks/use-toast';
 
-// This type is now defined locally for the UI shell.
-type OrganizeFilesOutput = {
-  folders: {
-    name: string;
-    files: {
-      name: string;
-      path: string;
-    }[];
-  }[];
+// Helper function to read file as Base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
 };
+
 
 export function FilingCabinetTab() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [organizedData, setOrganizedData] = useState<OrganizeFilesOutput | null>(null);
+  const { toast } = useToast();
 
   const handleFilesDrop = async (files: File[]) => {
     setIsProcessing(true);
-    // Placeholder for UI shell, no real processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsProcessing(false);
+    setOrganizedData(null);
+    try {
+      const filesToProcess = await Promise.all(
+        files.map(async file => ({
+          fileName: file.name,
+          fileContent: await fileToBase64(file),
+        }))
+      );
+
+      const result = await organizeFiles({ files: filesToProcess });
+      setOrganizedData(result);
+
+      toast({
+        title: "Organisation abgeschlossen",
+        description: "Die KI hat deine Dateien erfolgreich sortiert."
+      });
+
+    } catch (error) {
+      console.error("Error organizing files:", error);
+      toast({
+        variant: "destructive",
+        title: "Fehler bei der Organisation",
+        description: "Die Dateien konnten nicht von der KI sortiert werden."
+      })
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -42,7 +69,7 @@ export function FilingCabinetTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isProcessing && !organizedData ? (
+          {isProcessing ? (
             <div className="flex flex-col items-center justify-center gap-4 p-12 text-muted-foreground">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
               <p className="text-center">Die KI sortiert deine Dateien...</p>

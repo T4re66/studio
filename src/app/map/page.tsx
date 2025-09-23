@@ -10,11 +10,7 @@ import { Pin, Loader2 } from 'lucide-react';
 import type { TeamMember } from '@/lib/data';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-
-// Placeholder for fetching data
-const getOfficeMembers = async (): Promise<TeamMember[]> => {
-    return [];
-}
+import { getTeamMembers } from "@/lib/team-api";
 
 export default function MapPage() {
     const { user } = useAuth();
@@ -25,8 +21,8 @@ export default function MapPage() {
     useEffect(() => {
         if (user) {
             setLoading(true);
-            getOfficeMembers().then(members => {
-                setTeamMembers(members.filter(m => m.status === 'office' && m.seat));
+            getTeamMembers().then(members => {
+                setTeamMembers(members);
                 setLoading(false);
             });
         } else {
@@ -35,7 +31,7 @@ export default function MapPage() {
         }
     }, [user]);
 
-    const officeMembers = teamMembers;
+    const officeMembers = teamMembers.filter(m => m.status === 'office' && m.seat);
 
     return (
         <div className="flex flex-col gap-8">

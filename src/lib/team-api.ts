@@ -1,20 +1,20 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, writeBatch, addDoc, runTransaction, serverTimestamp, increment } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, orderBy } from "firebase/firestore";
 import { db, auth } from "./firebase";
-import type { TeamMember, Tournament, Match, OfficeTask, ShopItem } from "./data";
+import type { User as FirebaseUser } from "firebase/auth";
+import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note } from "./data";
 
 // For now, we assume a single team. In a multi-team app, this would be dynamic.
 const TEAM_ID = "main_team"; 
+
+// =================================
+// TEAM MEMBERS API
+// =================================
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
     try {
         const membersCollectionRef = collection(db, `teams/${TEAM_ID}/members`);
         const querySnapshot = await getDocs(membersCollectionRef);
-        
-        if (querySnapshot.empty) {
-            console.log("No team members found in Firestore.");
-            return [];
-        }
         
         const members = querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -25,7 +25,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 
     } catch (error) {
         console.error("Error fetching team members from Firestore:", error);
-        return [];
+        throw new Error("Teammitglieder konnten nicht geladen werden.");
     }
 }
 
@@ -39,78 +39,53 @@ export async function getTeamMember(userId: string): Promise<TeamMember | null> 
         return null;
     } catch (error) {
          console.error("Error fetching team member from Firestore:", error);
-        return null;
+        throw new Error("Teammitglied konnte nicht geladen werden.");
     }
 }
 
-
-export async function getTournaments(): Promise<Tournament[]> {
+export async function createTeamMember(user: FirebaseUser): Promise<void> {
     try {
-        const tournamentsCollectionRef = collection(db, 'tournaments');
-        const querySnapshot = await getDocs(tournamentsCollectionRef);
-
-        if (querySnapshot.empty) {
-            console.log("No tournaments found in Firestore.");
-            return [];
-        }
-
-        const tournaments = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Tournament));
-        
-        return tournaments;
-
-    } catch (error) {
-        console.error("Error fetching tournaments from Firestore:", error);
-        return [];
-    }
-}
-
-export async function createTournament(tournament: Omit<Tournament, 'id' | 'completed' | 'winner'>): Promise<void> {
-    try {
-        const tournamentsCollectionRef = collection(db, 'tournaments');
-        await addDoc(tournamentsCollectionRef, {
-            ...tournament,
-            completed: false,
-            createdAt: serverTimestamp(),
+        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, user.uid);
+        await setDoc(memberDocRef, {
+            name: user.displayName,
+            email: user.email,
+            avatar: user.photoURL,
+            status: 'remote', // Default status
+            role: 'Team Member',
+            department: 'Allgemein',
+            dnd: false,
+            points: 0,
+            birthday: '',
+            seat: null,
+            mood: 3,
         });
     } catch (error) {
-        console.error("Error creating tournament:", error);
-        throw new Error("Turnier konnte nicht erstellt werden.");
+        console.error("Error creating team member in Firestore:", error);
+        throw new Error("Teammitglied konnte nicht erstellt werden.");
     }
 }
 
-export async function updateTournamentMatch(tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
+export async function updateUserCheckin(checkinData: {status: TeamMember['status'], mood: number, seat: string | null}): Promise<void> {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
+
     try {
-        const tournamentDocRef = doc(db, 'tournaments', tournamentId);
-        const tournamentDoc = await getDoc(tournamentDocRef);
-
-        if (!tournamentDoc.exists()) {
-            throw new Error("Tournament not found");
-        }
-
-        const tournamentData = tournamentDoc.data() as Tournament;
-        const newRounds = [...tournamentData.rounds];
-        newRounds[roundIndex].matches[matchIndex] = updatedMatch;
-
-        await updateDoc(tournamentDocRef, {
-            rounds: newRounds
+        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, currentUser.uid);
+        await updateDoc(memberDocRef, {
+            status: checkinData.status,
+            mood: checkinData.mood,
+            seat: checkinData.seat,
         });
-
     } catch (error) {
-        console.error("Error updating match in Firestore:", error);
-        throw new Error("Match konnte nicht aktualisiert werden.");
+        console.error("Error updating check-in in Firestore:", error);
+        throw new Error("Check-in konnte nicht gespeichert werden.");
     }
 }
-
 
 export async function updateTeamMemberBirthday(userId: string, birthday: string): Promise<void> {
     try {
         const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
-        await updateDoc(memberDocRef, {
-            birthday: birthday
-        });
+        await updateDoc(memberDocRef, { birthday });
     } catch (error) {
         console.error("Error updating birthday in Firestore:", error);
         throw new Error("Geburtstag konnte nicht aktualisiert werden.");
@@ -119,16 +94,11 @@ export async function updateTeamMemberBirthday(userId: string, birthday: string)
 
 export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string): Promise<void> {
     const currentUser = auth.currentUser;
-    if (!currentUser) {
-        throw new Error("User not authenticated.");
-    }
+    if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
 
     try {
         const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, currentUser.uid);
-        await updateDoc(memberDocRef, {
-            lunchTime,
-            coffeeTime,
-        });
+        await updateDoc(memberDocRef, { lunchTime, coffeeTime });
     } catch (error) {
         console.error("Error updating break times in Firestore:", error);
         throw new Error("Pausenzeiten konnten nicht aktualisiert werden.");
@@ -136,16 +106,19 @@ export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string):
 }
 
 
-// --- Gamification API Functions ---
+// =================================
+// GAMIFICATION API (Tasks, Shop)
+// =================================
 
 export async function getTasks(): Promise<OfficeTask[]> {
     try {
         const tasksCollectionRef = collection(db, 'tasks');
-        const querySnapshot = await getDocs(tasksCollectionRef);
+        const q = query(tasksCollectionRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfficeTask));
     } catch (error) {
         console.error("Error fetching tasks:", error);
-        return [];
+        throw new Error("Aufgaben konnten nicht geladen werden.");
     }
 }
 
@@ -169,12 +142,8 @@ export async function completeTask(taskId: string, userId: string): Promise<void
 
     await runTransaction(db, async (transaction) => {
         const taskDoc = await transaction.get(taskDocRef);
-        if (!taskDoc.exists()) {
-            throw new Error("Aufgabe nicht gefunden.");
-        }
-        if (taskDoc.data().isCompleted) {
-             throw new Error("Diese Aufgabe wurde bereits erledigt.");
-        }
+        if (!taskDoc.exists()) throw new Error("Aufgabe nicht gefunden.");
+        if (taskDoc.data().isCompleted) throw new Error("Diese Aufgabe wurde bereits erledigt.");
         
         const points = taskDoc.data().points;
         transaction.update(taskDocRef, { isCompleted: true, completedBy: userId, completedAt: serverTimestamp() });
@@ -185,11 +154,12 @@ export async function completeTask(taskId: string, userId: string): Promise<void
 export async function getShopItems(): Promise<ShopItem[]> {
      try {
         const shopItemsRef = collection(db, 'shop_items');
-        const querySnapshot = await getDocs(shopItemsRef);
+        const q = query(shopItemsRef, orderBy('cost', 'asc'));
+        const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShopItem));
     } catch (error) {
         console.error("Error fetching shop items:", error);
-        return [];
+        throw new Error("Shop-Angebote konnten nicht geladen werden.");
     }
 }
 
@@ -211,19 +181,14 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
 
     await runTransaction(db, async (transaction) => {
         const memberDoc = await transaction.get(memberDocRef);
-        if (!memberDoc.exists()) {
-            throw new Error("Benutzer nicht gefunden.");
-        }
+        if (!memberDoc.exists()) throw new Error("Benutzer nicht gefunden.");
 
         const currentPoints = memberDoc.data().points || 0;
-        if (currentPoints < item.cost) {
-            throw new Error("Nicht genügend Punkte für diesen Artikel.");
-        }
+        if (currentPoints < item.cost) throw new Error("Nicht genügend Punkte für diesen Artikel.");
 
         transaction.update(memberDocRef, { points: increment(-item.cost) });
 
-        // Optional: Log the purchase
-        const purchaseLogRef = collection(db, `users/${userId}/purchase_logs`);
+        const purchaseLogRef = collection(db, `teams/${TEAM_ID}/members/${userId}/purchase_logs`);
         transaction.set(doc(purchaseLogRef), {
             itemId: item.id,
             itemTitle: item.title,
@@ -231,4 +196,99 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
             purchasedAt: serverTimestamp()
         });
     });
+}
+
+// =================================
+// OFFICE API (Fridge, Tournaments)
+// =================================
+
+export async function getFridgeItems(): Promise<FridgeItem[]> {
+    try {
+        const itemsRef = collection(db, 'fridge_items');
+        const q = query(itemsRef, orderBy('expiryDate', 'asc'));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FridgeItem));
+    } catch (error) {
+        console.error("Error fetching fridge items:", error);
+        throw new Error("Kühlschrank-Inhalt konnte nicht geladen werden.");
+    }
+}
+
+export async function addFridgeItem(item: Omit<FridgeItem, 'id'>): Promise<void> {
+    try {
+        const itemsRef = collection(db, 'fridge_items');
+        await addDoc(itemsRef, {
+            ...item,
+            addedAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error adding fridge item:", error);
+        throw new Error("Artikel konnte nicht zum Kühlschrank hinzugefügt werden.");
+    }
+}
+
+
+export async function getTournaments(): Promise<Tournament[]> {
+    try {
+        const tournamentsCollectionRef = collection(db, 'tournaments');
+        const q = query(tournamentsCollectionRef, orderBy('completed'), orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as Tournament));
+    } catch (error) {
+        console.error("Error fetching tournaments from Firestore:", error);
+        return [];
+    }
+}
+
+export async function updateTournamentMatch(tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
+    try {
+        const tournamentDocRef = doc(db, 'tournaments', tournamentId);
+        const tournamentDoc = await getDoc(tournamentDocRef);
+
+        if (!tournamentDoc.exists()) throw new Error("Turnier nicht gefunden");
+
+        const tournamentData = tournamentDoc.data() as Tournament;
+        const newRounds = [...tournamentData.rounds];
+        newRounds[roundIndex].matches[matchIndex] = updatedMatch;
+
+        await updateDoc(tournamentDocRef, { rounds: newRounds });
+
+    } catch (error) {
+        console.error("Error updating match in Firestore:", error);
+        throw new Error("Match konnte nicht aktualisiert werden.");
+    }
+}
+
+// =================================
+// NOTES API
+// =================================
+
+export async function getNotes(userId: string): Promise<Note[]> {
+    try {
+        const notesRef = collection(db, `users/${userId}/notes`);
+        const q = query(notesRef, orderBy('date', 'desc'));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Note));
+    } catch (error) {
+        console.error("Error fetching notes:", error);
+        return [];
+    }
+}
+
+export async function addNote(userId: string, note: Omit<Note, 'id' | 'userId' | 'date'>): Promise<void> {
+    try {
+        const notesRef = collection(db, `users/${userId}/notes`);
+        await addDoc(notesRef, {
+            ...note,
+            userId,
+            date: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error("Error adding note:", error);
+        throw new Error("Notiz konnte nicht gespeichert werden.");
+    }
 }

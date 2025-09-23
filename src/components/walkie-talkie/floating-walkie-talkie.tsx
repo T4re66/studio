@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Mic, MicOff, Signal, X, Radio, PartyPopper } from 'lucide-react';
@@ -11,11 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { TeamMember } from '@/lib/data';
 import { PartyConfetti } from './party-confetti';
 import { useAuth } from '@/hooks/use-auth';
-
-// Placeholder for fetching team members from Firestore
-const getOnlineUsers = async (): Promise<TeamMember[]> => {
-    return [];
-}
+import { getTeamMembers } from '@/lib/team-api';
+import { motion } from 'framer-motion';
 
 export function FloatingWalkieTalkie() {
     const { user } = useAuth();
@@ -29,7 +26,10 @@ export function FloatingWalkieTalkie() {
 
     useEffect(() => {
         if (user && isOpen) {
-            getOnlineUsers().then(setOnlineUsers);
+            getTeamMembers().then(members => {
+                const online = members.filter(m => m.status === 'office' && m.id !== user.uid);
+                setOnlineUsers(online);
+            });
         }
     }, [user, isOpen]);
 
@@ -83,7 +83,12 @@ export function FloatingWalkieTalkie() {
     return (
         <>
             {isPartyMode && <PartyConfetti />}
-            <div className="fixed bottom-6 right-6 z-50">
+            <motion.div 
+                className="fixed bottom-6 right-6 z-50 cursor-grab"
+                drag
+                dragMomentum={false}
+                whileDrag={{ scale: 1.1, cursor: 'grabbing' }}
+            >
                 <Button 
                     size="icon"
                     className="rounded-full w-16 h-16 shadow-lg"
@@ -92,7 +97,7 @@ export function FloatingWalkieTalkie() {
                 >
                     {isOpen ? <X className="h-8 w-8" /> : <Radio className="h-8 w-8" />}
                 </Button>
-            </div>
+            </motion.div>
 
             {isOpen && (
                 <div className="fixed bottom-24 right-6 z-50">

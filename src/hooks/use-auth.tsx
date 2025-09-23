@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'r
 import { getAuth, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, OAuthCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
+import { getTeamMember, createTeamMember } from '@/lib/team-api';
 
 interface AuthContextType {
     user: User | null;
@@ -26,12 +27,22 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                  try {
-                    // On page load or session restoration, get a fresh token.
                     const token = await user.getIdToken();
                     setAccessToken(token);
                     setUser(user);
+                    
+                    // Check if user exists in Firestore, if not, create them
+                    const teamMember = await getTeamMember(user.uid);
+                    if (!teamMember) {
+                        await createTeamMember(user);
+                        toast({
+                            title: `Willkommen, ${user.displayName}!`,
+                            description: "Dein Profil wurde im Team angelegt.",
+                        })
+                    }
+
                 } catch (error) {
-                    console.error("Error getting access token:", error);
+                    console.error("Error during auth state change:", error);
                     setUser(null);
                     setAccessToken(null);
                 }
@@ -39,7 +50,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 setUser(null);
                 setAccessToken(null);
             }
-            // This is crucial: set loading to false regardless of auth state.
             setLoading(false);
         });
         return () => unsubscribe();
@@ -49,7 +59,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(true);
         try {
             const result = await signInWithPopup(auth, provider);
-            // This gives you a Google Access Token. You can use it to access the Google API.
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
                 setAccessToken(credential.accessToken);

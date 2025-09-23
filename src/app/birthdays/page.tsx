@@ -36,6 +36,7 @@ export default function BirthdaysPage() {
     }, [user]);
 
     const sortedMembers = [...teamMembers].sort((a, b) => {
+        if (!a.birthday || !b.birthday) return 0;
         const dateA = parseISO(a.birthday);
         const dateB = parseISO(b.birthday);
         return dateA.getDate() - dateB.getDate();
@@ -43,11 +44,13 @@ export default function BirthdaysPage() {
 
     const membersByMonth: { [key: number]: typeof teamMembers } = {};
     sortedMembers.forEach(member => {
-        const month = getMonth(parseISO(member.birthday));
-        if (!membersByMonth[month]) {
-            membersByMonth[month] = [];
+        if (member.birthday) {
+            const month = getMonth(parseISO(member.birthday));
+            if (!membersByMonth[month]) {
+                membersByMonth[month] = [];
+            }
+            membersByMonth[month].push(member);
         }
-        membersByMonth[month].push(member);
     });
     
     const months = Array.from({length: 12}, (_, i) => i);
@@ -92,7 +95,7 @@ export default function BirthdaysPage() {
                                             <p className="font-semibold">{member.name}</p>
                                         </div>
                                     </div>
-                                    <p className="font-mono text-sm">{format(parseISO(member.birthday), 'dd.')}</p>
+                                    {member.birthday && <p className="font-mono text-sm">{format(parseISO(member.birthday), 'dd.')}</p>}
                                 </div>
                             ))
                         ) : (

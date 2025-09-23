@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight, Loader2 } from "lucide-react";
+import { Coffee, Gift, Medal, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,8 @@ import type { TeamMember } from "@/lib/data";
 import { useAuth } from '@/hooks/use-auth';
 import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
-
-// Mock data to be replaced by Firestore
-const placeholderMembers: TeamMember[] = [];
-const nextBirthday: { member: TeamMember, days: number } | null = null;
-const nextBreakMatch: { user1: TeamMember, user2: TeamMember, time: string } | null = null;
-const defaultUser = { name: 'Gast', points: 0 };
-// ---
+import { getTeamMembers } from '@/lib/team-api';
+import { parseISO, differenceInDays } from 'date-fns';
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -36,27 +31,96 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
-    const [displayValue, setDisplayValue] = useState(to.toLocaleString());
+    const [displayValue, setDisplayValue] = useState(0);
 
     useEffect(() => {
-        setDisplayValue(to.toLocaleString());
+        const duration = 1000;
+        const frameRate = 60;
+        const totalFrames = duration / (1000 / frameRate);
+        const increment = to / totalFrames;
+        let current = 0;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= to) {
+                clearInterval(timer);
+                current = to;
+            }
+            setDisplayValue(Math.floor(current));
+        }, 1000 / frameRate);
+
+        return () => clearInterval(timer);
+
     }, [to]);
 
-    return <>{displayValue}</>;
+    return <>{displayValue.toLocaleString()}</>;
 }
 
 export default function DashboardPage() {
   const { user, accessToken } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(placeholderMembers);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const currentUser = useMemo(() => teamMembers.find(m => m.id === user?.uid) || null, [teamMembers, user]);
+  const sortedLeaderboard = useMemo(() => [...teamMembers].sort((a,b) => b.points - a.points), [teamMembers]);
+  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === user?.uid) + 1, [sortedLeaderboard, user]);
+
+  const nextBirthday = useMemo(() => {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const upcoming = teamMembers
+        .filter(m => m.birthday)
+        .map(member => {
+            const birthDate = parseISO(member.birthday);
+            const nextBirthdayDate = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            if (nextBirthdayDate < today) {
+                nextBirthdayDate.setFullYear(today.getFullYear() + 1);
+            }
+            return {
+                member,
+                days: differenceInDays(nextBirthdayDate, today),
+            };
+        })
+        .sort((a,b) => a.days - b.days);
+    
+      return upcoming[0] || null;
+
+  }, [teamMembers]);
+
+  const nextBreakMatch = useMemo(() => {
+      const lunchGroups: { [time: string]: TeamMember[] } = {};
+      teamMembers.forEach(member => {
+          if (member.lunchTime) {
+              if (!lunchGroups[member.lunchTime]) lunchGroups[member.lunchTime] = [];
+              lunchGroups[member.lunchTime].push(member);
+          }
+      });
+      const matches = Object.values(lunchGroups).filter(group => group.length > 1);
+      if (matches.length > 0 && matches[0].length >=2) {
+          return { user1: matches[0][0], user2: matches[0][1], time: matches[0][0].lunchTime || '' };
+      }
+      return null;
+  }, [teamMembers]);
+
 
   useEffect(() => {
-    // In a real app, fetch team members from Firestore here
-    // For now, we'll keep it empty as we don't have team data source yet.
-  }, []);
+    async function loadData() {
+        if (user) {
+            setLoading(true);
+            const members = await getTeamMembers();
+            setTeamMembers(members);
+            setLoading(false);
+        } else {
+            setTeamMembers([]);
+            setLoading(false);
+        }
+    }
+    loadData();
+  }, [user]);
 
-  const currentUser = user ? { name: user.displayName || 'User', points: 1250 } : defaultUser;
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;
@@ -70,7 +134,8 @@ export default function DashboardPage() {
                     fetchGmail(accessToken),
                     fetchCalendar(accessToken)
                 ]);
-                const summary = await getDailyBriefing({ emails, events });
+                const unreadEmails = emails.filter(e => !e.isRead);
+                const summary = await getDailyBriefing({ emails: unreadEmails, events });
                 setBriefing(summary);
             } catch (err) {
                 console.error("Failed to load daily briefing:", err);
@@ -87,7 +152,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8 fade-in">
       <PageHeader
-        title={`Hallo, ${currentUser.name.split(' ')[0]}!`}
+        title={`Hallo, ${currentUser?.name?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Gast'}!`}
         description="Willkommen zurück! Hier ist dein Überblick für heute."
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -103,7 +168,9 @@ export default function DashboardPage() {
                         className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
                         style={{ background: 'var(--gradient)'}}
                     />
-                    {onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
+                    {loading ? (
+                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
                         const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
                         return (
                              <TooltipProvider key={member.id}>
@@ -203,9 +270,9 @@ export default function DashboardPage() {
                             className="absolute w-[80%] h-full rounded-[50%] transform -translate-x-1-2 -translate-y-1-2 top-1-2 left-1-2 opacity-30 blur-2xl -z-1 bg-accent/50"
                          />
                         <p className="text-5xl font-bold text-accent z-10">
-                           <AnimatedCounter to={currentUser.points} />
+                           <AnimatedCounter to={currentUser?.points || 0} />
                         </p>
-                        <p className="font-semibold mt-1 z-10">Dein Rang: 3.</p>
+                        {currentUserRank > 0 && <p className="font-semibold mt-1 z-10">Dein Rang: {currentUserRank}.</p>}
                     </CardContent>
                 </Card>
             </Link>
@@ -231,7 +298,7 @@ export default function DashboardPage() {
                             </Avatar>
                             <p className="font-semibold mt-3 text-sm">{nextBirthday.member.name}</p>
                             <p className="text-xs text-muted-foreground">
-                                {nextBirthday.days === 0 ? 'hat heute Geburtstag!' : `wird in ${nextBirthday.days} Tagen ${new Date().getFullYear() - new Date(nextBirthday.member.birthday).getFullYear()}!`}
+                                {nextBirthday.days === 0 ? 'hat heute Geburtstag!' : nextBirthday.member.birthday ? `wird in ${nextBirthday.days} Tagen ${new Date().getFullYear() - new Date(nextBirthday.member.birthday).getFullYear()}!` : `hat bald Geburtstag!`}
                             </p>
                         </>
                     ) : (

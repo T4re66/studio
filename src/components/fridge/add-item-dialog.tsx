@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -14,25 +15,26 @@ import { Label } from "@/components/ui/label";
 import { Camera, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import type { FridgeItem } from "@/lib/data";
+import { add, format } from "date-fns";
 
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddItem: (newItem: Omit<FridgeItem, 'id' | 'owner' | 'ownerId' | 'image' | 'shelf'>) => void;
+  onAddItem: (newItem: {name: string, expiryDate: string}) => void;
 }
 
 export function AddItemDialog({ open, onOpenChange, onAddItem }: AddItemDialogProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [itemName, setItemName] = useState("");
-  const [expiryDays, setExpiryDays] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
   const { toast } = useToast();
 
   const handleScan = () => {
     setIsScanning(true);
     setTimeout(() => {
       setItemName("Joghurt");
-      setExpiryDays("7");
+      const futureDate = add(new Date(), { days: 7 });
+      setExpiryDate(format(futureDate, 'yyyy-MM-dd'));
       setIsScanning(false);
       toast({
         title: "Scan erfolgreich",
@@ -42,7 +44,7 @@ export function AddItemDialog({ open, onOpenChange, onAddItem }: AddItemDialogPr
   };
 
   const handleAdd = () => {
-    if (!itemName || !expiryDays) {
+    if (!itemName || !expiryDate) {
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -51,15 +53,10 @@ export function AddItemDialog({ open, onOpenChange, onAddItem }: AddItemDialogPr
       return;
     }
     
-    onAddItem({ name: itemName, expiryDays: parseInt(expiryDays) });
-
-    toast({
-      title: "Artikel hinzugefügt",
-      description: `${itemName} wurde zum Kühlschrank hinzugefügt.`,
-    });
+    onAddItem({ name: itemName, expiryDate: expiryDate });
     onOpenChange(false);
     setItemName("");
-    setExpiryDays("");
+    setExpiryDate("");
   };
 
   return (
@@ -115,13 +112,12 @@ export function AddItemDialog({ open, onOpenChange, onAddItem }: AddItemDialogPr
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="expiry-days">Haltbar (in Tagen)</Label>
+            <Label htmlFor="expiry-date">Ablaufdatum</Label>
             <Input
-              id="expiry-days"
-              type="number"
-              value={expiryDays}
-              onChange={(e) => setExpiryDays(e.target.value)}
-              placeholder="z.B. 7"
+              id="expiry-date"
+              type="date"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
             />
              <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
                 <Sparkles className="w-3.5 h-3.5 text-accent" />
