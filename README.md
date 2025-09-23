@@ -51,7 +51,9 @@ Aktiviere die folgenden APIs in deiner Google Cloud Console für dein Projekt:
 1. Gehe zur [Firebase Console](https://console.firebase.google.com/) und wähle dein Projekt.
 2. Gehe zu "Authentication" -> "Sign-in method".
 3. Aktiviere den **Google**-Anbieter.
-4. **Autorisierte Domains:** Gehe zu "Authentication" -> "Settings" -> "Authorized domains" und füge `localhost` hinzu, um die lokale Entwicklung zu ermöglichen.
+4. **Autorisierte Domains:** Gehe zu "Authentication" -> "Settings" -> "Authorized domains" und füge die Domains hinzu, von denen aus du dich anmelden möchtest.
+   - Für die lokale Entwicklung: `localhost`
+   - Für die Entwicklung in Firebase Studio / Cloud Workstations: Kopiere die Domain aus der Fehlermeldung in der Browser-Konsole (z.B. `....cloudworkstations.dev`)
 
 ### 4. Abhängigkeiten installieren & App starten
 
@@ -64,10 +66,10 @@ Aktiviere die folgenden APIs in deiner Google Cloud Console für dein Projekt:
     npm run dev
     ```
 
-Die Anwendung ist nun unter [http://localhost:9002](http://localhost:9002) erreichbar.
+Die Anwendung ist nun unter [http://localhost:9002](http://localhost:9002) oder deiner Cloud Workstation URL erreichbar.
 
 ### 5. Fehlerbehebung
 
-- **`auth/unauthorized-domain`**: Dieser Fehler tritt auf, wenn du versuchst, dich von einer Domain aus anzumelden, die nicht in der Firebase-Liste der autorisierten Domains enthalten ist. Füge die Domain (z.B. `localhost`) in den Firebase Authentication-Einstellungen hinzu.
+- **`auth/unauthorized-domain`**: Dieser Fehler tritt auf, wenn du versuchst, dich von einer Domain aus anzumelden, die nicht in der Firebase-Liste der autorisierten Domains enthalten ist. Füge die Domain in den Firebase Authentication-Einstellungen hinzu (siehe Punkt 3.3).
 - **Fehlende Scopes / 403-Fehler bei API-Aufrufen**: Wenn du nach der Anmeldung Fehler beim Abrufen von Gmail- oder Kalenderdaten erhältst, stelle sicher, dass die Scopes (`gmail.readonly`, `calendar.readonly`) korrekt im OAuth-Zustimmungsbildschirm in der Google Cloud Console konfiguriert sind.
-- **Pop-up blockiert**: Der Google-Anmeldevorgang verwendet ein Pop-up-Fenster. Stelle sicher, dass dein Browser Pop-ups für `localhost` nicht blockiert.
+- **`auth/popup-closed-by-user` oder Pop-up blockiert**: Der Google-Anmeldevorgang verwendet ein Pop-up-Fenster. Stelle sicher, dass dein Browser Pop-ups für deine Entwicklungsdomain (`localhost` oder die Cloud Workstation URL) nicht blockiert.

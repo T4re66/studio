@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
-import { getAuth, onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut as firebaseSignOut, User, OAuthCredential, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, OAuthCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
 
@@ -25,63 +25,40 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
-             if (!user) {
+             if (user) {
+                // If user is logged in, we assume we might need to get a fresh token,
+                // but for simplicity, we'll handle token setting on sign-in.
+             } else {
                 setAccessToken(null);
-                // setLoading(false) was removed here as it was causing a race condition
-            }
+             }
+            setLoading(false);
         });
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        const handleRedirectResult = async () => {
-            setLoading(true);
-            try {
-                const result = await getRedirectResult(auth);
-                if (result) {
-                    const credential = GoogleAuthProvider.credentialFromResult(result);
-                    if (credential?.accessToken) {
-                        setAccessToken(credential.accessToken);
-                        setUser(result.user);
-                        toast({
-                            title: "Erfolgreich verbunden",
-                            description: "Dein Google-Konto wurde verknüpft.",
-                        });
-                    } else {
-                        throw new Error("Kein Access Token nach Weiterleitung gefunden.");
-                    }
-                }
-            } catch (error: any) {
-                // Nur Fehler anzeigen, wenn es ein echter Fehler ist, nicht nur, weil keine Weiterleitung stattgefunden hat
-                if (error.code !== 'auth/no-redirect-result') {
-                    console.error("Authentication redirect error:", error);
-                    toast({
-                        variant: "destructive",
-                        title: "Anmeldung fehlgeschlagen",
-                        description: "Die Anmeldung über Google konnte nicht abgeschlossen werden.",
-                    });
-                }
-                setAccessToken(null);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        handleRedirectResult();
-    }, [toast]);
-
-
     const signIn = async () => {
         setLoading(true);
         try {
-            await signInWithRedirect(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                setAccessToken(credential.accessToken);
+                setUser(result.user);
+                toast({
+                    title: "Erfolgreich verbunden",
+                    description: "Dein Google-Konto wurde verknüpft.",
+                });
+            } else {
+                throw new Error("Kein Access Token gefunden.");
+            }
         } catch (error: any) {
             console.error("Authentication error:", error);
             toast({
                 variant: "destructive",
                 title: "Anmeldung fehlgeschlagen",
-                description: "Bitte versuche es erneut.",
+                description: error.code === 'auth/popup-closed-by-user' ? 'Das Anmeldefenster wurde geschlossen.' : 'Bitte versuche es erneut.',
             });
+        } finally {
             setLoading(false);
         }
     };
