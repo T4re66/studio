@@ -1,9 +1,14 @@
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 'use client'
 
 =======
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
+=======
+'use client'
+
+>>>>>>> 0ebd783 (Try fixing this error: `Unhandled Runtime Error: Error: Text content doe)
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,6 +22,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 =======
 import type { User } from "@/lib/data";
+import { useState, useEffect } from "react";
 
 // Placeholder data for UI shell
 const teamMembers: User[] = [
@@ -28,7 +34,10 @@ const teamMembers: User[] = [
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
 export default function BirthdaysPage() {
+<<<<<<< HEAD
     const { teamMembers, loading } = useAuth();
+=======
+>>>>>>> 0ebd783 (Try fixing this error: `Unhandled Runtime Error: Error: Text content doe)
     const [currentMonth, setCurrentMonth] = useState<number | null>(null);
 
     useEffect(() => {
@@ -55,6 +64,7 @@ export default function BirthdaysPage() {
     
     const months = Array.from({length: 12}, (_, i) => i);
 
+<<<<<<< HEAD
     if (loading || currentMonth === null) {
         return (
             <div className="flex flex-col gap-8">
@@ -68,6 +78,11 @@ export default function BirthdaysPage() {
                 </div>
             </div>
         );
+=======
+    if (currentMonth === null) {
+        // Render a placeholder or loading state until the client has mounted
+        return null;
+>>>>>>> 0ebd783 (Try fixing this error: `Unhandled Runtime Error: Error: Text content doe)
     }
 
   return (
