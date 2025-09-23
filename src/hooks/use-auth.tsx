@@ -26,19 +26,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                  try {
-                    const token = await user.getIdToken();
-                    // This is not the Google Access Token, but the Firebase Auth ID Token.
-                    // For Google API calls, we need the OAuth Access Token from the credential.
-                    // We'll store the Firebase token for now, but handle the OAuth token on sign-in.
+                    // Note: This only runs on page load. The access token for API calls
+                    // must be captured directly from signInWithPopup.
+                    setUser(user);
                 } catch (error) {
-                    console.error("Error getting ID token:", error);
+                    console.error("Error during auth state change:", error);
                 }
-                setUser(user);
             } else {
                 setUser(null);
                 setAccessToken(null);
             }
-            setLoading(false); // This is the crucial fix.
+            // This is crucial: set loading to false regardless of auth state.
+            setLoading(false);
         });
         return () => unsubscribe();
     }, []);
@@ -56,7 +55,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     description: "Dein Google-Konto wurde verknüpft.",
                 });
             } else {
-                throw new Error("Kein Access Token gefunden.");
+                throw new Error("Kein Access Token von Google erhalten.");
             }
         } catch (error: any) {
             console.error("Authentication error:", error);
