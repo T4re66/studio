@@ -1,10 +1,13 @@
 
+'use client'
+
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, parseISO, getMonth } from 'date-fns';
 import { de } from 'date-fns/locale';
 import type { User } from "@/lib/data";
+import { useState, useEffect } from "react";
 
 // Placeholder data for UI shell
 const teamMembers: User[] = [
@@ -15,8 +18,11 @@ const teamMembers: User[] = [
 // ---
 
 export default function BirthdaysPage() {
-    const today = new Date();
-    const currentMonth = getMonth(today);
+    const [currentMonth, setCurrentMonth] = useState<number | null>(null);
+
+    useEffect(() => {
+        setCurrentMonth(getMonth(new Date()));
+    }, []);
 
     const sortedMembers = [...teamMembers].sort((a, b) => {
         const dateA = parseISO(a.birthday);
@@ -34,6 +40,11 @@ export default function BirthdaysPage() {
     });
     
     const months = Array.from({length: 12}, (_, i) => i);
+
+    if (currentMonth === null) {
+        // Render a placeholder or loading state until the client has mounted
+        return null;
+    }
 
   return (
     <div className="flex flex-col gap-8">
