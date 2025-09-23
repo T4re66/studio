@@ -23,15 +23,22 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const { toast } = useToast();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-             if (user) {
-                // If user is logged in, we assume we might need to get a fresh token,
-                // but for simplicity, we'll handle token setting on sign-in.
-             } else {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                 try {
+                    const token = await user.getIdToken();
+                    // This is not the Google Access Token, but the Firebase Auth ID Token.
+                    // For Google API calls, we need the OAuth Access Token from the credential.
+                    // We'll store the Firebase token for now, but handle the OAuth token on sign-in.
+                } catch (error) {
+                    console.error("Error getting ID token:", error);
+                }
+                setUser(user);
+            } else {
+                setUser(null);
                 setAccessToken(null);
-             }
-            setLoading(false);
+            }
+            setLoading(false); // This is the crucial fix.
         });
         return () => unsubscribe();
     }, []);
@@ -53,11 +60,21 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
         } catch (error: any) {
             console.error("Authentication error:", error);
-            toast({
-                variant: "destructive",
-                title: "Anmeldung fehlgeschlagen",
-                description: error.code === 'auth/popup-closed-by-user' ? 'Das Anmeldefenster wurde geschlossen.' : 'Bitte versuche es erneut.',
-            });
+            // Specific check for unauthorized domain, as this is a common setup issue.
+            if (error.code === 'auth/unauthorized-domain') {
+                 toast({
+                    variant: "destructive",
+                    title: "Domain nicht autorisiert",
+                    description: "Füge die aktuelle Domain in den Firebase Authentication-Einstellungen unter 'Authorized domains' hinzu.",
+                    duration: 9000,
+                });
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Anmeldung fehlgeschlagen",
+                    description: error.code === 'auth/popup-closed-by-user' ? 'Das Anmeldefenster wurde geschlossen.' : 'Bitte versuche es erneut.',
+                });
+            }
         } finally {
             setLoading(false);
         }
