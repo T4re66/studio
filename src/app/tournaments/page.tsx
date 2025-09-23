@@ -1,97 +1,59 @@
 
 'use client'
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Sword, Tablets, Trophy } from 'lucide-react';
-import type { Tournament, User } from '@/lib/data';
+import { Target, Sword, Tablets, Trophy, Loader2 } from 'lucide-react';
+import type { Tournament, TeamMember } from '@/lib/data';
 import { TournamentCard } from '@/components/tournaments/tournament-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
 
-// Placeholder data for UI shell
-const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', lastSeen: '2h ago', dnd: true, points: 800, birthday: '1988-11-22', online: true, mood: 3 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
-  { id: '5', name: 'Ethan Davis', avatar: 'https://picsum.photos/seed/user5/200/200', status: 'away', role: 'QA Engineer', department: 'Engineering', lastSeen: 'yesterday', dnd: false, points: 600, birthday: '1993-12-10', online: false, mood: 5 },
-  { id: '6', name: 'Fiona Garcia', avatar: 'https://picsum.photos/seed/user6/200/200', status: 'remote', role: 'Marketing Specialist', department: 'Marketing', lastSeen: '30m ago', dnd: false, points: 950, birthday: '1991-06-18', online: true, mood: 4 },
-  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
-  { id: '8', name: 'Hannah Lewis', avatar: 'https://picsum.photos/seed/user8/200/200', status: 'office', role: 'Data Scientist', department: 'Data', lastSeen: '1h ago', dnd: false, points: 1400, birthday: '1994-01-20', seat: 'B4', online: false, mood: 1 },
-];
-const [tarec, bob, charlie, diana, ethan, fiona, george, hannah] = teamMembers;
+// Placeholder for fetching data from Firestore
+const getTournaments = async (): Promise<Tournament[]> => {
+    return [];
+}
+const getTeamMembers = async (): Promise<TeamMember[]> => {
+    return [];
+}
 
-const tournaments: Tournament[] = [
-    {
-        id: 'tour-darts-1',
-        name: 'Dart-Meisterschaft Q3',
-        game: 'Darts',
-        points: 500,
-        completed: false,
-        rounds: [
-            {
-                name: 'Halbfinale',
-                matches: [
-                    { name: 'Match 1', teamA: { name: 'Tarec', members: [tarec], score: 0 }, teamB: { name: 'Diana', members: [diana], score: 0 } },
-                    { name: 'Match 2', teamA: { name: 'Charlie', members: [charlie], score: 0 }, teamB: { name: 'George', members: [george], score: 0 } },
-                ]
-            },
-            {
-                name: 'Finale',
-                matches: [
-                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
-                ]
-            }
-        ]
-    },
-    {
-        id: 'tour-pingpong-1',
-        name: 'Ping Pong Turnier',
-        game: 'Ping Pong',
-        points: 400,
-        completed: true,
-        winner: { name: 'Fiona', members: [fiona], score: 21 },
-        rounds: [
-            {
-                name: 'Finale',
-                matches: [
-                    { name: 'Final-Match', teamA: { name: 'Fiona', members: [fiona], score: 21 }, teamB: { name: 'Bob', members: [bob], score: 18 }, winner: { name: 'Fiona', members: [fiona], score: 21 } },
-                ]
-            }
-        ]
-    },
-    {
-        id: 'tour-tf-1',
-        name: 'Tischfussball Cup',
-        game: 'Tischfussball',
-        points: 750,
-        completed: false,
-        rounds: [
-            {
-                name: 'Halbfinale',
-                matches: [
-                    { name: 'Match 1', teamA: { name: 'Devs', members: [tarec, bob], score: 0 }, teamB: { name: 'Design & PM', members: [charlie, diana], score: 0 } },
-                    { name: 'Match 2', teamA: { name: 'QA & Marketing', members: [ethan, fiona], score: 0 }, teamB: { name: 'Data & DevOps', members: [hannah, george], score: 0 } },
-                ]
-            },
-             {
-                name: 'Finale',
-                matches: [
-                    { name: 'Final-Match', teamA: { name: 'TBD', members: [], score: 0 }, teamB: { name: 'TBD', members: [], score: 0 } },
-                ]
-            }
-        ]
-    }
-];
 
 export default function TournamentsPage() {
+    const { user } = useAuth();
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user) {
+            setLoading(true);
+            Promise.all([getTournaments(), getTeamMembers()]).then(([tourneyData, memberData]) => {
+                setTournaments(tourneyData);
+                setTeamMembers(memberData);
+                setLoading(false);
+            });
+        } else {
+            setTournaments([]);
+            setTeamMembers([]);
+            setLoading(false);
+        }
+    }, [user]);
     
     const findUser = (userId: string) => teamMembers.find(u => u.id === userId);
 
     const renderTournament = (tournament: Tournament | undefined) => {
+        if (loading) {
+            return (
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Lade Turnierdaten...</span>
+                </div>
+            )
+        }
         if (!tournament) {
             return <p className="text-muted-foreground text-center py-12">Kein Turnier für diese Disziplin gefunden.</p>;
         }
@@ -107,10 +69,10 @@ export default function TournamentsPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex justify-center -space-x-4">
-                                {tournament.winner.members.map(user => (
-                                    <Avatar key={user.id} className="h-16 w-16 border-2 border-card">
-                                        <AvatarImage src={user.avatar} />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                {tournament.winner.members.map(member => (
+                                    <Avatar key={member.id} className="h-16 w-16 border-2 border-card">
+                                        <AvatarImage src={member.avatar} />
+                                        <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 ))}
                             </div>

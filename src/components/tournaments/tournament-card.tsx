@@ -1,6 +1,7 @@
+
 'use client'
 
-import type { Match, User } from "@/lib/data";
+import type { Match, TeamMember } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,17 +14,17 @@ interface TournamentCardProps {
     onScoreChange: (team: 'teamA' | 'teamB', score: number) => void;
     onDeclareWinner: () => void;
     disabled?: boolean;
-    findUser: (userId: string) => User | undefined;
+    findUser: (userId: string) => TeamMember | undefined;
 }
 
-const TeamDisplay = ({ team, findUser, isWinner }: { team: Match['teamA'], findUser: (id: string) => User | undefined, isWinner?: boolean }) => (
+const TeamDisplay = ({ team, findUser, isWinner }: { team: Match['teamA'], findUser: (id: string) => TeamMember | undefined, isWinner?: boolean }) => (
     <div className="flex flex-col items-center gap-2 text-center">
         <div className="flex -space-x-4">
             {team.members.map(member => {
                 const user = findUser(member.id);
                 return (
                     <Avatar key={member.id} className={cn("h-12 w-12 border-2", isWinner ? "border-amber-400" : "border-card")}>
-                        {user && <AvatarImage src={user.avatar} />}
+                        {user?.avatar && <AvatarImage src={user.avatar} />}
                         <AvatarFallback>{team.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                 )

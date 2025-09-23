@@ -1,38 +1,51 @@
+
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Mic, MicOff, Signal, X, Radio, PartyPopper } from 'lucide-react';
-import { teamMembers } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import type { User } from '@/lib/data';
+import type { TeamMember } from '@/lib/data';
 import { PartyConfetti } from './party-confetti';
+import { useAuth } from '@/hooks/use-auth';
+
+// Placeholder for fetching team members from Firestore
+const getOnlineUsers = async (): Promise<TeamMember[]> => {
+    return [];
+}
 
 export function FloatingWalkieTalkie() {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isTalking, setIsTalking] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [selectedUser, setSelectedUser] = useState<TeamMember | null>(null);
     const [isPartyMode, setIsPartyMode] = useState(false);
+    const [onlineUsers, setOnlineUsers] = useState<TeamMember[]>([]);
     const { toast } = useToast();
 
-    const onlineUsers = teamMembers.filter(u => u.online && u.status !== 'away');
+    useEffect(() => {
+        if (user && isOpen) {
+            getOnlineUsers().then(setOnlineUsers);
+        }
+    }, [user, isOpen]);
+
 
     const handleToggleOpen = () => {
         setIsOpen(prev => !prev);
-        if (!isOpen) {
+        if (isOpen) { // If it was open, now it's closing
             setSelectedUser(null);
         }
     };
     
-    const handleSelectUser = (user: User) => {
+    const handleSelectUser = (user: TeamMember) => {
         setSelectedUser(user);
         toast({
             title: `Kanal gewechselt`,
-            description: `Du sprichst jetzt mit ${user.name.split(' ')[0]}.`,
+            description: `Du sprichst jetzt mit ${user.name?.split(' ')[0]}.`,
         })
     }
 
@@ -63,6 +76,10 @@ export function FloatingWalkieTalkie() {
         }, 5000); // Confetti for 5 seconds
     }
 
+    if (!user) {
+        return null; // Don't show the walkie-talkie if not logged in
+    }
+
     return (
         <>
             {isPartyMode && <PartyConfetti />}
@@ -85,23 +102,24 @@ export function FloatingWalkieTalkie() {
                             <CardDescription>Wähle einen Kanal zum Funken.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2 max-h-60 overflow-y-auto pr-3">
-                             {onlineUsers.map(user => (
+                             {onlineUsers.map(member => (
                                 <button 
-                                    key={user.id} 
+                                    key={member.id} 
                                     className={cn(
                                         "w-full text-left p-2 rounded-lg flex items-center gap-3 transition-colors",
-                                        user.id === selectedUser?.id ? "bg-primary/10" : "hover:bg-muted/50",
+                                        member.id === selectedUser?.id ? "bg-primary/10" : "hover:bg-muted/50",
                                     )}
-                                    onClick={() => handleSelectUser(user)}
+                                    onClick={() => handleSelectUser(member)}
                                 >
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user.avatar} />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        {member.avatar && <AvatarImage src={member.avatar} />}
+                                        <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
-                                    <p className="font-semibold text-sm flex-1 truncate">{user.name}</p>
-                                    {user.dnd && <MicOff className="h-4 w-4 text-muted-foreground" title="Nicht stören"/>}
+                                    <p className="font-semibold text-sm flex-1 truncate">{member.name}</p>
+                                    {member.dnd && <MicOff className="h-4 w-4 text-muted-foreground" title="Nicht stören"/>}
                                 </button>
                             ))}
+                            {onlineUsers.length === 0 && <p className='text-sm text-center text-muted-foreground py-4'>Niemand online.</p>}
                         </CardContent>
                         <CardFooter className="flex flex-col gap-4 pt-4 border-t">
                              <div className="flex items-center justify-center gap-4">

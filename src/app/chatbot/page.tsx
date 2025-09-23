@@ -5,21 +5,30 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import type { User as UserType } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
+import type { User } from '@/lib/data';
+import { useState } from 'react';
 
 type Message = {
     role: 'user' | 'bot';
     content: string;
 };
 
-// Placeholder data for UI shell
-const currentUser: UserType = { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' };
-const messages: Message[] = [];
 
 export default function ChatbotPage() {
+    const { user } = useAuth();
+    const [messages, setMessages] = useState<Message[]>([]);
+    
+    // In a real app, this would be a more complex state management
+    const currentUser: Partial<User> = {
+        id: user?.uid,
+        name: user?.displayName,
+        avatar: user?.photoURL
+    };
+
     return (
         <div className="flex flex-col gap-8">
             <PageHeader
@@ -48,8 +57,8 @@ export default function ChatbotPage() {
                                 </div>
                                  {msg.role === 'user' && (
                                     <Avatar className="h-8 w-8 border">
-                                        <AvatarImage src={currentUser.avatar} />
-                                        <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                                        {currentUser.avatar && <AvatarImage src={currentUser.avatar} />}
+                                        <AvatarFallback>{currentUser.name?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 )}
                             </div>

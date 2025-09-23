@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from "@/components/page-header";
@@ -7,8 +8,8 @@ export default function CheckinPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Stress Check-in"
-        description="Ein schneller, anonymer Weg, um dein Wohlbefinden zu teilen."
+        title="Check-in"
+        description="Ein schneller Weg, um dein Wohlbefinden und deinen Arbeitsplatz zu teilen."
       />
       <div className="w-full">
         <CheckinForm />

@@ -1,12 +1,13 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { User } from "@/lib/data";
+import type { TeamMember } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Moon } from "lucide-react";
 
 const statusInfo: {
-  [key in User['status']]: { label: string; className: string };
+  [key in TeamMember['status']]: { label: string; className: string };
 } = {
   office: { label: "Im Büro", className: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300" },
   remote: { label: "Remote", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300" },
@@ -22,7 +23,7 @@ const statusDotClasses = {
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
 
-export function UserCard({ user }: { user: User }) {
+export function UserCard({ user }: { user: TeamMember }) {
   const info = statusInfo[user.status];
   const moodEmoji = user.mood ? moodEmojis[user.mood - 1] : null;
 
@@ -31,8 +32,8 @@ export function UserCard({ user }: { user: User }) {
       <CardContent className="p-4 flex items-center gap-4">
         <div className="relative">
           <Avatar className="h-14 w-14">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+            {user.avatar && <AvatarImage src={user.avatar} alt={user.name || ''} />}
+            <AvatarFallback>{user.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span
             className={cn(

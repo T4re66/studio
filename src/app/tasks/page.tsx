@@ -1,13 +1,15 @@
 
 'use client'
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { OfficeTask } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
 
 const categoryColors = {
     'Soziales': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -15,15 +17,50 @@ const categoryColors = {
     'Spass': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
-// Placeholder data for UI shell
-const tasks: OfficeTask[] = [
-  { id: 't1', title: 'Kaffeemaschine entkalken', description: 'Die Kaffeemaschine braucht etwas Liebe. Entkalke sie für das Wohl des ganzen Teams.', points: 100, category: 'Büro' },
-  { id: 't2', title: 'Bringe einem Kollegen einen Kaffee', description: 'Frage einen Kollegen, ob er einen Kaffee möchte und bringe ihn ihm an den Platz.', points: 20, category: 'Soziales' },
-  { id: 't3', title: 'Organisiere eine 5-Minuten-Dehnpause', description: 'Versammle ein paar Kollegen für eine kurze Dehnpause am Nachmittag.', points: 50, category: 'Soziales' },
-  { id: 't7', title: 'Schreibtisch-Challenge', description: 'Wer hat den ordentlichsten (oder kreativsten) Schreibtisch? Starte einen kleinen Wettbewerb.', points: 60, category: 'Spass', isCompleted: true },
-];
+// Placeholder for fetching tasks from Firestore
+const getTasks = async (): Promise<OfficeTask[]> => {
+    return [];
+}
 
 export default function TasksPage() {
+    const { user } = useAuth();
+    const [tasks, setTasks] = useState<OfficeTask[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user) {
+            setLoading(true);
+            getTasks().then(tasks => {
+                setTasks(tasks);
+                setLoading(false);
+            });
+        } else {
+            setTasks([]);
+            setLoading(false);
+        }
+    }, [user]);
+
+    const handleCompleteTask = (taskId: string) => {
+        // In a real app, update this in Firestore
+        setTasks(currentTasks => currentTasks.map(task => 
+            task.id === taskId ? { ...task, isCompleted: true } : task
+        ));
+    }
+    
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-8">
+                <PageHeader
+                    title="Aufgaben & Challenges"
+                    description="Sammle Punkte, indem du lustige und nützliche Aufgaben im Büro erledigst."
+                />
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Lade Aufgaben...</span>
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="flex flex-col gap-8">
@@ -54,7 +91,7 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
-                <Button className="w-full">
+                <Button className="w-full" onClick={() => handleCompleteTask(task.id)}>
                   <Plus className="mr-2" />
                   Als erledigt markieren
                 </Button>
@@ -62,6 +99,11 @@ export default function TasksPage() {
             </CardFooter>
           </Card>
         ))}
+        {tasks.length === 0 && !loading && (
+            <p className="text-muted-foreground col-span-full text-center py-12">
+                Aktuell sind keine Aufgaben verfügbar.
+            </p>
+        )}
       </div>
     </div>
   );

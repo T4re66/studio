@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -11,20 +11,16 @@ import { de } from 'date-fns/locale';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AddEventDialog } from "@/components/calendar/add-event-dialog";
-import type { CalendarEvent, Deadline, User } from "@/lib/data";
+import type { CalendarEvent, Deadline, TeamMember } from "@/lib/data";
 import { DeadlineManager } from "../calendar/deadline-manager";
 
-// Placeholder data for UI shell
-const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', lastSeen: '2h ago', dnd: true, points: 800, birthday: '1988-11-22', online: true, mood: 3 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-];
-const deadlines: Deadline[] = [
-  { id: 'd1', title: 'Frontend-Implementierung abschliessen', projectId: 'p1', projectName: 'Projekt Phoenix', dueDate: '2024-08-15' },
-  { id: 'd2', title: 'Q3-Marketingbericht erstellen', projectId: 'p2', projectName: 'Marketing-Kampagne', dueDate: '2024-07-30' },
-];
-// ---
+// Placeholder for fetching data
+const getTeamMembers = async (): Promise<TeamMember[]> => {
+    return [];
+}
+const getDeadlines = async (): Promise<Deadline[]> => {
+    return [];
+}
 
 const categoryColors: { [key: string]: string } = {
     'Meeting': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -40,6 +36,14 @@ interface CalendarTabProps {
 export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+
+  useEffect(() => {
+    // In a real app, you would fetch this data based on the logged-in user
+    getTeamMembers().then(setTeamMembers);
+    getDeadlines().then(setDeadlines);
+  }, []);
   
   const selectedDayEvents = initialEvents.filter(event => date && isSameDay(parseISO(event.date), date));
 
@@ -105,8 +109,8 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                                                     const user = findUser(id);
                                                     return user ? (
                                                     <Avatar key={id} className="h-6 w-6 border-2 border-card">
-                                                        <AvatarImage src={user.avatar} />
-                                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                        {user.avatar && <AvatarImage src={user.avatar} />}
+                                                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     ) : null;
                                                 })}
@@ -127,10 +131,10 @@ export function CalendarTab({ summary, events: initialEvents }: CalendarTabProps
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                     {summary && summary.startsWith("Zusammenfassung wird") ? (
+                     {summary === undefined ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>{summary}</span>
+                            <span>Zusammenfassung wird generiert...</span>
                         </div>
                     ) : (
                         <p className="text-sm text-foreground/80 whitespace-pre-wrap">

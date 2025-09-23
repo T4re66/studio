@@ -1,3 +1,4 @@
+
 'use client'
 
 import { PageHeader } from "@/components/page-header";
@@ -7,18 +8,31 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Coffee, Utensils } from "lucide-react";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { User } from '@/lib/data';
+import type { TeamMember } from '@/lib/data';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
-// Placeholder data for UI shell
-const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-];
-const lunchMatches = [{users: [teamMembers[0], teamMembers[1]], time: '12:30'}];
-const coffeeMatches: any[] = [];
-// --
+// This is a placeholder for fetching team data and matches.
+// In a real app, this would come from Firestore.
+const getMatches = async (): Promise<{ lunchMatches: any[], coffeeMatches: any[] }> => {
+    return { lunchMatches: [], coffeeMatches: [] };
+};
 
 export default function BreaksPage() {
+  const { user } = useAuth();
+  const [lunchMatches, setLunchMatches] = useState<any[]>([]);
+  const [coffeeMatches, setCoffeeMatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+        const fetchMatches = async () => {
+            const { lunchMatches, coffeeMatches } = await getMatches();
+            setLunchMatches(lunchMatches);
+            setCoffeeMatches(coffeeMatches);
+        };
+        fetchMatches();
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -56,13 +70,13 @@ export default function BreaksPage() {
              {lunchMatches.map((match, i) => (
                 <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center">
-                        {match.users.map((user: any) => (
+                        {match.users.map((user: TeamMember) => (
                              <Avatar key={user.id} className="-ml-4 first:ml-0 border-2 border-card">
-                                <AvatarImage src={user.avatar}/>
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                {user.avatar && <AvatarImage src={user.avatar}/>}
+                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                         ))}
-                        <p className="ml-4 font-semibold">{match.users.map((u:any) => u.name.split(' ')[0]).join(' & ')}</p>
+                        <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
                     </div>
                     <div className="text-right">
                         <p className="font-semibold text-sm">{match.time}</p>
@@ -81,13 +95,13 @@ export default function BreaksPage() {
             {coffeeMatches.map((match, i) => (
                 <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center">
-                        {match.users.map((user: any) => (
+                        {match.users.map((user: TeamMember) => (
                              <Avatar key={user.id} className="-ml-4 first:ml-0 border-2 border-card">
-                                <AvatarImage src={user.avatar}/>
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                {user.avatar && <AvatarImage src={user.avatar}/>}
+                                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                         ))}
-                        <p className="ml-4 font-semibold">{match.users.map((u:any) => u.name.split(' ')[0]).join(' & ')}</p>
+                        <p className="ml-4 font-semibold">{match.users.map((u:TeamMember) => u.name?.split(' ')[0]).join(' & ')}</p>
                     </div>
                     <div className="text-right">
                         <p className="font-semibold text-sm">{match.time}</p>

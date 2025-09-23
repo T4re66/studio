@@ -10,22 +10,17 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { User, Email, CalendarEvent } from "@/lib/data";
+import type { TeamMember } from "@/lib/data";
 import { useAuth } from '@/hooks/use-auth';
 import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 
-// --- Placeholder Data for UI Shell ---
-const placeholderMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
-  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
-];
-const defaultUser = { name: 'Gast' };
-const nextBirthday = { member: placeholderMembers[1], days: 10 };
-const nextBreakMatch = { user1: placeholderMembers[0], user2: placeholderMembers[1], time: "12:30" };
-// --- End Placeholder Data ---
+// Mock data to be replaced by Firestore
+const placeholderMembers: TeamMember[] = [];
+const nextBirthday: { member: TeamMember, days: number } | null = null;
+const nextBreakMatch: { user1: TeamMember, user2: TeamMember, time: string } | null = null;
+const defaultUser = { name: 'Gast', points: 0 };
+// ---
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -44,21 +39,25 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     const [displayValue, setDisplayValue] = useState(to.toLocaleString());
 
     useEffect(() => {
-        // Format the number only on the client-side after hydration
         setDisplayValue(to.toLocaleString());
     }, [to]);
 
     return <>{displayValue}</>;
 }
 
-
 export default function DashboardPage() {
   const { user, accessToken } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(placeholderMembers);
 
-  const currentUser = user ? { name: user.displayName || 'User', points: 1250 } : { ...defaultUser, points: 0 };
-  const onlineMembers = placeholderMembers.filter(m => m.status === 'office');
+  useEffect(() => {
+    // In a real app, fetch team members from Firestore here
+    // For now, we'll keep it empty as we don't have team data source yet.
+  }, []);
+
+  const currentUser = user ? { name: user.displayName || 'User', points: 1250 } : defaultUser;
+  const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;
 
@@ -75,7 +74,7 @@ export default function DashboardPage() {
                 setBriefing(summary);
             } catch (err) {
                 console.error("Failed to load daily briefing:", err);
-                setBriefing("Fehler beim Laden des Briefings.");
+                setBriefing("Fehler beim Laden des Briefings. Bitte prüfe deine Google-Verbindung in den Einstellungen.");
             } finally {
                 setIsLoadingBriefing(false);
             }
@@ -93,20 +92,18 @@ export default function DashboardPage() {
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Main Content: Office Table & Briefing */}
         <div className="lg:col-span-2 flex flex-col gap-8">
             <Card>
                  <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                    <CardDescription>{onlineMembers.length} von {placeholderMembers.length} Kollegen sind anwesend.</CardDescription>
+                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 
                         className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
                         style={{ background: 'var(--gradient)'}}
                     />
-
-                    {onlineMembers.map((member, index) => {
+                    {onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
                         const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
                         return (
                              <TooltipProvider key={member.id}>
@@ -117,8 +114,8 @@ export default function DashboardPage() {
                                                 className="h-14 w-14 border-2 border-card absolute transition-transform duration-300 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 hover:border-primary"
                                                 style={position}
                                             >
-                                                <AvatarImage src={member.avatar} alt={member.name} />
-                                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                                {member.avatar && <AvatarImage src={member.avatar} alt={member.name || ''} />}
+                                                <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                                                 <span className={cn("absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-background", statusClasses[member.status])} />
                                             </Avatar>
                                         </Link>
@@ -130,7 +127,9 @@ export default function DashboardPage() {
                                 </Tooltip>
                             </TooltipProvider>
                         )
-                    })}
+                    }) : (
+                        <p className="text-muted-foreground">Heute ist niemand im Büro.</p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -161,7 +160,6 @@ export default function DashboardPage() {
             </Card>
         </div>
         
-        {/* Side Content */}
         <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
             <Link href="/breaks" className="sm:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
@@ -173,18 +171,24 @@ export default function DashboardPage() {
                             className="absolute w-full h-[80%] rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-30 blur-2xl -z-1"
                             style={{ background: 'var(--gradient)'}}
                          />
-                         <div className="flex -space-x-4 z-10">
-                             <Avatar className="h-12 w-12 border-2 border-card">
-                                 <AvatarImage src={nextBreakMatch.user1.avatar} />
-                                 <AvatarFallback>{nextBreakMatch.user1.name.charAt(0)}</AvatarFallback>
-                             </Avatar>
-                              <Avatar className="h-12 w-12 border-2 border-card">
-                                 <AvatarImage src={nextBreakMatch.user2.avatar} />
-                                 <AvatarFallback>{nextBreakMatch.user2.name.charAt(0)}</AvatarFallback>
-                             </Avatar>
-                         </div>
-                         <p className="text-sm font-semibold mt-3 z-10">Lunch um {nextBreakMatch.time}</p>
-                         <p className="text-xs text-muted-foreground z-10">{nextBreakMatch.user1.name.split(' ')[0]} & {nextBreakMatch.user2.name.split(' ')[0]}</p>
+                         {nextBreakMatch ? (
+                            <>
+                                <div className="flex -space-x-4 z-10">
+                                    <Avatar className="h-12 w-12 border-2 border-card">
+                                        {nextBreakMatch.user1.avatar && <AvatarImage src={nextBreakMatch.user1.avatar} />}
+                                        <AvatarFallback>{nextBreakMatch.user1.name?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <Avatar className="h-12 w-12 border-2 border-card">
+                                        {nextBreakMatch.user2.avatar && <AvatarImage src={nextBreakMatch.user2.avatar} />}
+                                        <AvatarFallback>{nextBreakMatch.user2.name?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                                <p className="text-sm font-semibold mt-3 z-10">Lunch um {nextBreakMatch.time}</p>
+                                <p className="text-xs text-muted-foreground z-10">{nextBreakMatch.user1.name?.split(' ')[0]} & {nextBreakMatch.user2.name?.split(' ')[0]}</p>
+                            </>
+                         ) : (
+                            <p className="text-muted-foreground z-10">Keine Pausen-Matches</p>
+                         )}
                     </CardContent>
                 </Card>
             </Link>
@@ -219,17 +223,19 @@ export default function DashboardPage() {
                         <div 
                             className="absolute w-full h-[150%] rounded-[50%] transform -translate-x-1-2 -translate-y-1-2 top-1-2 left-1-2 opacity-30 blur-2xl -z-1 bg-pink-500/50"
                          />
-                    {nextBirthday?.member && (
+                    {nextBirthday?.member ? (
                         <>
                             <Avatar className="h-16 w-16 mx-auto border-4 border-pink-300">
-                                <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name} />
-                                <AvatarFallback>{nextBirthday.member.name.charAt(0)}</AvatarFallback>
+                                {nextBirthday.member.avatar && <AvatarImage src={nextBirthday.member.avatar} alt={nextBirthday.member.name || ''} />}
+                                <AvatarFallback>{nextBirthday.member.name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <p className="font-semibold mt-3 text-sm">{nextBirthday.member.name}</p>
                             <p className="text-xs text-muted-foreground">
                                 {nextBirthday.days === 0 ? 'hat heute Geburtstag!' : `wird in ${nextBirthday.days} Tagen ${new Date().getFullYear() - new Date(nextBirthday.member.birthday).getFullYear()}!`}
                             </p>
                         </>
+                    ) : (
+                        <p className="text-muted-foreground z-10">Keine anstehenden Geburtstage.</p>
                     )}
                     </CardContent>
                 </Card>

@@ -1,19 +1,13 @@
+
 'use client'
 
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "./ui/tooltip"
 import { Coffee, Tv } from "lucide-react"
-import type { User } from "@/lib/data"
+import type { TeamMember } from "@/lib/data"
 
-
-// Placeholder data for UI shell
-const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
-  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
-];
+// This layout data is now static within the component
 const officeLayout = {
   grid: {
     rows: 12,
@@ -47,13 +41,14 @@ const officeLayout = {
     { id: 'desk-c4', type: 'desk', seatId: 'C4', gridArea: '10 / 17 / 12 / 19', rotation: 90 },
   ],
 };
-// ---
+
 
 interface OfficeMapProps {
     interactive?: boolean;
     selectedSeat?: string | null;
     onSeatSelect?: (seat: string) => void;
     highlightedSeat?: string | null;
+    members: TeamMember[];
 }
 
 const iconMap: {[key: string]: React.ElementType} = {
@@ -61,14 +56,14 @@ const iconMap: {[key: string]: React.ElementType} = {
     Tv: Tv
 };
 
-export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect, highlightedSeat }: OfficeMapProps) {
+export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect, highlightedSeat, members }: OfficeMapProps) {
     
-    const membersBySeat = teamMembers.reduce((acc, member) => {
+    const membersBySeat = members.reduce((acc, member) => {
         if (member.seat) {
             acc[member.seat] = member;
         }
         return acc;
-    }, {} as {[key: string]: typeof teamMembers[0]});
+    }, {} as {[key: string]: TeamMember});
 
     const renderElement = (el: any) => {
         const style = { gridArea: el.gridArea };
@@ -88,8 +83,8 @@ export function OfficeMap({ interactive = false, selectedSeat, onSeatSelect, hig
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Avatar className={cn("h-8 w-8 border-2 z-10", member.dnd ? "border-red-500" : "border-green-500")}>
-                                            <AvatarImage src={member.avatar} />
-                                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                            {member.avatar && <AvatarImage src={member.avatar} />}
+                                            <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                     </TooltipTrigger>
                                     <TooltipContent>

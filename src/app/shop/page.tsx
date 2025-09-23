@@ -1,23 +1,22 @@
 
 'use client'
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie } from "lucide-react";
+import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2 } from "lucide-react";
 import type { ShopItem } from '@/lib/data';
+import { useAuth } from '@/hooks/use-auth';
 
 
-// Placeholder data for UI shell
-const shopItems: ShopItem[] = [
-    { id: 's1', title: 'Kaffee für eine Woche', description: 'Eine Woche lang kostenloser Kaffee aus der Büro-Barista-Maschine.', cost: 500, category: 'Essen & Trinken', icon: 'Coffee' },
-    { id: 's2', title: 'Team-Pizza', description: 'Eine Pizza-Session für dich und dein unmittelbares Team.', cost: 2000, category: 'Essen & Trinken', icon: 'Pizza' },
-    { id: 's3', title: 'Fokus-Kopfhörer', description: 'Hochwertige Noise-Cancelling-Kopfhörer für einen Tag ausleihen.', cost: 300, category: 'Büro-Vorteile', icon: 'Headphones' },
-    { id: 's4', title: 'Ein Tag frei', description: 'Ein zusätzlicher bezahlter Urlaubstag. Muss mit dem Management abgestimmt werden.', cost: 10000, category: 'Freizeit', icon: 'CalendarOff' },
-];
-const points = 1250;
+// Placeholder for fetching shop items and user points from Firestore
+const getShopData = async (): Promise<{ items: ShopItem[], userPoints: number }> => {
+    return { items: [], userPoints: 0 };
+}
+
 
 const iconComponents: { [key: string]: React.ElementType } = {
     Coffee,
@@ -29,6 +28,40 @@ const iconComponents: { [key: string]: React.ElementType } = {
 };
 
 export default function ShopPage() {
+    const { user } = useAuth();
+    const [shopItems, setShopItems] = useState<ShopItem[]>([]);
+    const [points, setPoints] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user) {
+            setLoading(true);
+            getShopData().then(({ items, userPoints }) => {
+                setShopItems(items);
+                setPoints(userPoints);
+                setLoading(false);
+            });
+        } else {
+            setShopItems([]);
+            setPoints(0);
+            setLoading(false);
+        }
+    }, [user]);
+
+    if (loading) {
+         return (
+            <div className="flex flex-col gap-8">
+                <PageHeader
+                    title="Prämien-Shop"
+                    description="Gib deine gesammelten Punkte für tolle Prämien aus."
+                />
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Lade Shop...</span>
+                </div>
+            </div>
+        );
+    }
 
   return (
     <div className="flex flex-col gap-8">
@@ -73,6 +106,11 @@ export default function ShopPage() {
                 </Card>
             )
         })}
+        {shopItems.length === 0 && !loading && (
+            <p className="text-muted-foreground col-span-full text-center py-12">
+                Der Shop ist im Moment leer.
+            </p>
+        )}
       </div>
     </div>
   );

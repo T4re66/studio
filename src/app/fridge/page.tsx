@@ -1,39 +1,69 @@
 
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, User, Users, Clock, Refrigerator } from "lucide-react"
+import { PlusCircle, User, Users, Clock, Refrigerator, Loader2 } from "lucide-react"
 import { AddItemDialog } from "@/components/fridge/add-item-dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { FridgeCard } from "@/components/fridge/fridge-card"
 import type { FridgeItem } from "@/lib/data"
+import { useAuth } from "@/hooks/use-auth"
+import { differenceInDays, parseISO } from "date-fns"
 
-// Placeholder data for UI shell
-const fridgeItems: FridgeItem[] = [
-  { id: 'f1', name: 'Milch', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/milk/400/300', shelf: 'A2', expiryDays: 2 },
-  { id: 'f2', name: 'Joghurt', owner: 'Charlie Brown', ownerId: '3', image: 'https://picsum.photos/seed/yogurt/400/300', shelf: 'C1', expiryDays: 1 },
-  { id: 'f3', name: 'Sandwich', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/sandwich/400/300', shelf: 'B3', expiryDays: 0 },
-  { id: 'f4', name: 'Salat', owner: 'Diana Miller', ownerId: '4', image: 'https://picsum.photos/seed/salad/400/300', shelf: 'A1', expiryDays: 5 },
-  { id: 'f5', name: 'Orangensaft', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/juice/400/300', shelf: 'Door', expiryDays: 12 },
-  { id: 'f8', name: 'Kuchen', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/cake/400/300', shelf: 'B1', expiryDays: -1 },
-];
-const myUserId = "1";
-// ---
+// In a real app, this would be fetched from Firestore.
+const getFridgeItems = async (): Promise<FridgeItem[]> => {
+  console.log("Fetching fridge items...");
+  // Mocking a delay and returning empty as we don't have a backend yet.
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return [];
+};
+
 
 export default function FridgePage() {
+  const { user } = useAuth();
+  const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+        const fetchItems = async () => {
+            setLoading(true);
+            const items = await getFridgeItems();
+            setFridgeItems(items);
+            setLoading(false);
+        }
+        fetchItems();
+    } else {
+        setFridgeItems([]);
+        setLoading(false);
+    }
+  }, [user]);
   
+  const getExpiryDays = (isoDate: string) => differenceInDays(parseISO(isoDate), new Date());
+
   const filters = {
     all: () => true,
-    mine: (item: FridgeItem) => item.ownerId === myUserId,
-    expiring: (item: FridgeItem) => item.expiryDays <= 3 && item.expiryDays >= 0,
+    mine: (item: FridgeItem) => item.ownerId === user?.uid,
+    expiring: (item: FridgeItem) => {
+        const days = getExpiryDays(item.expiryDate);
+        return days <= 3 && days >= 0;
+    },
     shared: (item: FridgeItem) => item.ownerId === 'team',
   }
 
   const renderItems = (filter: (item: FridgeItem) => boolean) => {
-    const items = fridgeItems.filter(filter).sort((a,b) => a.expiryDays - b.expiryDays);
+    if (loading) {
+        return (
+            <div className="col-span-full flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Lade Kühlschrankinhalt...</span>
+            </div>
+        );
+    }
+    const items = fridgeItems.filter(filter).sort((a,b) => getExpiryDays(a.expiryDate) - getExpiryDays(b.expiryDate));
     if (items.length === 0) {
       return <p className="text-muted-foreground col-span-full text-center py-12">Keine Artikel gefunden.</p>
     }
@@ -47,7 +77,7 @@ export default function FridgePage() {
           title="Kühlschrank"
           description="Behalte den Überblick über deine Lebensmittel und die des Teams."
         />
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={() => setIsDialogOpen(true)} disabled={!user}>
           <PlusCircle />
           Artikel hinzufügen
         </Button>

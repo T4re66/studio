@@ -6,23 +6,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, parseISO, getMonth } from 'date-fns';
 import { de } from 'date-fns/locale';
-import type { User } from "@/lib/data";
+import type { TeamMember } from "@/lib/data";
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-// Placeholder data for UI shell
-const teamMembers: User[] = [
-  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
-  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
-  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
-];
-// ---
+// This is a placeholder for fetching team data.
+// In a real app, this would come from Firestore.
+const getTeamMembers = async (): Promise<TeamMember[]> => {
+    return [];
+};
+
 
 export default function BirthdaysPage() {
+    const { user } = useAuth();
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState<number | null>(null);
 
     useEffect(() => {
         setCurrentMonth(getMonth(new Date()));
-    }, []);
+        if (user) {
+            const fetchMembers = async () => {
+                setLoading(true);
+                const members = await getTeamMembers();
+                setTeamMembers(members);
+                setLoading(false);
+            }
+            fetchMembers();
+        } else {
+            setTeamMembers([]);
+            setLoading(false);
+        }
+    }, [user]);
 
     const sortedMembers = [...teamMembers].sort((a, b) => {
         const dateA = parseISO(a.birthday);
@@ -41,9 +57,19 @@ export default function BirthdaysPage() {
     
     const months = Array.from({length: 12}, (_, i) => i);
 
-    if (currentMonth === null) {
-        // Render a placeholder or loading state until the client has mounted
-        return null;
+    if (loading || currentMonth === null) {
+        return (
+            <div className="flex flex-col gap-8">
+                <PageHeader
+                    title="Geburtstags-Kalender"
+                    description="Alle Geburtstage des Teams auf einen Blick."
+                />
+                <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Lade Geburtstage...</span>
+                </div>
+            </div>
+        );
     }
 
   return (
@@ -64,8 +90,8 @@ export default function BirthdaysPage() {
                                 <div key={member.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Avatar className="h-10 w-10">
-                                            <AvatarImage src={member.avatar} />
-                                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                                            {member.avatar && <AvatarImage src={member.avatar} />}
+                                            <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
                                             <p className="font-semibold">{member.name}</p>
