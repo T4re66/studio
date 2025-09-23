@@ -85,23 +85,23 @@ const getData = ai.defineTool(
         z.array(NoteSchema),
     ]),
   },
-  async (input) => {
+  async (input, context) => {
     // In this simplified version, the data is already in the context.
     // A more advanced version would query Firestore or Google APIs here based on the input.
     // For now, we return the data from the context passed into the flow.
     // The LLM will still use this tool to "decide" what data it needs.
-    const flowState = chatbotFlow.state()
-    if (!flowState) {
+    const flowInput = (context as any)?.input as ChatInput;
+    if (!flowInput) {
         return [];
     }
     
     switch (input.dataType) {
         case 'emails':
-            return flowState.input.context.emails;
+            return flowInput.context.emails;
         case 'events':
-            return flowState.input.context.events;
+            return flowInput.context.events;
         case 'notes':
-            return flowState.input.context.notes;
+            return flowInput.context.notes;
         default:
             return [];
     }
