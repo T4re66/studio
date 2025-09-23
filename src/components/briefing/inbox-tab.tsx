@@ -3,7 +3,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+<<<<<<< HEAD
 import { Archive, Reply, Trash, Sparkles, Loader2 } from "lucide-react";
+=======
+import { Archive, Reply, Trash, Sparkles } from "lucide-react";
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { Button } from "@/components/ui/button";
 import type { Email } from "@/lib/data";
 
@@ -15,8 +19,13 @@ interface InboxTabProps {
 export function InboxTab({ summary, emails }: InboxTabProps) {
   
   const renderContent = () => {
+<<<<<<< HEAD
     if (!emails || emails.length === 0) {
       return <p className="text-center text-muted-foreground py-12">Posteingang leer oder wird geladen...</p>;
+=======
+    if (emails.length === 0) {
+      return <p className="text-center text-muted-foreground py-12">Posteingang leer!</p>;
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
     }
     return (
       <div className="divide-y">

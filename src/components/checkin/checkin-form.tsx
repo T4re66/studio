@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
 import { OfficeMap } from "@/components/office-map";
+<<<<<<< HEAD
 import { useAuth } from "@/hooks/use-auth";
 import type { TeamMember } from "@/lib/data";
 import { getTeamMembers, updateUserCheckin } from "@/lib/team-api";
@@ -14,10 +15,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
 export function CheckinForm() {
+<<<<<<< HEAD
   const { user, team } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -67,6 +71,10 @@ export function CheckinForm() {
         setLoading(false);
     }
   }
+=======
+  const [mood, setMood] = useState([3]);
+  const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
   return (
     <Card className="max-w-4xl mx-auto">
@@ -76,7 +84,11 @@ export function CheckinForm() {
           Wie fühlst du dich und wo arbeitest du heute?
         </CardDescription>
       </CardHeader>
+<<<<<<< HEAD
       <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+=======
+      <form>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
         <CardContent className="space-y-8">
             
             <div className="space-y-4">
@@ -123,7 +135,11 @@ export function CheckinForm() {
         
         </CardContent>
         <CardFooter className="flex flex-col items-start gap-4 border-t px-6 py-4 bg-muted/50">
+<<<<<<< HEAD
           <Button type="submit" disabled={!user || loading}>Check-in abschliessen</Button>
+=======
+          <Button type="button">Check-in abschliessen</Button>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
            <div className="flex items-start gap-2.5 text-xs text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
             <p>

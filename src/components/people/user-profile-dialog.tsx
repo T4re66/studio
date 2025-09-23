@@ -12,18 +12,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+<<<<<<< HEAD
 import { Phone, Video, Mic, Send, Gift, Save } from "lucide-react";
 import type { TeamMember } from "@/lib/data";
 import { updateTeamMemberBirthday } from "@/lib/team-api";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Label } from "../ui/label";
+=======
+import { Phone, Video, Mic, Send } from "lucide-react";
+import type { User } from "@/lib/data";
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
 interface UserProfileDialogProps {
   user: TeamMember | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+<<<<<<< HEAD
   onUserUpdate: () => void;
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 }
 
 const statusInfo: {
@@ -37,15 +45,20 @@ const statusInfo: {
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
 
+<<<<<<< HEAD
 export function UserProfileDialog({ user, open, onOpenChange, onUserUpdate }: UserProfileDialogProps) {
   const { toast } = useToast();
   const [birthday, setBirthday] = useState(user?.birthday || "");
 
+=======
+export function UserProfileDialog({ user, open, onOpenChange }: UserProfileDialogProps) {
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
   if (!user) return null;
 
   const info = statusInfo[user.status];
   const moodEmoji = user.mood ? moodEmojis[user.mood - 1] : null;
 
+<<<<<<< HEAD
   const handleSaveBirthday = async () => {
     if (!user) return;
     try {
@@ -64,6 +77,8 @@ export function UserProfileDialog({ user, open, onOpenChange, onUserUpdate }: Us
     }
   }
 
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0">
@@ -88,6 +103,7 @@ export function UserProfileDialog({ user, open, onOpenChange, onUserUpdate }: Us
         </div>
 
         <div className="p-4 space-y-4">
+<<<<<<< HEAD
             <div className="grid gap-2">
                 <Label htmlFor="birthday" className="flex items-center gap-2 text-muted-foreground"><Gift className="h-4 w-4"/> Geburtstag</Label>
                 <div className="flex gap-2">
@@ -113,6 +129,22 @@ export function UserProfileDialog({ user, open, onOpenChange, onUserUpdate }: Us
                      </div>
                 </div>
             </div>
+=======
+            <h3 className="font-semibold text-sm px-2">Chat</h3>
+            <div className="h-64 flex flex-col space-y-3 overflow-y-auto p-2 bg-muted/50 rounded-lg">
+                <div className="flex items-end gap-2">
+                     <Avatar className="h-6 w-6"><AvatarImage src={user.avatar}/><AvatarFallback>{user.name.charAt(0)}</AvatarFallback></Avatar>
+                     <div className="max-w-[75%] p-2 px-3 rounded-lg bg-background border">
+                        <p className="text-sm">Hey, hast du kurz Zeit?</p>
+                     </div>
+                </div>
+                 <div className="flex items-end gap-2 justify-end">
+                     <div className="max-w-[75%] p-2 px-3 rounded-lg bg-primary text-primary-foreground">
+                        <p className="text-sm">Klar, worum geht's?</p>
+                     </div>
+                </div>
+            </div>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
             <form className="flex gap-2">
                 <Input 
                     placeholder="Nachricht schreiben..." 

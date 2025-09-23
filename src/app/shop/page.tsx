@@ -1,18 +1,35 @@
 
 'use client'
 
+<<<<<<< HEAD
 import { useState, useEffect, useMemo } from 'react';
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+<<<<<<< HEAD
 import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2, Plus } from "lucide-react";
+=======
+import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie } from "lucide-react";
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import type { ShopItem } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { getShopItems, purchaseShopItem } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 import { AddShopItemDialog } from '@/components/shop/add-shop-item-dialog';
+
+
+// Placeholder data for UI shell
+const shopItems: ShopItem[] = [
+    { id: 's1', title: 'Kaffee für eine Woche', description: 'Eine Woche lang kostenloser Kaffee aus der Büro-Barista-Maschine.', cost: 500, category: 'Essen & Trinken', icon: 'Coffee' },
+    { id: 's2', title: 'Team-Pizza', description: 'Eine Pizza-Session für dich und dein unmittelbares Team.', cost: 2000, category: 'Essen & Trinken', icon: 'Pizza' },
+    { id: 's3', title: 'Fokus-Kopfhörer', description: 'Hochwertige Noise-Cancelling-Kopfhörer für einen Tag ausleihen.', cost: 300, category: 'Büro-Vorteile', icon: 'Headphones' },
+    { id: 's4', title: 'Ein Tag frei', description: 'Ein zusätzlicher bezahlter Urlaubstag. Muss mit dem Management abgestimmt werden.', cost: 10000, category: 'Freizeit', icon: 'CalendarOff' },
+];
+const points = 1250;
 
 const iconComponents: { [key: string]: React.ElementType } = {
     Coffee,
@@ -24,6 +41,7 @@ const iconComponents: { [key: string]: React.ElementType } = {
 };
 
 export default function ShopPage() {
+<<<<<<< HEAD
     const { user, team, teamMember, loading, isPreview, refetchTeam } = useAuth();
     const { toast } = useToast();
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
@@ -52,6 +70,8 @@ export default function ShopPage() {
             setIsDataLoading(false);
         }
     };
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
     useEffect(() => {
         if (!loading) {
@@ -144,7 +164,11 @@ export default function ShopPage() {
                         </div>
                     </CardContent>
                     <CardFooter>
+<<<<<<< HEAD
                         <Button className="w-full" disabled={!canAfford || !user} onClick={() => handlePurchase(item)}>
+=======
+                        <Button className="w-full" disabled={points < item.cost}>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                             Kaufen
                         </Button>
                     </CardFooter>

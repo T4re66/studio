@@ -9,6 +9,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
+<<<<<<< HEAD
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -50,6 +51,24 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Render children without layout for public/special pages (e.g. landing page)
   return <>{children}</>;
+=======
+
+function AppLayout({ children }: { children: React.ReactNode }) {
+  // The logic to differentiate between landing page and app layout has been removed
+  // to create a consistent UI shell.
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="flex flex-col flex-1">
+          <AppHeader />
+          <main className="p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+      </div>
+      <FloatingWalkieTalkie />
+    </SidebarProvider>
+  )
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 }
 
 export default function RootLayout({
@@ -71,12 +90,11 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <AuthProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
-            <Toaster />
-          </AuthProvider>
+          {/* AuthProvider has been removed */}
+          <AppLayout>
+            {children}
+          </AppLayout>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

@@ -1,7 +1,11 @@
 
 'use client'
 
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
+=======
+import { useState } from "react";
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Archive, Sparkles, Loader2 } from "lucide-react";
@@ -21,6 +25,7 @@ interface NotesTabProps {
     summary: string | undefined;
 }
 
+<<<<<<< HEAD
 export function NotesTab({ summary }: NotesTabProps) {
     const { user } = useAuth();
     const [notes, setNotes] = useState<Note[]>([]);
@@ -46,6 +51,14 @@ export function NotesTab({ summary }: NotesTabProps) {
         if (user?.uid) {
             getNotes(user.uid).then(setNotes);
         }
+=======
+export function NotesTab({ summary, notes }: NotesTabProps) {
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+    const handleSaveNote = () => {
+        // Logic removed for UI shell
+        setIsEditorOpen(false);
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
     }
 
     return (
@@ -69,7 +82,7 @@ export function NotesTab({ summary }: NotesTabProps) {
                     <CardTitle className="flex items-center gap-2 font-headline text-lg">
                         <Sparkles className="text-primary h-5 w-5"/>
                         Intelligente Zusammenfassung
-                    </CardTitle>
+                    </Title>
                 </CardHeader>
                 <CardContent>
                      {summary === undefined ? (
@@ -110,8 +123,17 @@ export function NotesTab({ summary }: NotesTabProps) {
                                     <Button variant="outline" size="sm"><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
                                 </div>
                             </div>
+<<<<<<< HEAD
                         ))
                     )}
+=======
+                            <div className="prose prose-sm dark:prose-invert max-w-none mt-2 text-muted-foreground" dangerouslySetInnerHTML={{ __html: note.content }} />
+                             <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="outline" size="sm"><Archive className="mr-2 h-4 w-4"/> Archivieren</Button>
+                            </div>
+                        </div>
+                    ))}
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                 </CardContent>
             </Card>
 

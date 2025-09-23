@@ -1,7 +1,10 @@
 
 'use client';
 
+<<<<<<< HEAD
 import { useState, useEffect, useMemo } from 'react';
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -9,6 +12,7 @@ import { Coffee, Gift, Medal, Sparkles, ArrowRight, Loader2, Users } from "lucid
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 import { isSameDay } from "date-fns";
@@ -20,6 +24,23 @@ import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 import { parseISO, differenceInDays } from 'date-fns';
 import { liveEmails, liveCalendarEvents } from '@/lib/data';
+=======
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { User } from "@/lib/data";
+
+
+// --- Placeholder Data for UI Shell ---
+const placeholderMembers: User[] = [
+  { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15', seat: 'A4', online: true, mood: 5 },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', lastSeen: '5m ago', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', online: true, mood: 4 },
+  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', lastSeen: '15m ago', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', online: true, mood: 2 },
+  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', lastSeen: 'now', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', online: true, mood: 3 },
+];
+const currentUser = placeholderMembers[0];
+const nextBirthday = { member: placeholderMembers[1], days: 10 };
+const nextBreakMatch = { user1: placeholderMembers[0], user2: placeholderMembers[1], time: "12:30" };
+// --- End Placeholder Data ---
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
 
 const statusClasses: { [key: string]: string } = {
@@ -36,6 +57,7 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 };
 
 const AnimatedCounter = ({ to }: { to: number }) => {
+<<<<<<< HEAD
     const [displayValue, setDisplayValue] = useState(0);
 
     useEffect(() => {
@@ -59,10 +81,15 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     }, [to, displayValue]);
 
     return <>{displayValue.toLocaleString()}</>;
+=======
+    // State and animation logic removed for UI shell
+    return <>{to.toLocaleString()}</>;
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 }
 
 
 export default function DashboardPage() {
+<<<<<<< HEAD
   const { user, accessToken, team, teamMembers, teamMember, loading, isPreview } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(true);
@@ -188,6 +215,11 @@ export default function DashboardPage() {
   }
   
   const pageDescription = team ? `Willkommen zurück bei Team "${team.name}"! Hier ist dein Überblick für heute.` : "Hier ist ein Überblick, wie dein Dashboard aussehen könnte. Erkunde die App!";
+=======
+  const onlineMembers = placeholderMembers.filter(m => m.status === 'office');
+  const tableWidth = 45;
+  const tableHeight = 90;
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -201,7 +233,7 @@ export default function DashboardPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
+                    <CardDescription>{onlineMembers.length} von {placeholderMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 
@@ -246,6 +278,7 @@ export default function DashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4 overflow-y-auto">
+<<<<<<< HEAD
                     {isLoadingBriefing ? (
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <Loader2 className="h-4 w-4 animate-spin"/>
@@ -256,6 +289,26 @@ export default function DashboardPage() {
                             {briefing}
                         </p>
                     )}
+=======
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
+                        <p className="text-sm text-foreground/80">
+                            Zusammenfassung des Posteingangs wird hier angezeigt.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
+                        <p className="text-sm text-foreground/80">
+                            Zusammenfassung des Kalenders wird hier angezeigt.
+                        </p>
+                    </div>
+                        <div>
+                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
+                        <p className="text-sm text-foreground/80">
+                            Zusammenfassung der Notizen wird hier angezeigt.
+                        </p>
+                    </div>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                 </CardContent>
                 <CardFooter className="flex justify-end">
                     <Link href="/briefing">

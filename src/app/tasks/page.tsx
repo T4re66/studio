@@ -1,7 +1,10 @@
 
 'use client'
 
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ const categoryColors = {
     'Spass': 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-300',
 };
 
+<<<<<<< HEAD
 
 export default function TasksPage() {
     const { user, team, isPreview, loading, refetchTeam } = useAuth();
@@ -96,6 +100,17 @@ export default function TasksPage() {
     }
 
     const openTasks = tasks.filter(task => !task.isCompleted);
+=======
+// Placeholder data for UI shell
+const tasks: OfficeTask[] = [
+  { id: 't1', title: 'Kaffeemaschine entkalken', description: 'Die Kaffeemaschine braucht etwas Liebe. Entkalke sie für das Wohl des ganzen Teams.', points: 100, category: 'Büro' },
+  { id: 't2', title: 'Bringe einem Kollegen einen Kaffee', description: 'Frage einen Kollegen, ob er einen Kaffee möchte und bringe ihn ihm an den Platz.', points: 20, category: 'Soziales' },
+  { id: 't3', title: 'Organisiere eine 5-Minuten-Dehnpause', description: 'Versammle ein paar Kollegen für eine kurze Dehnpause am Nachmittag.', points: 50, category: 'Soziales' },
+  { id: 't7', title: 'Schreibtisch-Challenge', description: 'Wer hat den ordentlichsten (oder kreativsten) Schreibtisch? Starte einen kleinen Wettbewerb.', points: 60, category: 'Spass', isCompleted: true },
+];
+
+export default function TasksPage() {
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
   return (
     <div className="flex flex-col gap-8">
@@ -132,7 +147,11 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
+<<<<<<< HEAD
                 <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)} disabled={!user || isPreview}>
+=======
+                <Button className="w-full">
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                   <Plus className="mr-2" />
                   Als erledigt markieren
                 </Button>

@@ -1,5 +1,6 @@
 
 
+<<<<<<< HEAD
 // THIS FILE CONTAINS MOCK DATA AND TYPE DEFINITIONS.
 // IN A REAL APPLICATION, THIS DATA WOULD COME FROM FIRESTORE AND GOOGLE APIS.
 
@@ -21,6 +22,14 @@ export type TeamMembership = {
 
 
 export type TeamMember = {
+=======
+// THIS FILE IS INTENTIONALLY LEFT EMPTY TO CREATE A PURE UI SHELL.
+
+// All data types are defined directly in the components that use them
+// to make them self-contained UI previews.
+
+export type User = {
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
   id: string;
   name: string | null;
   email: string | null;
@@ -57,7 +66,7 @@ export type Email = {
 };
 
 export type CalendarEvent = {
-  id: string;
+  id:string;
   title: string;
   date: string; // YYYY-MM-DD string
   startTime: string; // HH:mm
@@ -132,6 +141,7 @@ export type Deadline = {
   dueDate: string; // YYYY-MM-DD
 };
 
+<<<<<<< HEAD
 export type OfficeTask = {
   id: string;
   title: string;
@@ -209,3 +219,24 @@ export type GoogleCalendarEvent = {
     start: { dateTime?: string; date?: string };
     end: { dateTime?: string; date?: string };
 }
+=======
+
+// All mock data has been removed.
+// Components now use hardcoded placeholder data for UI preview purposes.
+
+export const teamMembers: User[] = [];
+export const fridgeItems: FridgeItem[] = [];
+export const emails: Email[] = [];
+export const breaks: Break[] = [];
+export const officeTasks: OfficeTask[] = [];
+export const calendarEvents: CalendarEvent[] = [];
+export const grades: Grade[] = [];
+export const shopItems: ShopItem[] = [];
+export const notes: Note[] = [];
+export const deadlines: Deadline[] = [];
+export const tournaments: Tournament[] = [];
+export const officeLayout = { grid: { rows: 0, cols: 0 }, elements: [] };
+export const liveEmails: Email[] = [];
+export const liveCalendarEvents: CalendarEvent[] = [];
+export const liveNotes: Note[] = [];
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)

@@ -117,7 +117,16 @@ export default function LandingPage() {
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
                         OfficeZen ist die All-in-One-Lösung, die den Büroalltag vereinfacht, die Zusammenarbeit fördert und mit smarten Funktionen und Gamification für mehr Spass bei der Arbeit sorgt.
                     </p>
+<<<<<<< HEAD
                     <AuthButtons />
+=======
+                    <div className="mt-8 flex flex-col items-center justify-center gap-4">
+                        <p className="text-lg">Willkommen!</p>
+                        <Link href="/dashboard">
+                          <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
+                        </Link>
+                    </div>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                 </section>
 
                 {/* Feature Image Section */}
@@ -125,12 +134,21 @@ export default function LandingPage() {
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
                         <CardContent className="p-2 relative aspect-[12/8]">
                              <Image
+<<<<<<< HEAD
                                 src="https://picsum.photos/seed/future-office/1200/800"
                                 alt="Ein sehr modernes, architektonisches Büro mit minimalistischem Design"
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="rounded-lg object-cover"
                                 data-ai-hint="modern architecture"
+=======
+                                src="https://picsum.photos/seed/app-dashboard/1200/800"
+                                alt="OfficeZen Dashboard"
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="rounded-lg object-cover"
+                                data-ai-hint="app dashboard"
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                             />
                         </CardContent>
                     </Card>

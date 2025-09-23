@@ -1,6 +1,9 @@
 
+<<<<<<< HEAD
 'use client';
 
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { PageHeader } from "@/components/page-header";
 import { CheckinForm } from "@/components/checkin/checkin-form";
 

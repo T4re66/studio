@@ -5,14 +5,18 @@ import { useState } from 'react';
 import { FileDropzone } from './file-dropzone';
 import { FileExplorer } from './file-explorer';
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import type { OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
 >>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
+=======
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Loader2 } from 'lucide-react';
 import { organizeFiles, type OrganizeFilesOutput } from '@/ai/flows/organize-files-flow';
 import { useToast } from '@/hooks/use-toast';
 
+<<<<<<< HEAD
 // Helper function to read file as Base64
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -21,16 +25,27 @@ const fileToBase64 = (file: File): Promise<string> => {
     reader.onload = () => resolve((reader.result as string).split(',')[1]);
     reader.onerror = error => reject(error);
   });
+=======
+// This type is now defined locally for the UI shell.
+type OrganizeFilesOutput = {
+  folders: {
+    name: string;
+    files: {
+      name: string;
+      path: string;
+    }[];
+  }[];
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 };
 
 
 export function FilingCabinetTab() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [organizedData, setOrganizedData] = useState<OrganizeFilesOutput | null>(null);
-  const { toast } = useToast();
 
   const handleFilesDrop = async (files: File[]) => {
     setIsProcessing(true);
+<<<<<<< HEAD
 <<<<<<< HEAD
     setOrganizedData(null);
     try {
@@ -66,37 +81,10 @@ export function FilingCabinetTab() {
     });
 
     // Placeholder for AI organization
+=======
+    // Placeholder for UI shell, no real processing
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
     await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const result = {
-        folders: [
-            {
-                name: "Unsortiert",
-                files: files.map(f => ({ name: f.name, path: `/Unsortiert/${f.name}`}))
-            }
-        ]
-    };
-    
-    // Merge new results with existing ones
-    setOrganizedData(prevData => {
-        if (!prevData) return result;
-
-        const newFolders = new Map(prevData.folders.map(f => [f.name, [...f.files]]));
-        
-        result.folders.forEach(newFolder => {
-            if(newFolders.has(newFolder.name)) {
-                newFolders.get(newFolder.name)!.push(...newFolder.files);
-            } else {
-                newFolders.set(newFolder.name, newFolder.files);
-            }
-        });
-
-        return {
-            folders: Array.from(newFolders.entries()).map(([name, files]) => ({ name, files }))
-        };
-    });
-
-
     setIsProcessing(false);
 >>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
   };

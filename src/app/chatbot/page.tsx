@@ -9,6 +9,7 @@ import { Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useAuth } from '@/hooks/use-auth';
 import type { User, Email, CalendarEvent, Note } from '@/lib/data';
 import { useState, useEffect, useRef } from 'react';
@@ -17,12 +18,16 @@ import { fetchGmail, fetchCalendar } from '@/lib/google-api';
 =======
 >>>>>>> ef6eeef (geht immernoch nicht auf das github passe alles so an das es zu 100pro f)
 import { useToast } from '@/hooks/use-toast';
+=======
+import type { User as UserType } from '@/lib/data';
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
 
 type Message = {
     role: 'user' | 'bot';
     content: string;
 };
 
+<<<<<<< HEAD
 // Placeholder function for fetching notes from Firestore
 const getNotes = async (userId: string): Promise<Note[]> => {
     // In a real app, this would fetch from Firestore.
@@ -109,6 +114,13 @@ export default function ChatbotPage() {
         avatar: user?.photoURL
     };
 
+=======
+// Placeholder data for UI shell
+const currentUser: UserType = { id: '1', name: 'Tarec', avatar: 'https://picsum.photos/seed/user1/200/200', status: 'office', role: 'Frontend Developer', department: 'Engineering', lastSeen: 'now', dnd: false, points: 1250, birthday: '1990-07-15' };
+const messages: Message[] = [];
+
+export default function ChatbotPage() {
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
     return (
         <div className="flex flex-col gap-8">
             <PageHeader
@@ -121,7 +133,11 @@ export default function ChatbotPage() {
                          <div className="flex h-full items-center justify-center text-muted-foreground text-center">
                             <div>
                                 <Bot className="h-12 w-12 mx-auto mb-2" />
+<<<<<<< HEAD
                                 <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Fasse meine ungelesenen Mails zusammen."</p>
+=======
+                                <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Was sind meine wichtigsten Aufgaben heute?"</p>
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                             </div>
                         </div>
                     ) : (
@@ -144,6 +160,7 @@ export default function ChatbotPage() {
                             </div>
                         ))
                     )}
+<<<<<<< HEAD
                     {isLoading && (
                         <div className="flex items-start gap-3">
                             <Avatar className="h-8 w-8 border">
@@ -159,13 +176,21 @@ export default function ChatbotPage() {
                 </CardContent>
                 <div className="p-4 border-t">
                     <form onSubmit={handleSubmit} className="flex gap-2">
+=======
+                </CardContent>
+                <div className="p-4 border-t">
+                    <form className="flex gap-2">
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                         <Input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
                             placeholder="Frage stellen..."
+<<<<<<< HEAD
                             disabled={isLoading || !user}
                         />
                         <Button type="submit" disabled={isLoading || !input.trim() || !user}>
+=======
+                        />
+                        <Button type="submit">
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
                             <Send />
                         </Button>
                     </form>

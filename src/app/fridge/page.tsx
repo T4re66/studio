@@ -14,12 +14,25 @@ import { getFridgeItems, addFridgeItem } from "@/lib/team-api"
 import { differenceInDays, parseISO } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 
+// Placeholder data for UI shell
+const fridgeItems: FridgeItem[] = [
+  { id: 'f1', name: 'Milch', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/milk/400/300', shelf: 'A2', expiryDays: 2 },
+  { id: 'f2', name: 'Joghurt', owner: 'Charlie Brown', ownerId: '3', image: 'https://picsum.photos/seed/yogurt/400/300', shelf: 'C1', expiryDays: 1 },
+  { id: 'f3', name: 'Sandwich', owner: 'Tarec', ownerId: '1', image: 'https://picsum.photos/seed/sandwich/400/300', shelf: 'B3', expiryDays: 0 },
+  { id: 'f4', name: 'Salat', owner: 'Diana Miller', ownerId: '4', image: 'https://picsum.photos/seed/salad/400/300', shelf: 'A1', expiryDays: 5 },
+  { id: 'f5', name: 'Orangensaft', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/juice/400/300', shelf: 'Door', expiryDays: 12 },
+  { id: 'f8', name: 'Kuchen', owner: 'Team', ownerId: 'team', image: 'https://picsum.photos/seed/cake/400/300', shelf: 'B1', expiryDays: -1 },
+];
+const myUserId = "1";
+// ---
+
 export default function FridgePage() {
   const { user, team, teamMembers, loading, isPreview } = useAuth();
   const { toast } = useToast();
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+<<<<<<< HEAD
 
   const fetchItems = async () => {
       if (!team) {
@@ -75,6 +88,9 @@ export default function FridgePage() {
   
   const getExpiryDays = (isoDate: string) => differenceInDays(parseISO(isoDate), new Date());
 
+=======
+  
+>>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
   const filters = {
     all: () => true,
     mine: (item: FridgeItem) => item.ownerId === user?.uid,
@@ -139,7 +155,7 @@ export default function FridgePage() {
         </TabsContent>
       </Tabs>
 
-      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddItem={handleAddItem}/>
+      <AddItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onAddItem={() => {}}/>
     </div>
   )
 }
