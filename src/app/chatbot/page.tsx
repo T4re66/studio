@@ -9,20 +9,87 @@ import { Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/lib/data';
-import { useState } from 'react';
+import type { User, Email, CalendarEvent, Note } from '@/lib/data';
+import { useState, useEffect, useRef } from 'react';
+import { chat } from '@/ai/flows/chatbot-flow';
+import { fetchGmail, fetchCalendar } from '@/lib/google-api';
+import { useToast } from '@/hooks/use-toast';
 
 type Message = {
     role: 'user' | 'bot';
     content: string;
 };
 
+// Placeholder function for fetching notes from Firestore
+const getNotes = async (userId: string): Promise<Note[]> => {
+    // In a real app, this would fetch from Firestore.
+    // For now, returning an empty array to avoid errors.
+    return [];
+}
+
 
 export default function ChatbotPage() {
-    const { user } = useAuth();
+    const { user, accessToken } = useAuth();
+    const { toast } = useToast();
     const [messages, setMessages] = useState<Message[]>([]);
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [context, setContext] = useState<{ emails: Email[], events: CalendarEvent[], notes: Note[] }>({ emails: [], events: [], notes: [] });
     
-    // In a real app, this would be a more complex state management
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    useEffect(() => {
+        const loadContextData = async () => {
+            if (user && accessToken) {
+                try {
+                    const [emails, events, notes] = await Promise.all([
+                        fetchGmail(accessToken),
+                        fetchCalendar(accessToken),
+                        getNotes(user.uid),
+                    ]);
+                    setContext({ emails, events, notes });
+                } catch (error) {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Fehler beim Laden der Daten',
+                        description: 'Der Chatbot hat möglicherweise keinen Zugriff auf Ihre aktuellen Informationen.'
+                    })
+                }
+            }
+        };
+        loadContextData();
+    }, [user, accessToken, toast]);
+    
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!input.trim()) return;
+
+        const userMessage: Message = { role: 'user', content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsLoading(true);
+
+        try {
+            const response = await chat({
+                message: input,
+                history: messages,
+                context: context,
+            });
+            const botMessage: Message = { role: 'bot', content: response };
+            setMessages(prev => [...prev, botMessage]);
+        } catch (error) {
+            console.error('Chatbot error:', error);
+            const errorMessage: Message = { role: 'bot', content: 'Entschuldigung, ein Fehler ist aufgetreten.' };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     const currentUser: Partial<User> = {
         id: user?.uid,
         name: user?.displayName,
@@ -41,7 +108,7 @@ export default function ChatbotPage() {
                          <div className="flex h-full items-center justify-center text-muted-foreground text-center">
                             <div>
                                 <Bot className="h-12 w-12 mx-auto mb-2" />
-                                <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Was sind meine wichtigsten Aufgaben heute?"</p>
+                                <p>Stelle mir eine Frage zu deinen E-Mails, Terminen oder Notizen. <br/>z.B. "Fasse meine ungelesenen Mails zusammen."</p>
                             </div>
                         </div>
                     ) : (
@@ -64,13 +131,28 @@ export default function ChatbotPage() {
                             </div>
                         ))
                     )}
+                    {isLoading && (
+                        <div className="flex items-start gap-3">
+                            <Avatar className="h-8 w-8 border">
+                                <AvatarFallback><Bot /></AvatarFallback>
+                            </Avatar>
+                            <div className="max-w-md rounded-lg p-3 bg-muted flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-sm text-muted-foreground">Denkt nach...</span>
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
                 </CardContent>
                 <div className="p-4 border-t">
-                    <form className="flex gap-2">
+                    <form onSubmit={handleSubmit} className="flex gap-2">
                         <Input
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
                             placeholder="Frage stellen..."
+                            disabled={isLoading || !user}
                         />
-                        <Button type="submit">
+                        <Button type="submit" disabled={isLoading || !input.trim() || !user}>
                             <Send />
                         </Button>
                     </form>
