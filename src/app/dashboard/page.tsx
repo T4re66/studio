@@ -2,9 +2,13 @@
 'use client';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useState, useEffect, useMemo } from 'react';
 =======
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
+=======
+import { useState, useEffect } from 'react';
+>>>>>>> d31cb78 (Unhandled Runtime Error)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -58,6 +62,7 @@ const getSeatPosition = (index: number, total: number, tableWidth: number, table
 
 const AnimatedCounter = ({ to }: { to: number }) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
     const [displayValue, setDisplayValue] = useState(0);
 
     useEffect(() => {
@@ -85,6 +90,16 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     // State and animation logic removed for UI shell
     return <>{to.toLocaleString()}</>;
 >>>>>>> 29a0906 (Du vergisst und löscht alle hintergrund prozesse und funktionen ich will)
+=======
+    const [displayValue, setDisplayValue] = useState<string | number>(to);
+
+    useEffect(() => {
+        // Format the number only on the client-side after hydration
+        setDisplayValue(to.toLocaleString());
+    }, [to]);
+
+    return <>{displayValue}</>;
+>>>>>>> d31cb78 (Unhandled Runtime Error)
 }
 
 
