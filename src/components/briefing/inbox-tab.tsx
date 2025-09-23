@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Archive, Reply, Trash, Sparkles } from "lucide-react";
+import { Archive, Reply, Trash, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Email } from "@/lib/data";
 
@@ -60,9 +60,16 @@ export function InboxTab({ summary, emails }: InboxTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-foreground/80">
-            {summary || "Zusammenfassung konnte nicht geladen werden."}
-          </p>
+          {summary && summary.startsWith("Zusammenfassung wird") ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{summary}</span>
+            </div>
+          ) : (
+            <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+              {summary || "Keine ungelesenen E-Mails zum Zusammenfassen."}
+            </p>
+          )}
         </CardContent>
       </Card>
 

@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { fetchGmail, fetchCalendar } from "@/lib/google-api";
 import type { Email, CalendarEvent, Note } from "@/lib/data";
+import { summarizeEmails } from "@/ai/flows/summarize-emails-flow";
+import { summarizeCalendar } from "@/ai/flows/summarize-calendar-flow";
 
 // Placeholder data for UI shell
 const placeholderEmails = [
@@ -27,12 +29,15 @@ const placeholderNotes = [
 ];
 
 export default function BriefingPage() {
-    const { accessToken, user } = useAuth();
+    const { accessToken } = useAuth();
     const [emails, setEmails] = useState<Email[]>(placeholderEmails);
     const [events, setEvents] = useState<CalendarEvent[]>(placeholderEvents);
-    const [notes, setNotes] = useState<Note[]>(placeholderNotes);
+    const [notes] = useState<Note[]>(placeholderNotes);
     const [dataLoading, setDataLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [emailSummary, setEmailSummary] = useState<string | undefined>("Zusammenfassung wird generiert...");
+    const [calendarSummary, setCalendarSummary] = useState<string | undefined>("Zusammenfassung wird generiert...");
 
     useEffect(() => {
         const loadGoogleData = async () => {
@@ -46,6 +51,11 @@ export default function BriefingPage() {
                     ]);
                     setEmails(gmailData);
                     setEvents(calendarData);
+
+                    // Generate summaries
+                    summarizeEmails(gmailData.filter(e => !e.isRead)).then(setEmailSummary);
+                    summarizeCalendar(calendarData).then(setCalendarSummary);
+
                 } catch (err) {
                     setError("Fehler beim Laden der Google-Daten. Bitte versuche, die Verbindung in den Einstellungen zu erneuern.");
                     console.error(err);
@@ -56,6 +66,8 @@ export default function BriefingPage() {
                 // Not logged in, use placeholder data
                 setEmails(placeholderEmails);
                 setEvents(placeholderEvents);
+                setEmailSummary("Verbinde dein Google-Konto, um eine Zusammenfassung zu erhalten.");
+                setCalendarSummary("Verbinde dein Google-Konto, um eine Zusammenfassung zu erhalten.");
             }
         };
 
@@ -88,10 +100,10 @@ export default function BriefingPage() {
                     <TabsTrigger value="ablage"><FolderKanban className="mr-2"/>Ablage</TabsTrigger>
                 </TabsList>
                 <TabsContent value="inbox" className="mt-6">
-                    <InboxTab summary={"Zusammenfassung wird generiert..."} emails={emails} />
+                    <InboxTab summary={emailSummary} emails={emails} />
                 </TabsContent>
                 <TabsContent value="calendar" className="mt-6">
-                    <CalendarTab summary={"Zusammenfassung wird generiert..."} events={events} />
+                    <CalendarTab summary={calendarSummary} events={events} />
                 </TabsContent>
                 <TabsContent value="notes" className="mt-6">
                     <NotesTab summary={"Zusammenfassung wird generiert..."} notes={notes} />

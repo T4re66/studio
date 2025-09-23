@@ -5,14 +5,15 @@ import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight } from "lucide-react";
+import { Coffee, Gift, Mail, Medal, Users, Sparkles, CalendarDays, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { User } from "@/lib/data";
+import type { User, Email, CalendarEvent } from "@/lib/data";
 import { useAuth } from '@/hooks/use-auth';
-
+import { fetchCalendar, fetchGmail } from '@/lib/google-api';
+import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 
 // --- Placeholder Data for UI Shell ---
 const placeholderMembers: User[] = [
@@ -25,7 +26,6 @@ const defaultUser = { name: 'Gast' };
 const nextBirthday = { member: placeholderMembers[1], days: 10 };
 const nextBreakMatch = { user1: placeholderMembers[0], user2: placeholderMembers[1], time: "12:30" };
 // --- End Placeholder Data ---
-
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -53,11 +53,37 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
+  const [briefing, setBriefing] = useState<string | null>(null);
+  const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
+
   const currentUser = user ? { name: user.displayName || 'User', points: 1250 } : { ...defaultUser, points: 0 };
   const onlineMembers = placeholderMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;
+
+  useEffect(() => {
+    const loadBriefing = async () => {
+        if (accessToken) {
+            setIsLoadingBriefing(true);
+            try {
+                const [emails, events] = await Promise.all([
+                    fetchGmail(accessToken),
+                    fetchCalendar(accessToken)
+                ]);
+                const summary = await getDailyBriefing({ emails, events });
+                setBriefing(summary);
+            } catch (err) {
+                console.error("Failed to load daily briefing:", err);
+                setBriefing("Fehler beim Laden des Briefings.");
+            } finally {
+                setIsLoadingBriefing(false);
+            }
+        }
+    };
+    loadBriefing();
+  }, [accessToken]);
+
 
   return (
     <div className="flex flex-col gap-8 fade-in">
@@ -116,24 +142,16 @@ export default function DashboardPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4 overflow-y-auto">
-                    <div>
-                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Mail className="h-4 w-4"/>Posteingang</h4>
-                        <p className="text-sm text-foreground/80">
-                            Zusammenfassung des Posteingangs wird hier angezeigt.
+                    {isLoadingBriefing ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <span>KI-Zusammenfassung wird generiert...</span>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+                            {briefing || "Verbinde dein Google-Konto, um ein persönliches Tages-Briefing zu erhalten."}
                         </p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarDays className="h-4 w-4"/>Kalender</h4>
-                        <p className="text-sm text-foreground/80">
-                            Zusammenfassung des Kalenders wird hier angezeigt.
-                        </p>
-                    </div>
-                        <div>
-                        <h4 className="font-semibold text-sm flex items-center gap-2 mb-1"><Users className="h-4 w-4"/>Notizen</h4>
-                        <p className="text-sm text-foreground/80">
-                            Zusammenfassung der Notizen wird hier angezeigt.
-                        </p>
-                    </div>
+                    )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
                     <Link href="/briefing">
