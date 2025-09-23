@@ -1,0 +1,1 @@
+// This file is misplaced and will be deleted. The content has been moved to /src/app/page.tsx

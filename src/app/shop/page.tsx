@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2 } from "lucide-react";
+import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2, Plus } from "lucide-react";
 import type { ShopItem } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { getTeamMember, getShopItems, purchaseShopItem } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
+import { AddShopItemDialog } from '@/components/shop/add-shop-item-dialog';
 
 
 const iconComponents: { [key: string]: React.ElementType } = {
@@ -29,6 +30,7 @@ export default function ShopPage() {
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
     const [points, setPoints] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchShopData = async () => {
         if (!user) return;
@@ -97,10 +99,17 @@ export default function ShopPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Prämien-Shop"
-        description="Gib deine gesammelten Punkte für tolle Prämien aus."
-      />
+        <div className="flex justify-between items-start flex-wrap gap-4">
+            <PageHeader
+                title="Prämien-Shop"
+                description="Gib deine gesammelten Punkte für tolle Prämien aus."
+            />
+             <Button onClick={() => setIsDialogOpen(true)} disabled={!user}>
+                <Plus />
+                Angebot hinzufügen
+            </Button>
+        </div>
+
 
         <Alert className="bg-accent/10 border-accent/30">
             <Coins className="h-4 w-4" />
@@ -112,14 +121,14 @@ export default function ShopPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {shopItems.map(item => {
-            const Icon = iconComponents[item.icon];
+            const Icon = iconComponents[item.icon] || Coins;
             const canAfford = points >= item.cost;
             return (
                 <Card key={item.id} className="flex flex-col">
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <CardTitle className="font-headline text-xl flex items-center gap-3">
-                                {Icon && <Icon className="h-6 w-6 text-primary" />}
+                                <Icon className="h-6 w-6 text-primary" />
                                 {item.title}
                             </CardTitle>
                              <Badge variant="secondary">{item.category}</Badge>
@@ -145,6 +154,7 @@ export default function ShopPage() {
             </p>
         )}
       </div>
+      <AddShopItemDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} onItemAdded={fetchShopData} />
     </div>
   );
 }

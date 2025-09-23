@@ -1,4 +1,3 @@
-
 'use client'
 
 import './globals.css';
@@ -10,10 +9,15 @@ import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/hooks/use-auth';
+import { usePathname } from 'next/navigation';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  // The logic to differentiate between landing page and app layout has been removed
-  // to create a consistent UI shell.
+  const pathname = usePathname();
+
+  if (pathname === '/') {
+    return <>{children}</>;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

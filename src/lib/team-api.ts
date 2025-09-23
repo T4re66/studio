@@ -67,6 +67,20 @@ export async function getTournaments(): Promise<Tournament[]> {
     }
 }
 
+export async function createTournament(tournament: Omit<Tournament, 'id' | 'completed' | 'winner'>): Promise<void> {
+    try {
+        const tournamentsCollectionRef = collection(db, 'tournaments');
+        await addDoc(tournamentsCollectionRef, {
+            ...tournament,
+            completed: false,
+            createdAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error creating tournament:", error);
+        throw new Error("Turnier konnte nicht erstellt werden.");
+    }
+}
+
 export async function updateTournamentMatch(tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
     try {
         const tournamentDocRef = doc(db, 'tournaments', tournamentId);
@@ -155,8 +169,11 @@ export async function completeTask(taskId: string, userId: string): Promise<void
 
     await runTransaction(db, async (transaction) => {
         const taskDoc = await transaction.get(taskDocRef);
-        if (!taskDoc.exists() || taskDoc.data().isCompleted) {
-            throw new Error("Diese Aufgabe ist nicht verfügbar oder wurde bereits erledigt.");
+        if (!taskDoc.exists()) {
+            throw new Error("Aufgabe nicht gefunden.");
+        }
+        if (taskDoc.data().isCompleted) {
+             throw new Error("Diese Aufgabe wurde bereits erledigt.");
         }
         
         const points = taskDoc.data().points;
@@ -173,6 +190,19 @@ export async function getShopItems(): Promise<ShopItem[]> {
     } catch (error) {
         console.error("Error fetching shop items:", error);
         return [];
+    }
+}
+
+export async function addShopItem(item: Omit<ShopItem, 'id'>): Promise<void> {
+    try {
+        const shopItemsRef = collection(db, 'shop_items');
+        await addDoc(shopItemsRef, {
+            ...item,
+            createdAt: serverTimestamp(),
+        });
+    } catch (error) {
+        console.error("Error adding shop item:", error);
+        throw new Error("Shop-Artikel konnte nicht hinzugefügt werden.");
     }
 }
 
@@ -193,9 +223,8 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
         transaction.update(memberDocRef, { points: increment(-item.cost) });
 
         // Optional: Log the purchase
-        const purchaseLogRef = collection(db, 'purchase_logs');
+        const purchaseLogRef = collection(db, `users/${userId}/purchase_logs`);
         transaction.set(doc(purchaseLogRef), {
-            userId,
             itemId: item.id,
             itemTitle: item.title,
             cost: item.cost,
