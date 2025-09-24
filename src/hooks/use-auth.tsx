@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, FC, useCallback } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
@@ -29,11 +29,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [teamMember, setTeamMember] = useState<TeamMembership | null>(null);
     const { toast } = useToast();
 
-    const fetchUserAndTeamData = async (authUser: User) => {
+    const clearAuthAndTeamState = () => {
+        setUser(null);
+        setAccessToken(null);
+        setTeam(null);
+        setTeamMember(null);
+    }
+    
+    const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
         setAccessToken(token);
         setUser(authUser);
-
+        
         await createTeamMember(authUser); // Ensure user profile exists in 'users' collection
         
         const teamData = await getTeamForUser(authUser.uid);
@@ -44,27 +51,20 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             setTeam(null);
             setTeamMember(null);
         }
-    };
+    }, []);
 
-    const refetchTeam = async () => {
+    const refetchTeam = useCallback(async () => {
         if (user) {
-            setLoading(true);
-            try {
-                const teamData = await getTeamForUser(user.uid);
-                if (teamData) {
-                    setTeam(teamData.team);
-                    setTeamMember(teamData.membership);
-                } else {
-                    setTeam(null);
-                    setTeamMember(null);
-                }
-            } catch (error) {
-                 console.error("Error refetching team data:", error);
-            } finally {
-                setLoading(false);
+            const teamData = await getTeamForUser(user.uid);
+            if (teamData) {
+                setTeam(teamData.team);
+                setTeamMember(teamData.membership);
+            } else {
+                setTeam(null);
+                setTeamMember(null);
             }
         }
-    }
+    }, [user]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
@@ -74,21 +74,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     await fetchUserAndTeamData(authUser);
                 } catch (error) {
                     console.error("Error during auth state change:", error);
-                    setUser(null);
-                    setAccessToken(null);
-                    setTeam(null);
-                    setTeamMember(null);
+                    clearAuthAndTeamState();
                 }
             } else {
-                setUser(null);
-                setAccessToken(null);
-                setTeam(null);
-                setTeamMember(null);
+                clearAuthAndTeamState();
             }
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [fetchUserAndTeamData]);
 
     const signIn = async () => {
         setLoading(true);
@@ -130,10 +124,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(true);
         try {
             await firebaseSignOut(auth);
-            setUser(null);
-            setAccessToken(null);
-            setTeam(null);
-            setTeamMember(null);
+            clearAuthAndTeamState();
             toast({
                 title: "Verbindung getrennt",
                 description: "Dein Google-Konto wurde erfolgreich getrennt.",

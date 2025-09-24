@@ -21,11 +21,26 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user && !team && pathname !== '/team/select') {
-      router.replace('/team/select');
-    }
-    if (!loading && !user && pathname !== '/') {
+    if (loading) return; // Wait until loading is finished
+
+    const isAuthRoute = pathname === '/';
+    const isTeamSelectionRoute = pathname === '/team/select';
+
+    if (user) {
+      // User is logged in
+      if (!team && !isTeamSelectionRoute) {
+        // Logged in but no team, redirect to team selection
+        router.replace('/team/select');
+      } else if (team && isTeamSelectionRoute) {
+        // Logged in with a team, but on team selection page, redirect to dashboard
+        router.replace('/dashboard');
+      }
+    } else {
+      // User is not logged in
+      if (!isAuthRoute) {
+        // Not logged in and not on the public landing page, redirect there
         router.replace('/');
+      }
     }
   }, [user, loading, team, pathname, router]);
 
@@ -38,7 +53,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const noSidebarRoutes = ['/', '/team/select'];
-  const showSidebar = user && !noSidebarRoutes.includes(pathname);
+  const showSidebar = user && team && !noSidebarRoutes.includes(pathname);
 
   if (!showSidebar) {
     return <>{children}</>;
