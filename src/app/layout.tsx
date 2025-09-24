@@ -29,16 +29,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     if (user) {
       // User is logged in
       if (!team && !isTeamSelectionRoute) {
-        // Logged in but no team, redirect to team selection
+        // Logged in but no team, and not on the team selection page -> redirect
         router.replace('/team/select');
-      } else if (team && isTeamSelectionRoute) {
-        // Logged in with a team, but on team selection page, redirect to dashboard
+      } else if (team && (isTeamSelectionRoute || isAuthRoute)) {
+        // Logged in with a team, but on team selection or landing page -> redirect to dashboard
         router.replace('/dashboard');
       }
     } else {
       // User is not logged in
       if (!isAuthRoute) {
-        // Not logged in and not on the public landing page, redirect there
+        // Not logged in and not on the public landing page -> redirect there
         router.replace('/');
       }
     }
@@ -52,27 +52,29 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // Routes that should not have a sidebar
   const noSidebarRoutes = ['/', '/team/select'];
   const showSidebar = user && team && !noSidebarRoutes.includes(pathname);
-
-  if (!showSidebar) {
-    return <>{children}</>;
+  
+  if (showSidebar) {
+    return (
+        <SidebarProvider>
+            <div className='flex min-h-screen'>
+                <AppSidebar />
+                <div className="flex flex-col flex-1">
+                    <AppHeader />
+                    <main className="p-4 sm:p-6 lg:p-8">
+                    {children}
+                    </main>
+                </div>
+                <FloatingWalkieTalkie />
+            </div>
+        </SidebarProvider>
+    )
   }
-
-  return (
-    <SidebarProvider>
-      <div className='flex min-h-screen'>
-        <AppSidebar />
-        <div className="flex flex-col flex-1">
-            <AppHeader />
-            <main className="p-4 sm:p-6 lg:p-8">
-              {children}
-            </main>
-        </div>
-        <FloatingWalkieTalkie />
-      </div>
-    </SidebarProvider>
-  )
+  
+  // Render children without sidebar for auth pages, team selection, etc.
+  return <>{children}</>;
 }
 
 export default function RootLayout({
