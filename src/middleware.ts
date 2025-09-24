@@ -29,29 +29,32 @@ export function middleware(request: NextRequest) {
 
     const isAuthenticated = hasFirebaseToken || isPreview;
 
-    // If user is logged in (or in preview) and tries to access the landing page, redirect to dashboard
+    // If user is authenticated and on the landing page, redirect to the dashboard.
     if (isAuthenticated && pathname === '/') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // If user is not logged in (and not in preview) and tries to access a protected route, redirect to landing page
+    // If user is not authenticated and trying to access a protected route, redirect to landing page.
     if (!isAuthenticated && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // This block handles redirection for non-preview users without a team.
-    // It is skipped if the user is in preview mode.
+    // This block handles redirection for REAL (non-preview) users without a team.
+    // It is explicitly skipped if the user is in preview mode.
     if (hasFirebaseToken && !isPreview) {
         const hasTeam = request.cookies.get('has-team')?.value === 'true';
+        
+        // If user has no team, redirect to team selection, unless they are already there.
         if (!hasTeam && pathname !== '/team/select') {
             return NextResponse.redirect(new URL('/team/select', request.url));
         }
+        // If user has a team and tries to access team selection, redirect to dashboard.
         if (hasTeam && pathname === '/team/select') {
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     }
     
-    // Allow the request to proceed
+    // Allow all other requests to proceed, including all requests for preview users.
     return NextResponse.next();
 }
 
