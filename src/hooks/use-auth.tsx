@@ -7,6 +7,7 @@ import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
 import { getTeamForUser, createTeamMember } from '@/lib/team-api';
 import type { Team, TeamMembership } from '@/lib/data';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
     user: User | null;
@@ -34,28 +35,34 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setAccessToken(null);
         setTeam(null);
         setTeamMember(null);
+        Cookies.remove('firebase-auth-token');
+        Cookies.remove('has-team');
     }
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
         setAccessToken(token);
         setUser(authUser);
+        Cookies.set('firebase-auth-token', token, { expires: 1 });
         
-        await createTeamMember(authUser); // Ensure user profile exists in 'users' collection
+        await createTeamMember(authUser);
         
         try {
             const teamData = await getTeamForUser(authUser.uid);
             if (teamData) {
                 setTeam(teamData.team);
                 setTeamMember(teamData.membership);
+                Cookies.set('has-team', 'true', { expires: 1 });
             } else {
                 setTeam(null);
                 setTeamMember(null);
+                Cookies.set('has-team', 'false', { expires: 1 });
             }
         } catch (error) {
             console.warn("User is not part of any team, continuing without team context.");
             setTeam(null);
             setTeamMember(null);
+            Cookies.set('has-team', 'false', { expires: 1 });
         }
     }, []);
 
@@ -66,13 +73,16 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 if (teamData) {
                     setTeam(teamData.team);
                     setTeamMember(teamData.membership);
+                    Cookies.set('has-team', 'true', { expires: 1 });
                 } else {
                     setTeam(null);
                     setTeamMember(null);
+                    Cookies.set('has-team', 'false', { expires: 1 });
                 }
             } catch (error) {
                  setTeam(null);
                  setTeamMember(null);
+                 Cookies.set('has-team', 'false', { expires: 1 });
             }
         }
     }, [user]);
@@ -101,11 +111,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             const result = await signInWithPopup(auth, provider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
-                await fetchUserAndTeamData(result.user);
-                toast({
-                    title: "Erfolgreich verbunden",
-                    description: "Dein Google-Konto wurde verknüpft.",
-                });
+                // The onAuthStateChanged listener will handle the rest
             } else {
                 throw new Error("Kein Access Token von Google erhalten.");
             }
@@ -127,7 +133,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 });
             }
         } finally {
-            setLoading(false);
+            // setLoading(false) is handled by onAuthStateChanged
         }
     };
 

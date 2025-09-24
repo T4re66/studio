@@ -10,33 +10,13 @@ import { AppHeader } from '@/components/app-header';
 import { FloatingWalkieTalkie } from '@/components/walkie-talkie/floating-walkie-talkie';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, team } = useAuth();
+  const { user, loading } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (loading) return; // Wait until loading is finished
-
-    const isAuthRoute = pathname === '/';
-    const isTeamSelectRoute = pathname === '/team/select';
-
-    if (user) {
-      // User is logged in
-      if (!team && !isTeamSelectRoute) {
-        // User has no team, redirect to team selection
-        router.replace('/team/select');
-      }
-    } else if (!isAuthRoute) {
-      // User is not logged in and not on the public landing page -> redirect there
-      router.replace('/');
-    }
-  }, [user, loading, team, pathname, router]);
 
   if (loading) {
     return (
