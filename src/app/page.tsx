@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,8 @@ import { ArrowRight, BrainCircuit, Refrigerator, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
 
 const features = [
   {
@@ -24,6 +27,56 @@ const features = [
     description: "Starte organisiert in den Tag mit smarten Zusammenfassungen deiner Infos.",
   },
 ];
+
+function AuthButtons() {
+    const { user, team, signIn, loading } = useAuth();
+
+    if (loading) {
+        return (
+             <div className="mt-8 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="mt-8 flex flex-col items-center justify-center gap-4">
+                <Button size="lg" onClick={signIn}>
+                    <Icons.logo className="mr-2" />
+                    Mit Google anmelden
+                </Button>
+            </div>
+        )
+    }
+
+    if (user && !team) {
+         return (
+            <div className="mt-8 flex flex-col items-center justify-center gap-4">
+                <p className="font-semibold">Nächster Schritt:</p>
+                <div className="flex gap-4">
+                     <Link href="/team/select">
+                        <Button size="lg" variant="outline">Team erstellen</Button>
+                    </Link>
+                    <Link href="/team/select">
+                        <Button size="lg">Team beitreten</Button>
+                    </Link>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="mt-8 flex flex-col items-center justify-center gap-4">
+            <p className="text-lg">Willkommen zurück!</p>
+            <Link href="/dashboard">
+              <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
+            </Link>
+        </div>
+    )
+
+}
+
 
 export default function LandingPage() {
   return (
@@ -50,12 +103,7 @@ export default function LandingPage() {
                     <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
                         OfficeZen ist die All-in-One-Lösung, die den Büroalltag vereinfacht, die Zusammenarbeit fördert und mit smarten Funktionen und Gamification für mehr Spass bei der Arbeit sorgt.
                     </p>
-                    <div className="mt-8 flex flex-col items-center justify-center gap-4">
-                        <p className="text-lg">Willkommen!</p>
-                        <Link href="/dashboard">
-                          <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
-                        </Link>
-                    </div>
+                    <AuthButtons />
                 </section>
 
                 {/* Feature Image Section */}
