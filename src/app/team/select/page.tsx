@@ -13,7 +13,8 @@ export default function SelectTeamPage() {
 
     const handleTeamAction = async () => {
         await refetchTeam();
-        router.push('/dashboard');
+        // Hard reload to ensure middleware re-evaluates auth state with new cookies
+        window.location.href = '/dashboard';
     }
 
     return (
