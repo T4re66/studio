@@ -8,7 +8,7 @@ import { useToast } from './use-toast';
 import { getTeamForUser, createTeamMember, getTeamMember } from '@/lib/team-api';
 import type { Team, TeamMember } from '@/lib/data';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { teamMembers as mockTeamMembers } from '@/lib/data';
 
 interface AuthContextType {
@@ -62,6 +62,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [teamMember, setTeamMember] = useState<TeamMember | null>(null);
     const { toast } = useToast();
     const router = useRouter();
+    const pathname = usePathname();
 
     const clearAuthAndTeamState = useCallback(() => {
         setUser(null);
@@ -83,8 +84,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setTeamMember(previewMember);
         Cookies.set('is-preview', 'true', { expires: 1 });
         Cookies.set('has-team', 'true', { expires: 1 });
-        router.push('/dashboard');
-    }, [router, clearAuthAndTeamState]);
+    }, [clearAuthAndTeamState]);
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
@@ -136,25 +136,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
     }, [user, isPreview]);
 
-    useEffect(() => {
+     useEffect(() => {
         const isPreviewCookie = Cookies.get('is-preview') === 'true';
 
-        if (isPreviewCookie) {
-            clearAuthAndTeamState();
-            setIsPreview(true);
-            setUser(PREVIEW_USER);
-            setTeam(PREVIEW_TEAM);
-            const previewMember = mockTeamMembers.find(m => m.id === 'preview-user') || null;
-            setTeamMember(previewMember);
-            Cookies.set('has-team', 'true', { expires: 1 });
-            setLoading(false);
-            return;
-        }
-
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-            setLoading(true);
-            if (authUser) {
-                 try {
+            if (isPreviewCookie) {
+                // If preview cookie exists, prioritize it and ignore auth state
+                if (!isPreview) {
+                    enterPreviewMode();
+                }
+                setLoading(false);
+            } else if (authUser) {
+                try {
                     await fetchUserAndTeamData(authUser);
                 } catch (error) {
                     console.error("Error during auth state change:", error);
@@ -167,19 +160,35 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 setLoading(false);
             }
         });
+
+        if (isPreviewCookie && !user) {
+            enterPreviewMode();
+            setLoading(false);
+        }
+
         return () => unsubscribe();
-    }, [fetchUserAndTeamData, clearAuthAndTeamState]);
+    }, [fetchUserAndTeamData, clearAuthAndTeamState, enterPreviewMode, isPreview, user]);
+
+
+    // This effect handles redirection AFTER authentication state is fully resolved.
+    useEffect(() => {
+        if (!loading) {
+            const isAuthenticated = user || isPreview;
+            
+            if (isAuthenticated && pathname === '/') {
+                router.push('/dashboard');
+            } else if (user && !isPreview && !team && pathname !== '/team/select' && pathname !== '/') {
+                 router.push('/team/select');
+            }
+        }
+    }, [loading, user, isPreview, team, pathname, router]);
 
     const signIn = async () => {
         setLoading(true);
         try {
             clearAuthAndTeamState();
-            const result = await signInWithPopup(auth, provider);
-             if (result.user) {
-                // The onAuthStateChanged listener will handle the rest, no need to call setLoading(false) here.
-            } else {
-                 setLoading(false);
-            }
+            await signInWithPopup(auth, provider);
+            // onAuthStateChanged will handle the rest.
         } catch (error: any) {
             console.error("Authentication error:", error);
             if (error.code === 'auth/unauthorized-domain') {
@@ -222,7 +231,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             title: "Abgemeldet",
             description: "Du wurdest erfolgreich abgemeldet.",
         });
-        setLoading(false); // Ensure loading is set to false after sign out is complete
+        setLoading(false);
     };
 
     const value = { user, isPreview, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam, enterPreviewMode };
