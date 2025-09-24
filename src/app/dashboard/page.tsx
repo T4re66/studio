@@ -16,7 +16,7 @@ import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 import { getTeamMembers } from '@/lib/team-api';
 import { parseISO, differenceInDays } from 'date-fns';
-import { teamMembers as mockTeamMembers } from '@/lib/data';
+import { teamMembers as mockTeamMembers, liveEmails, liveCalendarEvents } from '@/lib/data';
 
 
 const statusClasses: { [key: string]: string } = {
@@ -39,12 +39,12 @@ const AnimatedCounter = ({ to }: { to: number }) => {
         const duration = 1000;
         const frameRate = 60;
         const totalFrames = duration / (1000 / frameRate);
-        const increment = to / totalFrames;
-        let current = 0;
+        let increment = (to - displayValue) / totalFrames;
+        let current = displayValue;
 
         const timer = setInterval(() => {
             current += increment;
-            if (current >= to) {
+            if ((increment > 0 && current >= to) || (increment < 0 && current <= to)) {
                 clearInterval(timer);
                 current = to;
             }
@@ -53,7 +53,7 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
         return () => clearInterval(timer);
 
-    }, [to]);
+    }, [to, displayValue]);
 
     return <>{displayValue.toLocaleString()}</>;
 }
@@ -64,29 +64,29 @@ export default function DashboardPage() {
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingTeam, setLoadingTeam] = useState(true);
 
   useEffect(() => {
     async function loadData() {
+        if (authLoading) return;
+
         if (isPreview) {
             setTeamMembers(mockTeamMembers);
-            setLoading(false);
+            setLoadingTeam(false);
             return;
         }
 
         if (user && team) {
-            setLoading(true);
+            setLoadingTeam(true);
             const members = await getTeamMembers(team.id);
             setTeamMembers(members);
-            setLoading(false);
+            setLoadingTeam(false);
         } else {
             setTeamMembers([]);
-            setLoading(false);
+            setLoadingTeam(false);
         }
     }
-    if (!authLoading) {
-      loadData();
-    }
+    loadData();
   }, [user, team, isPreview, authLoading]);
 
   const displayMembers = useMemo(() => isPreview ? mockTeamMembers : teamMembers, [isPreview, teamMembers]);
@@ -139,14 +139,19 @@ export default function DashboardPage() {
       return null;
   }, [displayMembers]);
 
-  const onlineMembers = displayMembers.filter(m => m.status === 'office');
+  const onlineMembers = useMemo(() => displayMembers.filter(m => m.status === 'office'), [displayMembers]);
   const tableWidth = 45;
   const tableHeight = 90;
 
   useEffect(() => {
     const loadBriefing = async () => {
-        if (accessToken && !isPreview) {
-            setIsLoadingBriefing(true);
+        if (authLoading) return;
+        
+        setIsLoadingBriefing(true);
+        if (isPreview) {
+            const summary = await getDailyBriefing({ emails: liveEmails, events: liveCalendarEvents });
+            setBriefing(summary);
+        } else if (accessToken) {
             try {
                 const [emails, events] = await Promise.all([
                     fetchGmail(accessToken),
@@ -158,24 +163,17 @@ export default function DashboardPage() {
             } catch (err) {
                 console.error("Failed to load daily briefing:", err);
                 setBriefing("Fehler beim Laden des Briefings. Bitte prüfe deine Google-Verbindung in den Einstellungen.");
-            } finally {
-                setIsLoadingBriefing(false);
             }
-        } else if (isPreview) {
-            setIsLoadingBriefing(true);
-            setTimeout(() => {
-                 setBriefing("Guten Morgen! Du hast 2 ungelesene E-Mails, eine davon von 'Projekt Phoenix' bezüglich des wöchentlichen Syncs. Dein erster Termin ist das 'Project Phoenix Sync' um 10:00 Uhr. Geniesse den produktiven Tag!");
-                 setIsLoadingBriefing(false);
-            }, 1000);
+        } else {
+             setBriefing("Verbinde dein Google-Konto, um ein persönliches Tages-Briefing zu erhalten.");
         }
+        setIsLoadingBriefing(false);
     };
-    if (!authLoading) {
-      loadBriefing();
-    }
+    loadBriefing();
   }, [accessToken, isPreview, authLoading]);
 
 
-  if (authLoading || loading) {
+  if (authLoading || loadingTeam) {
       return (
           <div className="flex h-full w-full items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -185,14 +183,18 @@ export default function DashboardPage() {
 
   if (!team && !isPreview) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
             <PageHeader
                 title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
                 description="Du bist noch keinem Team beigetreten. Erstelle eines oder tritt einem bei, um loszulegen."
             />
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                 <Link href="/team/select"><Button size="lg" className="w-full h-24 text-lg">Team beitreten</Button></Link>
-                 <Link href="/team/select"><Button size="lg" variant="outline" className="w-full h-24 text-lg">Team erstellen</Button></Link>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full max-w-md">
+                 <Button asChild size="lg" className="w-full">
+                    <Link href="/team/select">Team beitreten</Link>
+                </Button>
+                 <Button asChild size="lg" variant="outline" className="w-full">
+                    <Link href="/team/select">Team erstellen</Link>
+                </Button>
             </div>
         </div>
     )
@@ -264,7 +266,7 @@ export default function DashboardPage() {
                         </div>
                     ) : (
                         <p className="text-sm text-foreground/80 whitespace-pre-wrap">
-                            {briefing || "Verbinde dein Google-Konto, um ein persönliches Tages-Briefing zu erhalten."}
+                            {briefing}
                         </p>
                     )}
                 </CardContent>
@@ -361,5 +363,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

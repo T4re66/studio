@@ -21,9 +21,7 @@ const PROTECTED_ROUTES = [
     '/settings',
 ];
 
-const TEAM_ROUTES = [
-    '/team/select',
-]
+const TEAM_REQUIRED_ROUTES = PROTECTED_ROUTES.filter(r => r !== '/dashboard' && r !== '/settings');
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -33,10 +31,9 @@ export function middleware(request: NextRequest) {
     const hasTeam = request.cookies.get('has-team')?.value === 'true';
 
     const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
-    const isTeamRoute = TEAM_ROUTES.some(route => pathname.startsWith(route));
 
     // 1. If not authenticated and trying to access a protected route, redirect to landing page.
-    if (!isAuthenticated && (isProtectedRoute || isTeamRoute)) {
+    if (!isAuthenticated && isProtectedRoute) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
@@ -44,15 +41,17 @@ export function middleware(request: NextRequest) {
     if (isAuthenticated && pathname === '/') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
-
-    // 3. If a real user (not preview) is authenticated but has no team,
-    // and is trying to access a protected route, redirect them to team selection.
-    if (hasAuthToken && !isPreview && !hasTeam && isProtectedRoute) {
+    
+    // 3. If an authenticated user without a team tries to access a page that requires a team,
+    //    redirect them to the dashboard, where they'll see the "join/create team" options.
+    //    This rule does not apply to preview mode.
+    if (isAuthenticated && !isPreview && !hasTeam && TEAM_REQUIRED_ROUTES.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
-
-    // 4. If a real user has a team, don't let them access the team selection page.
-    if (hasAuthToken && !isPreview && hasTeam && isTeamRoute) {
+    
+    // 4. If an authenticated user (real or preview) with a team tries to access the team selection page,
+    //    redirect them to the dashboard.
+    if (isAuthenticated && hasTeam && pathname.startsWith('/team/select')) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
@@ -74,5 +73,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|sounds).*)',
   ],
 }
-
-    

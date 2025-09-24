@@ -3,13 +3,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, BrainCircuit, Eye, Refrigerator, Users } from "lucide-react";
+import { ArrowRight, BrainCircuit, Eye, Refrigerator, Users, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const features = [
   {
@@ -30,12 +30,18 @@ const features = [
 ];
 
 function AuthButtons() {
-    const { user, team, signIn, loading, enterPreviewMode } = useAuth();
+    const { user, team, signIn, loading, enterPreviewMode, isPreview } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        if (user && (team || isPreview)) {
+            router.push('/dashboard');
+        }
+    }, [user, team, isPreview, router]);
 
     if (loading) {
         return (
-             <div className="mt-8 flex items-center justify-center">
+             <div className="mt-8 flex items-center justify-center h-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         )
@@ -48,7 +54,7 @@ function AuthButtons() {
                     <Icons.logo className="mr-2" />
                     Mit Google anmelden
                 </Button>
-                 <Button size="lg" variant="outline" onClick={() => enterPreviewMode()}>
+                 <Button size="lg" variant="outline" onClick={enterPreviewMode}>
                     <Eye className="mr-2" />
                     Vorschau ansehen
                 </Button>
@@ -56,29 +62,27 @@ function AuthButtons() {
         )
     }
     
-    // This part will now likely be skipped due to middleware redirecting to dashboard
-    if (user && !team) {
+    // User is logged in but doesn't have a team yet.
+    if (user && !team && !isPreview) {
          return (
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
                 <p className="font-semibold">Nächster Schritt:</p>
                 <div className="flex gap-4">
-                     <Link href="/team/select">
-                        <Button size="lg" variant="outline">Team erstellen</Button>
-                    </Link>
-                    <Link href="/team/select">
-                        <Button size="lg">Team beitreten</Button>
-                    </Link>
+                     <Button asChild size="lg" variant="outline">
+                        <Link href="/team/select">Team erstellen</Link>
+                     </Button>
+                    <Button asChild size="lg">
+                        <Link href="/team/select">Team beitreten</Link>
+                    </Button>
                 </div>
             </div>
         )
     }
 
+    // This part should ideally not be seen due to the useEffect redirect.
     return (
-        <div className="mt-8 flex flex-col items-center justify-center gap-4">
-            <p className="text-lg">Willkommen zurück!</p>
-            <Link href="/dashboard">
-              <Button size="lg">Zum Dashboard <ArrowRight className="ml-2" /></Button>
-            </Link>
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 h-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
     )
 

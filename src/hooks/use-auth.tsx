@@ -9,7 +9,7 @@ import { getTeamForUser, createTeamMember, getTeamMember } from '@/lib/team-api'
 import type { Team, TeamMember } from '@/lib/data';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { teamMembers } from '@/lib/data';
+import { teamMembers as mockTeamMembers } from '@/lib/data';
 
 interface AuthContextType {
     user: User | null;
@@ -75,17 +75,16 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }, []);
 
     const enterPreviewMode = useCallback(() => {
-        setLoading(true);
-        setUser(PREVIEW_USER);
+        clearAuthAndTeamState();
         setIsPreview(true);
+        setUser(PREVIEW_USER);
         setTeam(PREVIEW_TEAM);
-        setTeamMember(teamMembers.find(m => m.id === 'preview-user') || null);
+        const previewMember = mockTeamMembers.find(m => m.id === 'preview-user') || null;
+        setTeamMember(previewMember);
         Cookies.set('is-preview', 'true', { expires: 1 });
-        Cookies.remove('firebase-auth-token');
-        Cookies.set('has-team', 'true');
+        Cookies.set('has-team', 'true', { expires: 1 });
         router.push('/dashboard');
-        setLoading(false);
-    }, [router]);
+    }, [router, clearAuthAndTeamState]);
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
@@ -108,7 +107,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 Cookies.set('has-team', 'false', { expires: 1 });
             }
         } catch (error) {
-            console.warn("User is not part of any team, continuing without team context.");
+            console.warn("User may not be part of a team, continuing without team context.");
             setTeam(null);
             setTeamMember(null);
             Cookies.set('has-team', 'false', { expires: 1 });
@@ -141,11 +140,19 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         const isPreviewCookie = Cookies.get('is-preview') === 'true';
 
         if (isPreviewCookie) {
-            enterPreviewMode();
+            clearAuthAndTeamState();
+            setIsPreview(true);
+            setUser(PREVIEW_USER);
+            setTeam(PREVIEW_TEAM);
+            const previewMember = mockTeamMembers.find(m => m.id === 'preview-user') || null;
+            setTeamMember(previewMember);
+            Cookies.set('has-team', 'true', { expires: 1 });
+            setLoading(false);
             return;
         }
 
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+            setLoading(true);
             if (authUser) {
                  try {
                     await fetchUserAndTeamData(authUser);
@@ -161,17 +168,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
         });
         return () => unsubscribe();
-    }, [fetchUserAndTeamData, clearAuthAndTeamState, enterPreviewMode]);
+    }, [fetchUserAndTeamData, clearAuthAndTeamState]);
 
     const signIn = async () => {
         setLoading(true);
         try {
-            Cookies.remove('is-preview');
+            clearAuthAndTeamState();
             const result = await signInWithPopup(auth, provider);
              if (result.user) {
-                // The onAuthStateChanged listener will handle the rest
+                // The onAuthStateChanged listener will handle the rest, no need to call setLoading(false) here.
             } else {
-                setLoading(false);
+                 setLoading(false);
             }
         } catch (error: any) {
             console.error("Authentication error:", error);
@@ -190,7 +197,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     description: error.code === 'auth/popup-closed-by-user' ? 'Das Anmeldefenster wurde geschlossen.' : 'Bitte versuche es erneut.',
                 });
             }
-             setLoading(false);
+            clearAuthAndTeamState();
+            setLoading(false);
         }
     };
 
@@ -214,7 +222,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             title: "Abgemeldet",
             description: "Du wurdest erfolgreich abgemeldet.",
         });
-        setLoading(false);
+        setLoading(false); // Ensure loading is set to false after sign out is complete
     };
 
     const value = { user, isPreview, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam, enterPreviewMode };
@@ -229,5 +237,3 @@ export const useAuth = () => {
     }
     return context;
 };
-
-    

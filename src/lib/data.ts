@@ -179,6 +179,20 @@ export const officeTasks: OfficeTask[] = [
 ];
 
 
+export const liveEmails: Email[] = [
+  { id: 'live-e1', sender: 'Sundar Pichai', subject: 'Next-Gen AI & The Future of Search', snippet: 'Team, I want to share our forward-looking strategy for the upcoming year, focusing on Gemini and Search...', isRead: false, timestamp: '09:30' },
+  { id: 'live-e2', sender: 'Google Calendar', subject: 'Invitation: Project Meeting @ 11am', snippet: 'You have been invited to a project meeting.', isRead: true, timestamp: '08:15' },
+];
+
+const liveToday = new Date();
+const formatLiveDate = (date: Date) => date.toISOString().split('T')[0];
+
+export const liveCalendarEvents: CalendarEvent[] = [
+  { id: 'live-evt1', title: 'Product Strategy Sync', date: formatLiveDate(liveToday), startTime: '09:00', endTime: '11:00', category: 'Meeting', participants: ['preview-user', '2', '3'] },
+  { id: 'live-evt2', title: 'Lunch with Android Team', date: formatLiveDate(liveToday), startTime: '12:30', endTime: '13:30', category: 'Team Event', participants: ['preview-user', '6'] },
+];
+
+
 // Types for Google API responses
 export type GoogleEmail = {
     id: string;
@@ -195,5 +209,3 @@ export type GoogleCalendarEvent = {
     start: { dateTime?: string; date?: string };
     end: { dateTime?: string; date?: string };
 }
-
-    
