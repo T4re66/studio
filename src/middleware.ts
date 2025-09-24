@@ -19,7 +19,6 @@ const PROTECTED_ROUTES = [
     '/check-in',
     '/grades',
     '/settings',
-    '/team/select',
 ];
 
 export function middleware(request: NextRequest) {
@@ -29,9 +28,9 @@ export function middleware(request: NextRequest) {
     const hasTeam = request.cookies.get('has-team')?.value === 'true';
 
     const isAuthenticated = hasAuth || isPreview;
-    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
+    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route)) || pathname === '/team/select';
 
-    // 1. If not authenticated and trying to access a protected route, redirect to landing page.
+    // 1. If NOT authenticated and trying to access a protected route, redirect to landing page.
     if (!isAuthenticated && isProtectedRoute) {
         return NextResponse.redirect(new URL('/', request.url));
     }
@@ -41,20 +40,18 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // 3. This block handles team-based redirection ONLY for real, authenticated users.
-    // It is completely skipped for preview users.
-    if (hasAuth && !isPreview) {
-        // If a real user has no team, force them to the team selection page, unless they are already there.
-        if (!hasTeam && pathname !== '/team/select') {
-            return NextResponse.redirect(new URL('/team/select', request.url));
-        }
-        // If a real user has a team and somehow lands on the team selection page, push them to the dashboard.
-        if (hasTeam && pathname === '/team/select') {
-             return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
+    // 3. For REAL USERS (not preview): if they have no team, force them to the team selection page
+    // UNLESS they are already on it.
+    if (hasAuth && !isPreview && !hasTeam && pathname !== '/team/select') {
+      return NextResponse.redirect(new URL('/team/select', request.url));
     }
     
-    // 4. If none of the above conditions are met, allow the request to proceed.
+    // 4. For REAL USERS (not preview): if they have a team and land on team selection, push to dashboard.
+    if (hasAuth && !isPreview && hasTeam && pathname === '/team/select') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    
+    // 5. Allow the request to proceed if none of the above conditions are met.
     return NextResponse.next();
 }
 

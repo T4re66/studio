@@ -26,11 +26,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Render children without sidebar for auth pages
-  const noSidebarRoutes = ['/'];
-  const showSidebar = user && !noSidebarRoutes.includes(pathname);
+  const noLayoutRoutes = ['/', '/team/select'];
+  const showLayout = user && !noLayoutRoutes.includes(pathname);
   
-  if (showSidebar) {
+  if (showLayout) {
     return (
         <SidebarProvider>
             <div className='flex min-h-screen'>

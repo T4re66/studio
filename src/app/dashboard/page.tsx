@@ -16,8 +16,6 @@ import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 import { getTeamMembers } from '@/lib/team-api';
 import { parseISO, differenceInDays } from 'date-fns';
-import { CreateTeamCard } from '@/components/team/create-team-card';
-import { JoinTeamCard } from '@/components/team/join-team-card';
 import { useRouter } from 'next/navigation';
 
 
@@ -61,19 +59,24 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 }
 
 function NoTeamDashboard() {
-    const { user, refetchTeam } = useAuth();
-    const router = useRouter();
-
-    const handleTeamAction = async () => {
-        await refetchTeam();
-        // The dashboard will re-render with the new team context
+    const { user, isPreview } = useAuth();
+    
+    if (isPreview) {
+        return (
+            <div className="flex flex-col items-center justify-center">
+                <PageHeader
+                    title={`Willkommen im Vorschau-Modus!`}
+                    description="Hier siehst du, wie dein Dashboard aussehen könnte. Erkunde die App!"
+                />
+            </div>
+        )
     }
 
     return (
         <div className="flex flex-col items-center justify-center">
             <PageHeader
                 title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
-                description="Um OfficeZen zu nutzen, erstelle ein neues Team oder tritt einem bestehenden bei."
+                description="Du bist noch keinem Team beigetreten. Erstelle eines oder tritt einem bei, um loszulegen."
             />
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
                  <Link href="/team/select"><Button size="lg" className="w-full h-24 text-lg">Team beitreten</Button></Link>
@@ -85,8 +88,7 @@ function NoTeamDashboard() {
 
 
 export default function DashboardPage() {
-  const { user, accessToken, team, loading: authLoading, refetchTeam } = useAuth();
-  const router = useRouter();
+  const { user, accessToken, team, loading: authLoading } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -356,5 +358,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
