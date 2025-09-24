@@ -128,9 +128,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 }
             } else if (isPreviewCookie) {
                 // If no real user but preview cookie exists, enter preview mode
-                setUser(PREVIEW_USER);
-                setIsPreview(true);
-                setTeam(null);
+                enterPreviewMode();
             } else {
                 clearAuthAndTeamState();
             }
@@ -144,8 +142,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setUser(PREVIEW_USER);
         setIsPreview(true);
         setTeam(null);
+        setTeamMember(null);
         Cookies.set('is-preview', 'true', { expires: 1 });
         Cookies.remove('firebase-auth-token');
+        Cookies.remove('has-team');
         router.push('/dashboard');
         setLoading(false);
     };

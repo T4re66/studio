@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PROTECTED_ROUTES = [
+    '/dashboard',
     '/briefing',
     '/chatbot',
     '/people',
@@ -18,43 +19,42 @@ const PROTECTED_ROUTES = [
     '/check-in',
     '/grades',
     '/settings',
-    '/dashboard',
-    '/team/select'
+    '/team/select',
 ];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const hasFirebaseToken = request.cookies.has('firebase-auth-token');
+    const hasAuth = request.cookies.has('firebase-auth-token');
     const isPreview = request.cookies.get('is-preview')?.value === 'true';
+    const hasTeam = request.cookies.get('has-team')?.value === 'true';
 
-    const isAuthenticated = hasFirebaseToken || isPreview;
+    const isAuthenticated = hasAuth || isPreview;
+    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
-    // If user is authenticated and on the landing page, redirect to the dashboard.
+    // 1. If not authenticated and trying to access a protected route, redirect to landing page.
+    if (!isAuthenticated && isProtectedRoute) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // 2. If authenticated and on the landing page, redirect to the dashboard.
     if (isAuthenticated && pathname === '/') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // If user is not authenticated and trying to access a protected route, redirect to landing page.
-    if (!isAuthenticated && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL('/', request.url));
-    }
-
-    // This block handles redirection for REAL (non-preview) users without a team.
-    // It is explicitly skipped if the user is in preview mode.
-    if (hasFirebaseToken && !isPreview) {
-        const hasTeam = request.cookies.get('has-team')?.value === 'true';
-        
-        // If user has no team, redirect to team selection, unless they are already there.
+    // 3. This block handles team-based redirection ONLY for real, authenticated users.
+    // It is completely skipped for preview users.
+    if (hasAuth && !isPreview) {
+        // If a real user has no team, force them to the team selection page, unless they are already there.
         if (!hasTeam && pathname !== '/team/select') {
             return NextResponse.redirect(new URL('/team/select', request.url));
         }
-        // If user has a team and tries to access team selection, redirect to dashboard.
+        // If a real user has a team and somehow lands on the team selection page, push them to the dashboard.
         if (hasTeam && pathname === '/team/select') {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
+             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
     }
     
-    // Allow all other requests to proceed, including all requests for preview users.
+    // 4. If none of the above conditions are met, allow the request to proceed.
     return NextResponse.next();
 }
 
