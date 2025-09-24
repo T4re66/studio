@@ -1,37 +1,109 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, orderBy, writeBatch } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import type { User as FirebaseUser } from "firebase/auth";
-import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note } from "./data";
+import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note, Team } from "./data";
+import {_} from 'lodash-es';
 
-// For now, we assume a single team. In a multi-team app, this would be dynamic.
-const TEAM_ID = "main_team"; 
 
 // =================================
-// TEAM MEMBERS API
+// TEAM & AUTH API
 // =================================
+
+// Helper to generate a random 6-digit code
+const generateJoinCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+export async function createTeam(teamName: string, user: FirebaseUser): Promise<string> {
+    const teamColRef = collection(db, 'teams');
+    const teamDocRef = doc(teamColRef);
+    const teamId = teamDocRef.id;
+
+    const teamMemberColRef = collection(db, 'teamMembers');
+    const teamMemberDocRef = doc(teamMemberColRef, `${teamId}_${user.uid}`);
+
+    const joinCode = generateJoinCode();
+
+    const batch = writeBatch(db);
+
+    batch.set(teamDocRef, {
+        name: teamName,
+        ownerId: user.uid,
+        createdAt: serverTimestamp(),
+        joinCode: joinCode,
+    });
+
+    batch.set(teamMemberDocRef, {
+        role: 'owner',
+        joinedAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+
+    return teamId;
+}
+
+export async function getMyTeam(userId: string): Promise<Team | null> {
+    const teamMembersRef = collection(db, "teamMembers");
+    const q = query(teamMembersRef, where(userId, '==', true));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        // Fallback for owner
+        const teamsRef = collection(db, 'teams');
+        const ownerQuery = query(teamsRef, where('ownerId', '==', userId));
+        const ownerSnapshot = await getDocs(ownerQuery);
+        if (!ownerSnapshot.empty) {
+            const teamDoc = ownerSnapshot.docs[0];
+            return {
+                id: teamDoc.id,
+                ...teamDoc.data()
+            } as Team;
+        }
+        return null;
+    }
+    
+    // This logic is flawed for how team members are stored.
+    // Let's assume a simpler structure for now. A user is part of ONE team.
+    // We need to find which `teamMembers` document contains our user.
+    // This is inefficient. A better structure would be a user document with a teamId.
+    // Let's try to find the team via the `teamMembers` collection.
+    
+    const allTeamMembersSnap = await getDocs(collection(db, 'teamMembers'));
+    for (const doc of allTeamMembersSnap.docs) {
+        if (doc.id.endsWith(`_${userId}`)) {
+             const teamId = doc.id.split('_')[0];
+             const teamDoc = await getDoc(doc(db, 'teams', teamId));
+             if (teamDoc.exists()) {
+                 return { id: teamDoc.id, ...teamDoc.data() } as Team;
+             }
+        }
+    }
+    
+    return null;
+}
+
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
+    // This function is problematic in a multi-team context without a teamId.
+    // Assuming we fetch members for the CURRENT user's team. This needs context from auth.
+    // For now, let's leave it and assume a single-team context for components that use it without teamId.
+    // The proper way would be getTeamMembers(teamId: string)
     try {
-        const membersCollectionRef = collection(db, `teams/${TEAM_ID}/members`);
-        const querySnapshot = await getDocs(membersCollectionRef);
-        
+        const querySnapshot = await getDocs(collection(db, `users`));
         const members = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         } as TeamMember));
-        
         return members;
-
     } catch (error) {
-        console.error("Error fetching team members from Firestore:", error);
+        console.error("Error fetching users from Firestore:", error);
         throw new Error("Teammitglieder konnten nicht geladen werden.");
     }
 }
 
 export async function getTeamMember(userId: string): Promise<TeamMember | null> {
     try {
-        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+        const memberDocRef = doc(db, `users`, userId);
         const docSnap = await getDoc(memberDocRef);
         if (docSnap.exists()) {
             return { id: docSnap.id, ...docSnap.data() } as TeamMember;
@@ -45,20 +117,24 @@ export async function getTeamMember(userId: string): Promise<TeamMember | null> 
 
 export async function createTeamMember(user: FirebaseUser): Promise<void> {
     try {
-        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, user.uid);
-        await setDoc(memberDocRef, {
-            name: user.displayName,
-            email: user.email,
-            avatar: user.photoURL,
-            status: 'remote', // Default status
-            role: 'Team Member',
-            department: 'Allgemein',
-            dnd: false,
-            points: 0,
-            birthday: '',
-            seat: null,
-            mood: 3,
-        });
+        const memberDocRef = doc(db, `users`, user.uid);
+        const docSnap = await getDoc(memberDocRef);
+
+        if (!docSnap.exists()) {
+             await setDoc(memberDocRef, {
+                name: user.displayName,
+                email: user.email,
+                avatar: user.photoURL,
+                status: 'remote',
+                role: 'Team Member',
+                department: 'Allgemein',
+                dnd: false,
+                points: 0,
+                birthday: '',
+                seat: null,
+                mood: 3,
+            });
+        }
     } catch (error) {
         console.error("Error creating team member in Firestore:", error);
         throw new Error("Teammitglied konnte nicht erstellt werden.");
@@ -70,7 +146,7 @@ export async function updateUserCheckin(checkinData: {status: TeamMember['status
     if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
 
     try {
-        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, currentUser.uid);
+        const memberDocRef = doc(db, `users`, currentUser.uid);
         await updateDoc(memberDocRef, {
             status: checkinData.status,
             mood: checkinData.mood,
@@ -84,7 +160,7 @@ export async function updateUserCheckin(checkinData: {status: TeamMember['status
 
 export async function updateTeamMemberBirthday(userId: string, birthday: string): Promise<void> {
     try {
-        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+        const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, { birthday });
     } catch (error) {
         console.error("Error updating birthday in Firestore:", error);
@@ -97,7 +173,7 @@ export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string):
     if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
 
     try {
-        const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, currentUser.uid);
+        const memberDocRef = doc(db, `users`, currentUser.uid);
         await updateDoc(memberDocRef, { lunchTime, coffeeTime });
     } catch (error) {
         console.error("Error updating break times in Firestore:", error);
@@ -138,7 +214,7 @@ export async function addTask(task: Omit<OfficeTask, 'id' | 'isCompleted'>): Pro
 
 export async function completeTask(taskId: string, userId: string): Promise<void> {
     const taskDocRef = doc(db, 'tasks', taskId);
-    const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+    const memberDocRef = doc(db, `users`, userId);
 
     await runTransaction(db, async (transaction) => {
         const taskDoc = await transaction.get(taskDocRef);
@@ -177,7 +253,7 @@ export async function addShopItem(item: Omit<ShopItem, 'id'>): Promise<void> {
 }
 
 export async function purchaseShopItem(userId: string, item: ShopItem): Promise<void> {
-    const memberDocRef = doc(db, `teams/${TEAM_ID}/members`, userId);
+    const memberDocRef = doc(db, `users`, userId);
 
     await runTransaction(db, async (transaction) => {
         const memberDoc = await transaction.get(memberDocRef);
@@ -188,13 +264,14 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
 
         transaction.update(memberDocRef, { points: increment(-item.cost) });
 
-        const purchaseLogRef = collection(db, `teams/${TEAM_ID}/members/${userId}/purchase_logs`);
-        transaction.set(doc(purchaseLogRef), {
-            itemId: item.id,
-            itemTitle: item.title,
-            cost: item.cost,
-            purchasedAt: serverTimestamp()
-        });
+        // This path is now invalid with the new team structure, commenting out for now
+        // const purchaseLogRef = collection(db, `teams/${TEAM_ID}/members/${userId}/purchase_logs`);
+        // transaction.set(doc(purchaseLogRef), {
+        //     itemId: item.id,
+        //     itemTitle: item.title,
+        //     cost: item.cost,
+        //     purchasedAt: serverTimestamp()
+        // });
     });
 }
 

@@ -5,7 +5,8 @@ import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'r
 import { getAuth, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, OAuthCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
-import { getTeamMember, createTeamMember } from '@/lib/team-api';
+import { getTeamMember, createTeamMember, getMyTeam } from '@/lib/team-api';
+import type { Team } from '@/lib/data';
 
 interface AuthContextType {
     user: User | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
     loading: boolean;
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
+    currentTeam: Team | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -31,24 +34,32 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     setAccessToken(token);
                     setUser(user);
                     
-                    // Check if user exists in Firestore, if not, create them
-                    const teamMember = await getTeamMember(user.uid);
+                    let teamMember = await getTeamMember(user.uid);
                     if (!teamMember) {
                         await createTeamMember(user);
                         toast({
                             title: `Willkommen, ${user.displayName}!`,
                             description: "Dein Profil wurde im Team angelegt.",
-                        })
+                        });
+                        teamMember = await getTeamMember(user.uid);
                     }
+
+                    if (teamMember) {
+                        const team = await getMyTeam(user.uid);
+                        setCurrentTeam(team);
+                    }
+
 
                 } catch (error) {
                     console.error("Error during auth state change:", error);
                     setUser(null);
                     setAccessToken(null);
+                    setCurrentTeam(null);
                 }
             } else {
                 setUser(null);
                 setAccessToken(null);
+                setCurrentTeam(null);
             }
             setLoading(false);
         });
@@ -98,6 +109,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             await firebaseSignOut(auth);
             setUser(null);
             setAccessToken(null);
+            setCurrentTeam(null);
             toast({
                 title: "Verbindung getrennt",
                 description: "Dein Google-Konto wurde erfolgreich getrennt.",
@@ -113,7 +125,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
     };
 
-    const value = { user, accessToken, loading, signIn, signOut };
+    const value = { user, accessToken, loading, signIn, signOut, currentTeam };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

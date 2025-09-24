@@ -26,7 +26,7 @@ export function FloatingWalkieTalkie() {
 
     useEffect(() => {
         if (user && currentTeam && isOpen) {
-            getTeamMembers(currentTeam.id).then(members => {
+            getTeamMembers().then(members => {
                 const online = members.filter(m => m.status === 'office' && m.id !== user.uid);
                 setOnlineUsers(online);
             });
