@@ -16,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, team } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,15 +24,19 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     if (loading) return; // Wait until loading is finished
 
     const isAuthRoute = pathname === '/';
+    const isTeamSelectRoute = pathname === '/team/select';
 
-    if (user && isAuthRoute) {
-        // User is logged in and on the landing page, redirect to dashboard
-        router.replace('/dashboard');
-    } else if (!user && !isAuthRoute) {
+    if (user) {
+      // User is logged in
+      if (!team && !isTeamSelectRoute) {
+        // User has no team, redirect to team selection
+        router.replace('/team/select');
+      }
+    } else if (!isAuthRoute) {
       // User is not logged in and not on the public landing page -> redirect there
       router.replace('/');
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, team, pathname, router]);
 
   if (loading) {
     return (
@@ -43,7 +47,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   // Render children without sidebar for auth pages
-  const noSidebarRoutes = ['/'];
+  const noSidebarRoutes = ['/', '/team/select'];
   const showSidebar = user && !noSidebarRoutes.includes(pathname);
   
   if (showSidebar) {
@@ -63,7 +67,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
   
-  // Render children without sidebar for public landing page
+  // Render children without layout for public/special pages
   return <>{children}</>;
 }
 
