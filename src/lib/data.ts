@@ -1,6 +1,7 @@
 
-// THIS FILE CONTAINS ONLY TYPE DEFINITIONS.
-// THE ACTUAL DATA IS FETCHED FROM FIRESTORE.
+
+// THIS FILE CONTAINS MOCK DATA AND TYPE DEFINITIONS.
+// IN A REAL APPLICATION, THIS DATA WOULD COME FROM FIRESTORE AND GOOGLE APIS.
 
 export type Team = {
     id: string;
@@ -9,14 +10,6 @@ export type Team = {
     joinCode: string;
     createdAt: any; // Firestore Timestamp
 };
-
-export type TeamMembership = {
-    id: string; // {teamId}_{userId}
-    teamId: string;
-    userId: string;
-    role: 'owner' | 'admin' | 'member';
-    joinedAt: any; // Firestore Timestamp
-}
 
 export type TeamMember = {
   id: string;
@@ -129,6 +122,33 @@ export type Deadline = {
   dueDate: string; // YYYY-MM-DD
 };
 
+export type OfficeTask = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  category: 'Soziales' | 'Büro' | 'Spass';
+  isCompleted: boolean;
+  completedBy?: string;
+  completedAt?: any; // Firestore Timestamp
+  createdAt: any; // Firestore Timestamp
+};
+
+
+// --- MOCK DATA FOR PREVIEW MODE ---
+
+export const teamMembers: TeamMember[] = [
+  { id: 'preview-user', name: 'Du (Gast)', avatar: 'https://picsum.photos/seed/guest/200/200', status: 'office', role: 'App-Tester', department: 'Vorschau', dnd: false, points: 1337, birthday: '1998-04-01', seat: 'A4', mood: 5, lunchTime: '12:30', coffeeTime: '15:00' },
+  { id: '2', name: 'Bob Williams', avatar: 'https://picsum.photos/seed/user2/200/200', status: 'remote', role: 'Backend Developer', department: 'Engineering', dnd: true, points: 800, birthday: '1988-11-22', seat: null, mood: 3 },
+  { id: '3', name: 'Charlie Brown', avatar: 'https://picsum.photos/seed/user3/200/200', status: 'office', role: 'UI/UX Designer', department: 'Design', dnd: false, points: 1500, birthday: '1995-03-30', seat: 'B2', mood: 4, lunchTime: '12:30' },
+  { id: '4', name: 'Diana Miller', avatar: 'https://picsum.photos/seed/user4/200/200', status: 'office', role: 'Product Manager', department: 'Product', dnd: false, points: 1100, birthday: '1992-09-05', seat: 'C1', mood: 2 },
+  { id: '5', name: 'Ethan Davis', avatar: 'https://picsum.photos/seed/user5/200/200', status: 'away', role: 'QA Engineer', department: 'Engineering', dnd: false, points: 600, birthday: '1993-12-10', seat: null, mood: 5 },
+  { id: '6', name: 'Fiona Garcia', avatar: 'https://picsum.photos/seed/user6/200/200', status: 'remote', role: 'Marketing Specialist', department: 'Marketing', dnd: false, points: 950, birthday: '1991-06-18', seat: null, mood: 4 },
+  { id: '7', name: 'George Clark', avatar: 'https://picsum.photos/seed/user7/200/200', status: 'office', role: 'DevOps Engineer', department: 'Engineering', dnd: true, points: 1300, birthday: '1989-08-25', seat: 'A3', mood: 3 },
+  { id: '8', name: 'Hannah Lewis', avatar: 'https://picsum.photos/seed/user8/200/200', status: 'office', role: 'Data Scientist', department: 'Data', dnd: false, points: 1400, birthday: '1994-01-20', seat: 'B4', mood: 1 },
+];
+
+
 // Types for Google API responses
 export type GoogleEmail = {
     id: string;
@@ -145,16 +165,3 @@ export type GoogleCalendarEvent = {
     start: { dateTime?: string; date?: string };
     end: { dateTime?: string; date?: string };
 }
-
-export type OfficeTask = {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  category: 'Soziales' | 'Büro' | 'Spass';
-  isCompleted: boolean;
-  completedBy?: string;
-  completedAt?: any; // Firestore Timestamp
-  createdAt: any; // Firestore Timestamp
-};
-

@@ -6,9 +6,10 @@ import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, 
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
 import { getTeamForUser, createTeamMember } from '@/lib/team-api';
-import type { Team, TeamMembership } from '@/lib/data';
+import type { Team, TeamMember } from '@/lib/data';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import { teamMembers } from '@/lib/data';
 
 interface AuthContextType {
     user: User | null;
@@ -16,7 +17,7 @@ interface AuthContextType {
     accessToken: string | null;
     loading: boolean;
     team: Team | null;
-    teamMember: TeamMembership | null;
+    teamMember: TeamMember | null;
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
     enterPreviewMode: () => void;
@@ -30,7 +31,6 @@ const PREVIEW_USER: User = {
     displayName: 'Gast',
     email: 'gast@officezen.app',
     photoURL: 'https://picsum.photos/seed/guest/200/200',
-    // Add other required User properties with mock values
     emailVerified: true,
     isAnonymous: true,
     metadata: {},
@@ -44,6 +44,14 @@ const PREVIEW_USER: User = {
     toJSON: () => ({}),
 };
 
+const PREVIEW_TEAM: Team = {
+  id: 'preview-team',
+  name: 'Vorschau-Team',
+  ownerId: 'preview-user',
+  joinCode: '000000',
+  createdAt: new Date(),
+}
+
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -51,7 +59,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [team, setTeam] = useState<Team | null>(null);
-    const [teamMember, setTeamMember] = useState<TeamMembership | null>(null);
+    const [teamMember, setTeamMember] = useState<TeamMember | null>(null);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -78,7 +86,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             const teamData = await getTeamForUser(authUser.uid);
             if (teamData) {
                 setTeam(teamData.team);
-                setTeamMember(teamData.membership);
+                const memberData = await getTeamMember(authUser.uid);
+                setTeamMember(memberData);
                 Cookies.set('has-team', 'true', { expires: 1 });
             } else {
                 setTeam(null);
@@ -99,7 +108,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 const teamData = await getTeamForUser(user.uid);
                 if (teamData) {
                     setTeam(teamData.team);
-                    setTeamMember(teamData.membership);
+                    const memberData = await getTeamMember(user.uid);
+                    setTeamMember(memberData);
                     Cookies.set('has-team', 'true', { expires: 1 });
                 } else {
                     setTeam(null);
@@ -127,7 +137,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     clearAuthAndTeamState();
                 }
             } else if (isPreviewCookie) {
-                // If no real user but preview cookie exists, enter preview mode
                 enterPreviewMode();
             } else {
                 clearAuthAndTeamState();
@@ -141,11 +150,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(true);
         setUser(PREVIEW_USER);
         setIsPreview(true);
-        setTeam(null);
-        setTeamMember(null);
+        setTeam(PREVIEW_TEAM);
+        setTeamMember(teamMembers[0]); // Use first mock member as the preview user
         Cookies.set('is-preview', 'true', { expires: 1 });
         Cookies.remove('firebase-auth-token');
-        Cookies.remove('has-team');
+        Cookies.set('has-team', 'true'); // Pretend we have a team
         router.push('/dashboard');
         setLoading(false);
     };
@@ -155,7 +164,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         try {
             Cookies.remove('is-preview');
             const result = await signInWithPopup(auth, provider);
-            // The onAuthStateChanged listener will handle the rest
         } catch (error: any) {
             console.error("Authentication error:", error);
             if (error.code === 'auth/unauthorized-domain') {
@@ -174,24 +182,19 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 });
             }
         } finally {
-            // setLoading(false) is handled by onAuthStateChanged
         }
     };
 
     const signOut = async () => {
         setLoading(true);
-        if (isPreview) {
-            clearAuthAndTeamState();
-            router.push('/');
-        } else {
+        clearAuthAndTeamState();
+        if (!isPreview) {
             try {
                 await firebaseSignOut(auth);
-                // onAuthStateChanged will trigger clearAuthAndTeamState
                 toast({
                     title: "Abgemeldet",
                     description: "Du wurdest erfolgreich abgemeldet.",
                 });
-                router.push('/');
             } catch (error: any) {
                  toast({
                     variant: "destructive",
@@ -200,6 +203,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 });
             }
         }
+        router.push('/');
         setLoading(false);
     };
 
@@ -215,3 +219,4 @@ export const useAuth = () => {
     }
     return context;
 };
+

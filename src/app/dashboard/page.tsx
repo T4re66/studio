@@ -16,7 +16,7 @@ import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 import { getTeamMembers } from '@/lib/team-api';
 import { parseISO, differenceInDays } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { teamMembers as mockTeamMembers } from '@/lib/data';
 
 
 const statusClasses: { [key: string]: string } = {
@@ -58,51 +58,32 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     return <>{displayValue.toLocaleString()}</>;
 }
 
-function NoTeamDashboard() {
-    const { user, isPreview } = useAuth();
-    
-    if (isPreview) {
-        return (
-            <div className="flex flex-col items-center justify-center">
-                <PageHeader
-                    title={`Willkommen im Vorschau-Modus!`}
-                    description="Hier siehst du, wie dein Dashboard aussehen könnte. Erkunde die App!"
-                />
-            </div>
-        )
-    }
-
-    return (
-        <div className="flex flex-col items-center justify-center">
-            <PageHeader
-                title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
-                description="Du bist noch keinem Team beigetreten. Erstelle eines oder tritt einem bei, um loszulegen."
-            />
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                 <Link href="/team/select"><Button size="lg" className="w-full h-24 text-lg">Team beitreten</Button></Link>
-                 <Link href="/team/select"><Button size="lg" variant="outline" className="w-full h-24 text-lg">Team erstellen</Button></Link>
-            </div>
-        </div>
-    )
-}
-
 
 export default function DashboardPage() {
-  const { user, accessToken, team, loading: authLoading } = useAuth();
+  const { user, accessToken, team, loading: authLoading, isPreview } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const currentUser = useMemo(() => teamMembers.find(m => m.id === user?.uid) || null, [teamMembers, user]);
-  const sortedLeaderboard = useMemo(() => [...teamMembers].sort((a,b) => b.points - a.points), [teamMembers]);
-  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === user?.uid) + 1, [sortedLeaderboard, user]);
+  const currentUser = useMemo(() => {
+    const members = isPreview ? mockTeamMembers : teamMembers;
+    return members.find(m => m.id === user?.uid) || (isPreview ? mockTeamMembers[0] : null);
+  }, [teamMembers, user, isPreview]);
+  
+  const sortedLeaderboard = useMemo(() => {
+      const members = isPreview ? mockTeamMembers : teamMembers;
+      return [...members].sort((a,b) => b.points - a.points)
+  }, [teamMembers, isPreview]);
+
+  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === currentUser?.id) + 1, [sortedLeaderboard, currentUser]);
 
   const nextBirthday = useMemo(() => {
+      const members = isPreview ? mockTeamMembers : teamMembers;
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      const upcoming = teamMembers
+      const upcoming = members
         .filter(m => m.birthday)
         .map(member => {
             const birthDate = parseISO(member.birthday);
@@ -119,11 +100,12 @@ export default function DashboardPage() {
     
       return upcoming[0] || null;
 
-  }, [teamMembers]);
+  }, [teamMembers, isPreview]);
 
   const nextBreakMatch = useMemo(() => {
+      const members = isPreview ? mockTeamMembers : teamMembers;
       const lunchGroups: { [time: string]: TeamMember[] } = {};
-      teamMembers.forEach(member => {
+      members.forEach(member => {
           if (member.lunchTime) {
               if (!lunchGroups[member.lunchTime]) lunchGroups[member.lunchTime] = [];
               lunchGroups[member.lunchTime].push(member);
@@ -134,11 +116,17 @@ export default function DashboardPage() {
           return { user1: matches[0][0], user2: matches[0][1], time: matches[0][0].lunchTime || '' };
       }
       return null;
-  }, [teamMembers]);
+  }, [teamMembers, isPreview]);
 
 
   useEffect(() => {
     async function loadData() {
+        if (isPreview) {
+            setTeamMembers(mockTeamMembers);
+            setLoading(false);
+            return;
+        }
+
         if (user && team) {
             setLoading(true);
             const members = await getTeamMembers(team.id);
@@ -150,9 +138,10 @@ export default function DashboardPage() {
         }
     }
     loadData();
-  }, [user, team]);
+  }, [user, team, isPreview]);
 
-  const onlineMembers = teamMembers.filter(m => m.status === 'office');
+  const displayMembers = isPreview ? mockTeamMembers : teamMembers;
+  const onlineMembers = displayMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;
 
@@ -174,13 +163,19 @@ export default function DashboardPage() {
             } finally {
                 setIsLoadingBriefing(false);
             }
+        } else if (isPreview) {
+            setIsLoadingBriefing(true);
+            setTimeout(() => {
+                 setBriefing("Guten Morgen! Du hast 2 ungelesene E-Mails, eine davon von 'Projekt Phoenix' bezüglich des wöchentlichen Syncs. Dein erster Termin ist das 'Project Phoenix Sync' um 10:00 Uhr. Geniesse den produktiven Tag!");
+                 setIsLoadingBriefing(false);
+            }, 1000);
         }
     };
     loadBriefing();
-  }, [accessToken]);
+  }, [accessToken, isPreview]);
 
 
-  if (authLoading) {
+  if (authLoading || loading) {
       return (
           <div className="flex h-full w-full items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -188,17 +183,27 @@ export default function DashboardPage() {
       )
   }
 
-  if (!team) {
-      return <NoTeamDashboard />;
+  if (!team && !isPreview) {
+    return (
+        <div className="flex flex-col items-center justify-center">
+            <PageHeader
+                title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
+                description="Du bist noch keinem Team beigetreten. Erstelle eines oder tritt einem bei, um loszulegen."
+            />
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+                 <Link href="/team/select"><Button size="lg" className="w-full h-24 text-lg">Team beitreten</Button></Link>
+                 <Link href="/team/select"><Button size="lg" variant="outline" className="w-full h-24 text-lg">Team erstellen</Button></Link>
+            </div>
+        </div>
+    )
   }
-
-  const pageDescription = `Willkommen zurück bei Team "${team.name}"! Hier ist dein Überblick für heute.`;
-
+  
+  const pageDescription = team ? `Willkommen zurück bei Team "${team.name}"! Hier ist dein Überblick für heute.` : "Hier ist ein Überblick, wie dein Dashboard aussehen könnte. Erkunde die App!";
 
   return (
     <div className="flex flex-col gap-8 fade-in">
       <PageHeader
-        title={`Hallo, ${currentUser?.name?.split(' ')[0] || user?.displayName?.split(' ')[0] || 'Gast'}!`}
+        title={`Hallo, ${currentUser?.name?.split(' ')[0] || 'Gast'}!`}
         description={pageDescription}
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -207,16 +212,14 @@ export default function DashboardPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
+                    <CardDescription>{onlineMembers.length} von {displayMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 
                         className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
                         style={{ background: 'var(--gradient)'}}
                     />
-                    {loading ? (
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    ) : onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
+                    {onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
                         const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
                         return (
                             <TooltipProvider key={member.id}>
