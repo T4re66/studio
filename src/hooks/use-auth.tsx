@@ -43,11 +43,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         
         await createTeamMember(authUser); // Ensure user profile exists in 'users' collection
         
-        const teamData = await getTeamForUser(authUser.uid);
-        if (teamData) {
-            setTeam(teamData.team);
-            setTeamMember(teamData.membership);
-        } else {
+        try {
+            const teamData = await getTeamForUser(authUser.uid);
+            if (teamData) {
+                setTeam(teamData.team);
+                setTeamMember(teamData.membership);
+            } else {
+                setTeam(null);
+                setTeamMember(null);
+            }
+        } catch (error) {
+            console.warn("User is not part of any team, continuing without team context.");
             setTeam(null);
             setTeamMember(null);
         }
@@ -55,13 +61,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     const refetchTeam = useCallback(async () => {
         if (user) {
-            const teamData = await getTeamForUser(user.uid);
-            if (teamData) {
-                setTeam(teamData.team);
-                setTeamMember(teamData.membership);
-            } else {
-                setTeam(null);
-                setTeamMember(null);
+             try {
+                const teamData = await getTeamForUser(user.uid);
+                if (teamData) {
+                    setTeam(teamData.team);
+                    setTeamMember(teamData.membership);
+                } else {
+                    setTeam(null);
+                    setTeamMember(null);
+                }
+            } catch (error) {
+                 setTeam(null);
+                 setTeamMember(null);
             }
         }
     }, [user]);

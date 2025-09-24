@@ -35,8 +35,12 @@ export function CheckinForm() {
   }, [team]);
 
   const handleSubmit = async () => {
-    if (!user || !team) {
-        toast({ variant: 'destructive', title: 'Fehler', description: 'Du musst angemeldet und Teil eines Teams sein.' });
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Fehler', description: 'Du musst angemeldet sein.' });
+        return;
+    }
+     if (!team) {
+        toast({ variant: 'destructive', title: 'Kein Team', description: 'Du musst Mitglied eines Teams sein, um einzuchecken. Gehe zu den Einstellungen, um einem Team beizutreten.' });
         return;
     }
     if (status === 'office' && !selectedSeat) {

@@ -16,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, team } = useAuth();
+  const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,25 +24,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     if (loading) return; // Wait until loading is finished
 
     const isAuthRoute = pathname === '/';
-    const isTeamSelectionRoute = pathname === '/team/select';
 
-    if (user) {
-      // User is logged in
-      if (!team && !isTeamSelectionRoute) {
-        // Logged in but no team, and not on the team selection page -> redirect
-        router.replace('/team/select');
-      } else if (team && (isTeamSelectionRoute || isAuthRoute)) {
-        // Logged in with a team, but on team selection or landing page -> redirect to dashboard
+    if (user && isAuthRoute) {
+        // User is logged in and on the landing page, redirect to dashboard
         router.replace('/dashboard');
-      }
-    } else {
-      // User is not logged in
-      if (!isAuthRoute) {
-        // Not logged in and not on the public landing page -> redirect there
-        router.replace('/');
-      }
+    } else if (!user && !isAuthRoute) {
+      // User is not logged in and not on the public landing page -> redirect there
+      router.replace('/');
     }
-  }, [user, loading, team, pathname, router]);
+  }, [user, loading, pathname, router]);
 
   if (loading) {
     return (
@@ -52,9 +42,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Routes that should not have a sidebar
-  const noSidebarRoutes = ['/', '/team/select'];
-  const showSidebar = user && team && !noSidebarRoutes.includes(pathname);
+  // Render children without sidebar for auth pages
+  const noSidebarRoutes = ['/'];
+  const showSidebar = user && !noSidebarRoutes.includes(pathname);
   
   if (showSidebar) {
     return (
@@ -73,7 +63,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
   
-  // Render children without sidebar for auth pages, team selection, etc.
+  // Render children without sidebar for public landing page
   return <>{children}</>;
 }
 

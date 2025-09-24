@@ -1,5 +1,5 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, writeBatch } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, orderBy, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 import type { User as FirebaseUser } from "firebase/auth";
 import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note, Team, TeamMembership } from "./data";
@@ -96,7 +96,7 @@ export async function getTeamForUser(userId: string): Promise<{ team: Team, memb
     return { team: teamData, membership: membershipData };
 }
 
-export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
+export async function getTeamMembers(teamId: string | undefined): Promise<TeamMember[]> {
     if (!teamId) return [];
     try {
         const teamMembersRef = collection(db, "teamMembers");
@@ -106,6 +106,8 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
         if (membershipSnapshot.empty) return [];
 
         const userIds = membershipSnapshot.docs.map(doc => doc.data().userId);
+        
+        if (userIds.length === 0) return [];
         
         const usersRef = collection(db, "users");
         const usersQuery = query(usersRef, where('id', 'in', userIds));
@@ -120,6 +122,7 @@ export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
 }
 
 export async function getTeamMember(userId: string): Promise<TeamMember | null> {
+    if (!userId) return null;
     try {
         const memberDocRef = doc(db, `users`, userId);
         const docSnap = await getDoc(memberDocRef);
@@ -160,7 +163,8 @@ export async function createTeamMember(user: FirebaseUser): Promise<void> {
     }
 }
 
-export async function updateUserCheckin(userId: string, teamId: string, checkinData: {status: TeamMember['status'], mood: number, seat: string | null}): Promise<void> {
+export async function updateUserCheckin(userId: string, teamId: string | undefined, checkinData: {status: TeamMember['status'], mood: number, seat: string | null}): Promise<void> {
+    if (!userId || !teamId) throw new Error("Benutzer- oder Team-ID fehlt.");
     try {
         const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, {
@@ -175,6 +179,7 @@ export async function updateUserCheckin(userId: string, teamId: string, checkinD
 }
 
 export async function updateTeamMemberBirthday(userId: string, birthday: string): Promise<void> {
+    if (!userId) return;
     try {
         const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, { birthday });
@@ -185,6 +190,7 @@ export async function updateTeamMemberBirthday(userId: string, birthday: string)
 }
 
 export async function updateMyBreakTimes(userId: string, lunchTime: string, coffeeTime: string): Promise<void> {
+    if (!userId) return;
     try {
         const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, { lunchTime, coffeeTime });
@@ -199,7 +205,7 @@ export async function updateMyBreakTimes(userId: string, lunchTime: string, coff
 // GAMIFICATION API (Tasks, Shop)
 // =================================
 
-export async function getTasks(teamId: string): Promise<OfficeTask[]> {
+export async function getTasks(teamId: string | undefined): Promise<OfficeTask[]> {
     if (!teamId) return [];
     try {
         const tasksCollectionRef = collection(db, 'teams', teamId, 'tasks');
@@ -212,8 +218,8 @@ export async function getTasks(teamId: string): Promise<OfficeTask[]> {
     }
 }
 
-export async function addTask(teamId: string, task: Omit<OfficeTask, 'id' | 'isCompleted'>): Promise<void> {
-    if (!teamId) return;
+export async function addTask(teamId: string | undefined, task: Omit<OfficeTask, 'id' | 'isCompleted'>): Promise<void> {
+    if (!teamId) throw new Error("Kein Team ausgewählt, um eine Aufgabe hinzuzufügen.");
     try {
         const tasksCollectionRef = collection(db, 'teams', teamId, 'tasks');
         await addDoc(tasksCollectionRef, {
@@ -227,8 +233,8 @@ export async function addTask(teamId: string, task: Omit<OfficeTask, 'id' | 'isC
     }
 }
 
-export async function completeTask(teamId: string, taskId: string, userId: string): Promise<void> {
-    if (!teamId) return;
+export async function completeTask(teamId: string | undefined, taskId: string, userId: string): Promise<void> {
+    if (!teamId || !userId) throw new Error("Team- oder Benutzer-ID fehlt.");
     const taskDocRef = doc(db, 'teams', teamId, 'tasks', taskId);
     const memberDocRef = doc(db, `users`, userId);
 
@@ -243,7 +249,7 @@ export async function completeTask(teamId: string, taskId: string, userId: strin
     });
 }
 
-export async function getShopItems(teamId: string): Promise<ShopItem[]> {
+export async function getShopItems(teamId: string | undefined): Promise<ShopItem[]> {
     if (!teamId) return [];
      try {
         const shopItemsRef = collection(db, 'teams', teamId, 'shop_items');
@@ -256,8 +262,8 @@ export async function getShopItems(teamId: string): Promise<ShopItem[]> {
     }
 }
 
-export async function addShopItem(teamId: string, item: Omit<ShopItem, 'id'>): Promise<void> {
-    if (!teamId) return;
+export async function addShopItem(teamId: string | undefined, item: Omit<ShopItem, 'id'>): Promise<void> {
+    if (!teamId) throw new Error("Kein Team ausgewählt, um ein Angebot hinzuzufügen.");
     try {
         const shopItemsRef = collection(db, 'teams', teamId, 'shop_items');
         await addDoc(shopItemsRef, {
@@ -270,7 +276,8 @@ export async function addShopItem(teamId: string, item: Omit<ShopItem, 'id'>): P
     }
 }
 
-export async function purchaseShopItem(userId: string, teamId: string, item: ShopItem): Promise<void> {
+export async function purchaseShopItem(userId: string, teamId: string | undefined, item: ShopItem): Promise<void> {
+    if (!teamId || !userId) throw new Error("Team- oder Benutzer-ID fehlt.");
     const memberDocRef = doc(db, `users`, userId);
 
     await runTransaction(db, async (transaction) => {
@@ -297,7 +304,7 @@ export async function purchaseShopItem(userId: string, teamId: string, item: Sho
 // OFFICE API (Fridge, Tournaments)
 // =================================
 
-export async function getFridgeItems(teamId: string): Promise<FridgeItem[]> {
+export async function getFridgeItems(teamId: string | undefined): Promise<FridgeItem[]> {
     if (!teamId) return [];
     try {
         const itemsRef = collection(db, 'teams', teamId, 'fridge_items');
@@ -310,8 +317,8 @@ export async function getFridgeItems(teamId: string): Promise<FridgeItem[]> {
     }
 }
 
-export async function addFridgeItem(teamId: string, item: Omit<FridgeItem, 'id'>): Promise<void> {
-    if (!teamId) return;
+export async function addFridgeItem(teamId: string | undefined, item: Omit<FridgeItem, 'id'>): Promise<void> {
+    if (!teamId) throw new Error("Kein Team ausgewählt, um einen Artikel hinzuzufügen.");
     try {
         const itemsRef = collection(db, 'teams', teamId, 'fridge_items');
         await addDoc(itemsRef, {
@@ -325,7 +332,7 @@ export async function addFridgeItem(teamId: string, item: Omit<FridgeItem, 'id'>
 }
 
 
-export async function getTournaments(teamId: string): Promise<Tournament[]> {
+export async function getTournaments(teamId: string | undefined): Promise<Tournament[]> {
     if (!teamId) return [];
     try {
         const tournamentsCollectionRef = collection(db, 'teams', teamId, 'tournaments');
@@ -342,8 +349,8 @@ export async function getTournaments(teamId: string): Promise<Tournament[]> {
     }
 }
 
-export async function updateTournamentMatch(teamId: string, tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
-    if (!teamId) return;
+export async function updateTournamentMatch(teamId: string | undefined, tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
+    if (!teamId) throw new Error("Kein Team ausgewählt.");
     try {
         const tournamentDocRef = doc(db, 'teams', teamId, 'tournaments', tournamentId);
         const tournamentDoc = await getDoc(tournamentDocRef);
@@ -367,6 +374,7 @@ export async function updateTournamentMatch(teamId: string, tournamentId: string
 // =================================
 
 export async function getNotes(userId: string): Promise<Note[]> {
+    if (!userId) return [];
     try {
         const notesRef = collection(db, `users/${userId}/notes`);
         const q = query(notesRef, orderBy('date', 'desc'));
@@ -379,6 +387,7 @@ export async function getNotes(userId: string): Promise<Note[]> {
 }
 
 export async function addNote(userId: string, note: Omit<Note, 'id' | 'userId' | 'date'>): Promise<void> {
+    if (!userId) throw new Error("Kein Benutzer angemeldet, um Notiz zu speichern.");
     try {
         const notesRef = collection(db, `users/${userId}/notes`);
         await addDoc(notesRef, {
