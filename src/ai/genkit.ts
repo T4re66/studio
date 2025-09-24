@@ -15,7 +15,4 @@ export const ai = genkit({
       apiVersion: 'v1beta',
     }),
   ],
-  // Enabling OpenTelemetry is crucial for tracing and monitoring the performance of AI flows.
-  // It provides insights into the execution of generative models and helps in identifying bottlenecks.
-  enableOpenTelemetry: true,
 });
