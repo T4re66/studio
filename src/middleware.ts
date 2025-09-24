@@ -18,6 +18,7 @@ const PROTECTED_ROUTES = [
     '/check-in',
     '/grades',
     '/settings',
+    '/dashboard',
 ];
 
 export function middleware(request: NextRequest) {
@@ -36,15 +37,6 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
     
-    // Allow access to the dashboard regardless of team status
-    if (pathname.startsWith('/dashboard')) {
-        if (!hasFirebaseToken) {
-            return NextResponse.redirect(new URL('/', request.url));
-        }
-        return NextResponse.next();
-    }
-
-
     // User is trying to access a protected route
     if (PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
         // If not logged in, redirect to landing page
@@ -58,7 +50,7 @@ export function middleware(request: NextRequest) {
     }
     
     // User is on the team select page
-    if (pathname === '/team/select') {
+    if (pathname.startsWith('/team/select')) {
         // If not logged in, redirect to landing page
         if (!hasFirebaseToken) {
              return NextResponse.redirect(new URL('/', request.url));

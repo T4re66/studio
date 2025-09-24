@@ -56,26 +56,6 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     return <>{displayValue.toLocaleString()}</>;
 }
 
-function NoTeamDashboard() {
-    return (
-        <Card className="lg:col-span-3">
-            <CardContent className="p-8 text-center flex flex-col items-center">
-                <Users className="h-16 w-16 text-primary mb-4" />
-                <h2 className="text-2xl font-headline font-bold mb-2">Willkommen bei OfficeZen!</h2>
-                <p className="text-muted-foreground max-w-md mb-6">
-                    Um loszulegen, erstelle ein neues Team und lade deine Kollegen ein oder tritt einem bestehenden Team bei.
-                </p>
-                <div className="flex gap-4">
-                    <Link href="/team/select">
-                        <Button size="lg">Team erstellen oder beitreten</Button>
-                    </Link>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
-
 export default function DashboardPage() {
   const { user, accessToken, team } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
@@ -181,82 +161,77 @@ export default function DashboardPage() {
       />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {!team ? (
-            <NoTeamDashboard />
-        ) : (
-             <div className="lg:col-span-2 flex flex-col gap-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                        <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
-                        <div 
-                            className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
-                            style={{ background: 'var(--gradient)'}}
-                        />
-                        {loading ? (
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        ) : onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
-                            const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
-                            return (
-                                <TooltipProvider key={member.id}>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Link href={`/people#${member.id}`}>
-                                                <Avatar 
-                                                    className="h-14 w-14 border-2 border-card absolute transition-transform duration-300 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 hover:border-primary"
-                                                    style={position}
-                                                >
-                                                    {member.avatar && <AvatarImage src={member.avatar} alt={member.name || ''} />}
-                                                    <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
-                                                    <span className={cn("absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-background", statusClasses[member.status])} />
-                                                </Avatar>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="font-semibold">{member.name}</p>
-                                            <p className="text-muted-foreground">Tisch {member.seat}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            )
-                        }) : (
-                            <p className="text-muted-foreground">Heute ist niemand im Büro.</p>
-                        )}
-                    </CardContent>
-                </Card>
+        <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
+                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
+                    <div 
+                        className="absolute w-[50%] h-full rounded-[50%] transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 opacity-50 blur-2xl"
+                        style={{ background: 'var(--gradient)'}}
+                    />
+                    {loading ? (
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    ) : onlineMembers.length > 0 ? onlineMembers.map((member, index) => {
+                        const position = getSeatPosition(index, onlineMembers.length, tableWidth, tableHeight);
+                        return (
+                            <TooltipProvider key={member.id}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link href={`/people#${member.id}`}>
+                                            <Avatar 
+                                                className="h-14 w-14 border-2 border-card absolute transition-transform duration-300 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 hover:border-primary"
+                                                style={position}
+                                            >
+                                                {member.avatar && <AvatarImage src={member.avatar} alt={member.name || ''} />}
+                                                <AvatarFallback>{member.name?.charAt(0)}</AvatarFallback>
+                                                <span className={cn("absolute bottom-0 right-0 block h-3.5 w-3.5 rounded-full border-2 border-background", statusClasses[member.status])} />
+                                            </Avatar>
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="font-semibold">{member.name}</p>
+                                        <p className="text-muted-foreground">Tisch {member.seat}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )
+                    }) : (
+                        <p className="text-muted-foreground">Heute ist niemand im Büro.</p>
+                    )}
+                </CardContent>
+            </Card>
 
-                <Card className="flex-1 flex flex-col bg-primary/5 border-primary/20">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-lg">
-                            <Sparkles className="text-primary h-5 w-5"/>
-                            Tages-Briefing
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-1 space-y-4 overflow-y-auto">
-                        {isLoadingBriefing ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <Loader2 className="h-4 w-4 animate-spin"/>
-                                <span>KI-Zusammenfassung wird generiert...</span>
-                            </div>
-                        ) : (
-                            <p className="text-sm text-foreground/80 whitespace-pre-wrap">
-                                {briefing || "Verbinde dein Google-Konto, um ein persönliches Tages-Briefing zu erhalten."}
-                            </p>
-                        )}
-                    </CardContent>
-                    <CardFooter className="flex justify-end">
-                        <Link href="/briefing">
-                            <Button variant="ghost" size="sm">Zum Briefing <ArrowRight className="ml-2"/></Button>
-                        </Link>
-                    </CardFooter>
-                </Card>
-            </div>
-        )}
+            <Card className="flex-1 flex flex-col bg-primary/5 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                        <Sparkles className="text-primary h-5 w-5"/>
+                        Tages-Briefing
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4 overflow-y-auto">
+                    {isLoadingBriefing ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            <span>KI-Zusammenfassung wird generiert...</span>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+                            {briefing || "Verbinde dein Google-Konto, um ein persönliches Tages-Briefing zu erhalten."}
+                        </p>
+                    )}
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                    <Link href="/briefing">
+                        <Button variant="ghost" size="sm">Zum Briefing <ArrowRight className="ml-2"/></Button>
+                    </Link>
+                </CardFooter>
+            </Card>
+        </div>
         
-       {team && (
-         <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
+        <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
             <Link href="/breaks" className="sm:col-span-1">
                 <Card className="h-full flex flex-col justify-between transform transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
                      <CardHeader>
@@ -337,7 +312,6 @@ export default function DashboardPage() {
                 </Card>
             </Link>
         </div>
-       )}
       </div>
     </div>
   );
