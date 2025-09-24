@@ -38,6 +38,18 @@ export function middleware(request: NextRequest) {
     if (!isAuthenticated && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/', request.url));
     }
+
+    // This block handles redirection for non-preview users without a team.
+    // It is skipped if the user is in preview mode.
+    if (hasFirebaseToken && !isPreview) {
+        const hasTeam = request.cookies.get('has-team')?.value === 'true';
+        if (!hasTeam && pathname !== '/team/select') {
+            return NextResponse.redirect(new URL('/team/select', request.url));
+        }
+        if (hasTeam && pathname === '/team/select') {
+            return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+    }
     
     // Allow the request to proceed
     return NextResponse.next();
