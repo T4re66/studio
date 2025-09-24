@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Mic, MicOff, Signal, X, Radio, PartyPopper } from 'lucide-react';
@@ -11,27 +11,20 @@ import { useToast } from '@/hooks/use-toast';
 import type { TeamMember } from '@/lib/data';
 import { PartyConfetti } from './party-confetti';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeamMembers } from '@/lib/team-api';
 import { motion } from 'framer-motion';
 
 export function FloatingWalkieTalkie() {
-    const { user, team } = useAuth();
+    const { user, team, teamMembers } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isTalking, setIsTalking] = useState(false);
     const [selectedUser, setSelectedUser] = useState<TeamMember | null>(null);
     const [isPartyMode, setIsPartyMode] = useState(false);
-    const [onlineUsers, setOnlineUsers] = useState<TeamMember[]>([]);
     const { toast } = useToast();
 
-    useEffect(() => {
-        if (user && team && isOpen) {
-            getTeamMembers(team.id).then(members => {
-                const online = members.filter(m => m.status === 'office' && m.id !== user.uid);
-                setOnlineUsers(online);
-            });
-        }
-    }, [user, team, isOpen]);
+    const onlineUsers = useMemo(() => {
+        return teamMembers.filter(m => m.status === 'office' && m.id !== user?.uid);
+    }, [teamMembers, user]);
 
 
     const handleToggleOpen = () => {

@@ -8,39 +8,21 @@ import { UserCard } from "@/components/people/user-card"
 import { UserProfileDialog } from "@/components/people/user-profile-dialog"
 import type { TeamMember } from "@/lib/data"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2 } from "lucide-react"
-import { getTeamMembers } from "@/lib/team-api"
 
 
 export default function PeoplePage() {
-  const { user, team } = useAuth();
+  const { teamMembers, loading, refetchTeam } = useAuth();
   const [selectedUser, setSelectedUser] = useState<TeamMember | null>(null);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchMembers = async () => {
-      if (!team) return;
-      setLoading(true);
-      const members = await getTeamMembers(team.id);
-      setTeamMembers(members);
-      setLoading(false);
-  }
-
-  useEffect(() => {
-    if (user && team) {
-        fetchMembers();
-    } else {
-        setTeamMembers([]);
-        setLoading(false);
-    }
-  }, [user, team]);
-
-  const filteredMembers = teamMembers.filter(member => 
-    member.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMembers = useMemo(() => {
+    return teamMembers.filter(member => 
+      member.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [teamMembers, searchTerm]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -86,7 +68,7 @@ export default function PeoplePage() {
         user={selectedUser} 
         open={!!selectedUser} 
         onOpenChange={(open) => !open && setSelectedUser(null)}
-        onUserUpdate={fetchMembers}
+        onUserUpdate={refetchTeam}
       />
     </div>
   );

@@ -14,9 +14,8 @@ import type { TeamMember } from "@/lib/data";
 import { useAuth } from '@/hooks/use-auth';
 import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
-import { getTeamMembers } from '@/lib/team-api';
 import { parseISO, differenceInDays } from 'date-fns';
-import { teamMembers as mockTeamMembers, liveEmails, liveCalendarEvents } from '@/lib/data';
+import { liveEmails, liveCalendarEvents } from '@/lib/data';
 
 
 const statusClasses: { [key: string]: string } = {
@@ -60,52 +59,26 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 
 
 export default function DashboardPage() {
-  const { user, accessToken, team, loading: authLoading, isPreview } = useAuth();
+  const { user, accessToken, team, teamMembers, teamMember, loading, isPreview } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
-  const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loadingTeam, setLoadingTeam] = useState(true);
+  const [isLoadingBriefing, setIsLoadingBriefing] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-        if (authLoading) return;
-
-        if (isPreview) {
-            setTeamMembers(mockTeamMembers);
-            setLoadingTeam(false);
-            return;
-        }
-
-        if (user && team) {
-            setLoadingTeam(true);
-            const members = await getTeamMembers(team.id);
-            setTeamMembers(members);
-            setLoadingTeam(false);
-        } else {
-            setTeamMembers([]);
-            setLoadingTeam(false);
-        }
-    }
-    loadData();
-  }, [user, team, isPreview, authLoading]);
-
-  const displayMembers = useMemo(() => isPreview ? mockTeamMembers : teamMembers, [isPreview, teamMembers]);
-
-  const currentUser = useMemo(() => {
-    return displayMembers.find(m => m.id === (isPreview ? 'preview-user' : user?.uid)) || null;
-  }, [displayMembers, user, isPreview]);
+  const currentUser = teamMember;
   
   const sortedLeaderboard = useMemo(() => {
-      return [...displayMembers].sort((a,b) => b.points - a.points)
-  }, [displayMembers]);
+      return [...teamMembers].sort((a,b) => b.points - a.points)
+  }, [teamMembers]);
 
-  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === currentUser?.id) + 1, [sortedLeaderboard, currentUser]);
+  const currentUserRank = useMemo(() => {
+    if (!currentUser) return 0;
+    return sortedLeaderboard.findIndex(m => m.id === currentUser.id) + 1;
+  }, [sortedLeaderboard, currentUser]);
 
   const nextBirthday = useMemo(() => {
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      const upcoming = displayMembers
+      const upcoming = teamMembers
         .filter(m => m.birthday)
         .map(member => {
             const birthDate = parseISO(member.birthday);
@@ -122,11 +95,11 @@ export default function DashboardPage() {
     
       return upcoming[0] || null;
 
-  }, [displayMembers]);
+  }, [teamMembers]);
 
   const nextBreakMatch = useMemo(() => {
       const lunchGroups: { [time: string]: TeamMember[] } = {};
-      displayMembers.forEach(member => {
+      teamMembers.forEach(member => {
           if (member.lunchTime) {
               if (!lunchGroups[member.lunchTime]) lunchGroups[member.lunchTime] = [];
               lunchGroups[member.lunchTime].push(member);
@@ -137,16 +110,14 @@ export default function DashboardPage() {
           return { user1: matches[0][0], user2: matches[0][1], time: matches[0][0].lunchTime || '' };
       }
       return null;
-  }, [displayMembers]);
+  }, [teamMembers]);
 
-  const onlineMembers = useMemo(() => displayMembers.filter(m => m.status === 'office'), [displayMembers]);
+  const onlineMembers = useMemo(() => teamMembers.filter(m => m.status === 'office'), [teamMembers]);
   const tableWidth = 45;
   const tableHeight = 90;
 
   useEffect(() => {
     const loadBriefing = async () => {
-        if (authLoading) return;
-        
         setIsLoadingBriefing(true);
         if (isPreview) {
             const summary = await getDailyBriefing({ emails: liveEmails, events: liveCalendarEvents });
@@ -169,11 +140,13 @@ export default function DashboardPage() {
         }
         setIsLoadingBriefing(false);
     };
-    loadBriefing();
-  }, [accessToken, isPreview, authLoading]);
+    if (!loading) { // Only load briefing when auth is done
+        loadBriefing();
+    }
+  }, [accessToken, isPreview, loading]);
 
 
-  if (authLoading || loadingTeam) {
+  if (loading) {
       return (
           <div className="flex h-full w-full items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -214,7 +187,7 @@ export default function DashboardPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Wer ist heute im Büro?</CardTitle>
-                    <CardDescription>{onlineMembers.length} von {displayMembers.length} Kollegen sind anwesend.</CardDescription>
+                    <CardDescription>{onlineMembers.length} von {teamMembers.length} Kollegen sind anwesend.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 flex items-center justify-center relative p-6 min-h-[350px]">
                     <div 

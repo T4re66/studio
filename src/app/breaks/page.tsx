@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import type { TeamMember } from '@/lib/data';
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getTeamMembers, updateMyBreakTimes } from "@/lib/team-api";
+import { updateMyBreakTimes, getTeamMembers } from "@/lib/team-api";
 import { useToast } from "@/hooks/use-toast";
 
 type Match = {
@@ -20,34 +20,18 @@ type Match = {
 }
 
 export default function BreaksPage() {
-  const { user, team } = useAuth();
+  const { user, team, teamMembers, teamMember, loading, refetchTeam } = useAuth();
   const { toast } = useToast();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [myLunchTime, setMyLunchTime] = useState("12:30");
   const [myCoffeeTime, setMyCoffeeTime] = useState("15:00");
   
-  const currentUser = teamMembers.find(m => m.id === user?.uid);
-
   useEffect(() => {
-    if (user && team) {
-        const fetchMembers = async () => {
-            setLoading(true);
-            const members = await getTeamMembers(team.id);
-            setTeamMembers(members);
-            
-            const me = members.find(m => m.id === user.uid);
-            if (me?.lunchTime) setMyLunchTime(me.lunchTime);
-            if (me?.coffeeTime) setMyCoffeeTime(me.coffeeTime);
-
-            setLoading(false);
-        };
-        fetchMembers();
-    } else {
-        setLoading(false);
+    if (teamMember) {
+      if (teamMember.lunchTime) setMyLunchTime(teamMember.lunchTime);
+      if (teamMember.coffeeTime) setMyCoffeeTime(teamMember.coffeeTime);
     }
-  }, [user, team]);
+  }, [teamMember]);
 
   const { lunchMatches, coffeeMatches } = useMemo(() => {
     const groupBreaks = (breakType: 'lunchTime' | 'coffeeTime') => {
@@ -78,11 +62,7 @@ export default function BreaksPage() {
             title: "Pausenzeiten gespeichert!",
             description: "Deine Pausenzeiten wurden erfolgreich aktualisiert.",
         });
-        // Refetch to update UI
-        if (team) {
-            const members = await getTeamMembers(team.id);
-            setTeamMembers(members);
-        }
+        await refetchTeam(); // Refetch all data to update UI
     } catch (e) {
         toast({
             variant: 'destructive',

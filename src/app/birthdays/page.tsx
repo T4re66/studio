@@ -10,30 +10,15 @@ import type { TeamMember } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { getTeamMembers } from "@/lib/team-api";
 
 
 export default function BirthdaysPage() {
-    const { user, team } = useAuth();
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { teamMembers, loading } = useAuth();
     const [currentMonth, setCurrentMonth] = useState<number | null>(null);
 
     useEffect(() => {
         setCurrentMonth(getMonth(new Date()));
-        if (user && team) {
-            const fetchMembers = async () => {
-                setLoading(true);
-                const members = await getTeamMembers(team.id);
-                setTeamMembers(members);
-                setLoading(false);
-            }
-            fetchMembers();
-        } else {
-            setTeamMembers([]);
-            setLoading(false);
-        }
-    }, [user, team]);
+    }, []);
 
     const sortedMembers = [...teamMembers].sort((a, b) => {
         if (!a.birthday || !b.birthday) return 0;

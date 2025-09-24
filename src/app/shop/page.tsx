@@ -1,19 +1,18 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2, Plus } from "lucide-react";
-import type { ShopItem, TeamMember } from '@/lib/data';
+import type { ShopItem } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeamMember, getShopItems, purchaseShopItem } from '@/lib/team-api';
+import { getShopItems, purchaseShopItem } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 import { AddShopItemDialog } from '@/components/shop/add-shop-item-dialog';
-import { shopItems as mockShopItems } from '@/lib/data';
 
 const iconComponents: { [key: string]: React.ElementType } = {
     Coffee,
@@ -25,34 +24,24 @@ const iconComponents: { [key: string]: React.ElementType } = {
 };
 
 export default function ShopPage() {
-    const { user, team, isPreview } = useAuth();
+    const { user, team, teamMember, loading, isPreview, refetchTeam } = useAuth();
     const { toast } = useToast();
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
-    const [points, setPoints] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [isDataLoading, setIsDataLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    const points = useMemo(() => teamMember?.points || 0, [teamMember]);
+
     const fetchShopData = async () => {
-        if (isPreview) {
-            setShopItems(mockShopItems);
-            setPoints(1337);
-            setLoading(false);
+        if (!team) {
+            setIsDataLoading(false);
             return;
         }
 
-        if (!user || !team) {
-            setLoading(false);
-            return;
-        };
-
-        setLoading(true);
+        setIsDataLoading(true);
         try {
-            const [items, member] = await Promise.all([
-                getShopItems(team.id),
-                getTeamMember(user.uid) as Promise<TeamMember>
-            ]);
+            const items = await getShopItems(team.id);
             setShopItems(items);
-            setPoints(member?.points || 0);
         } catch (error) {
              toast({
                 variant: 'destructive',
@@ -60,13 +49,15 @@ export default function ShopPage() {
                 description: 'Shop-Daten konnten nicht geladen werden.'
             });
         } finally {
-            setLoading(false);
+            setIsDataLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchShopData();
-    }, [user, team, isPreview]);
+        if (!loading) {
+            fetchShopData();
+        }
+    }, [loading, team]);
 
     const handlePurchase = async (item: ShopItem) => {
         if (isPreview) {
@@ -83,7 +74,7 @@ export default function ShopPage() {
                 title: 'Kauf erfolgreich!',
                 description: `Du hast "${item.title}" für ${item.cost} Punkte gekauft.`
             });
-            await fetchShopData(); // Refetch data to update points
+            await refetchTeam(); // Refetch data to update points in auth context
         } catch (error) {
             const errorMessage = (error instanceof Error) ? error.message : 'Unbekannter Fehler';
             toast({
@@ -94,7 +85,7 @@ export default function ShopPage() {
         }
     }
 
-    if (loading) {
+    if (loading || isDataLoading) {
          return (
             <div className="flex flex-col gap-8">
                 <PageHeader
@@ -170,5 +161,3 @@ export default function ShopPage() {
     </div>
   );
 }
-
-    

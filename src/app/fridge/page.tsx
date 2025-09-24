@@ -10,42 +10,45 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { FridgeCard } from "@/components/fridge/fridge-card"
 import type { FridgeItem, TeamMember } from "@/lib/data"
 import { useAuth } from "@/hooks/use-auth"
-import { getFridgeItems, addFridgeItem, getTeamMembers } from "@/lib/team-api"
+import { getFridgeItems, addFridgeItem } from "@/lib/team-api"
 import { differenceInDays, parseISO } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 
 export default function FridgePage() {
-  const { user, team } = useAuth();
+  const { user, team, teamMembers, loading, isPreview } = useAuth();
   const { toast } = useToast();
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const fetchItems = async () => {
-      if (!user || !team) return;
-      setLoading(true);
+      if (!team) {
+        setIsDataLoading(false);
+        return;
+      };
+      setIsDataLoading(true);
       try {
-        const [items, members] = await Promise.all([getFridgeItems(team.id), getTeamMembers(team.id)]);
+        const items = await getFridgeItems(team.id);
         const itemsWithOwnerNames = items.map(item => {
-            const owner = members.find(m => m.id === item.ownerId);
+            const owner = teamMembers.find(m => m.id === item.ownerId);
             return {
                 ...item,
-                ownerName: owner?.name || item.ownerId === 'team' ? 'Team' : 'Unbekannt'
+                ownerName: owner?.name || (item.ownerId === 'team' ? 'Team' : 'Unbekannt')
             }
         });
         setFridgeItems(itemsWithOwnerNames);
-        setTeamMembers(members);
       } catch (error) {
         toast({ variant: 'destructive', title: 'Fehler', description: 'Kühlschrank-Inhalt konnte nicht geladen werden.' });
       } finally {
-        setLoading(false);
+        setIsDataLoading(false);
       }
   }
 
   useEffect(() => {
-    fetchItems();
-  }, [user, team]);
+    if (!loading) { // Wait for auth loading to finish
+        fetchItems();
+    }
+  }, [loading, team, teamMembers]);
 
   const handleAddItem = async (newItemData: { name: string, expiryDate: string }) => {
     if (!user || !team) return;
@@ -84,7 +87,7 @@ export default function FridgePage() {
   }
 
   const renderItems = (filter: (item: FridgeItem) => boolean) => {
-    if (loading) {
+    if (isDataLoading) {
         return (
             <div className="col-span-full flex justify-center items-center py-12 gap-2 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />

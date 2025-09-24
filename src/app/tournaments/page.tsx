@@ -12,35 +12,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { getTournaments, getTeamMembers, updateTournamentMatch } from '@/lib/team-api';
+import { getTournaments, updateTournamentMatch } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 
 
 export default function TournamentsPage() {
-    const { user, team } = useAuth();
+    const { user, team, teamMembers, loading, refetchTeam } = useAuth();
     const { toast } = useToast();
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isDataLoading, setIsDataLoading] = useState(true);
 
     const fetchTournaments = async () => {
-        if (!team) return;
-        setLoading(true);
-        const [tourneyData, memberData] = await Promise.all([getTournaments(team.id), getTeamMembers(team.id)]);
+        if (!team) {
+            setIsDataLoading(false);
+            return;
+        }
+        setIsDataLoading(true);
+        const tourneyData = await getTournaments(team.id);
         setTournaments(tourneyData);
-        setTeamMembers(memberData);
-        setLoading(false);
+        setIsDataLoading(false);
     }
 
     useEffect(() => {
-        if (user && team) {
+        if (!loading) {
             fetchTournaments();
-        } else {
-            setTournaments([]);
-            setTeamMembers([]);
-            setLoading(false);
         }
-    }, [user, team]);
+    }, [loading, team]);
 
     const handleScoreChange = (tournamentId: string, roundIndex: number, matchIndex: number, teamSide: 'teamA' | 'teamB', score: number) => {
         setTournaments(prev =>
@@ -76,7 +73,7 @@ export default function TournamentsPage() {
     const findUser = (userId: string) => teamMembers.find(u => u.id === userId);
 
     const renderTournament = (tournament: Tournament | undefined) => {
-        if (loading) {
+        if (loading || isDataLoading) {
             return (
                 <div className="flex justify-center items-center py-12 gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />

@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, FC, useCallb
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
-import { getTeamForUser, createTeamMember, getTeamMember } from '@/lib/team-api';
+import { getTeamForUser, createTeamMember, getTeamMember, getTeamMembers } from '@/lib/team-api';
 import type { Team, TeamMember } from '@/lib/data';
 import Cookies from 'js-cookie';
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,6 +18,7 @@ interface AuthContextType {
     loading: boolean;
     team: Team | null;
     teamMember: TeamMember | null;
+    teamMembers: TeamMember[];
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
     enterPreviewMode: () => void;
@@ -60,6 +61,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [team, setTeam] = useState<Team | null>(null);
     const [teamMember, setTeamMember] = useState<TeamMember | null>(null);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const { toast } = useToast();
     const router = useRouter();
     const pathname = usePathname();
@@ -69,6 +71,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setAccessToken(null);
         setTeam(null);
         setTeamMember(null);
+        setTeamMembers([]);
         setIsPreview(false);
         Cookies.remove('firebase-auth-token');
         Cookies.remove('is-preview');
@@ -82,8 +85,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setTeam(PREVIEW_TEAM);
         const previewMember = mockTeamMembers.find(m => m.id === 'preview-user') || null;
         setTeamMember(previewMember);
+        setTeamMembers(mockTeamMembers);
         Cookies.set('is-preview', 'true', { expires: 1 });
         Cookies.set('has-team', 'true', { expires: 1 });
+        setLoading(false);
     }, [clearAuthAndTeamState]);
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
@@ -92,45 +97,55 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setUser(authUser);
         Cookies.set('firebase-auth-token', token, { expires: 1 });
         
+        // Create user doc if it doesn't exist, then fetch all related data in parallel
         await createTeamMember(authUser);
+        const teamDataPromise = getTeamForUser(authUser.uid);
+        const memberDataPromise = getTeamMember(authUser.uid);
+
+        const [teamData, memberData] = await Promise.all([teamDataPromise, memberDataPromise]);
         
-        try {
-            const teamData = await getTeamForUser(authUser.uid);
-            if (teamData) {
-                setTeam(teamData.team);
-                const memberData = await getTeamMember(authUser.uid);
-                setTeamMember(memberData);
-                Cookies.set('has-team', 'true', { expires: 1 });
-            } else {
-                setTeam(null);
-                setTeamMember(null);
-                Cookies.set('has-team', 'false', { expires: 1 });
-            }
-        } catch (error) {
-            console.warn("User may not be part of a team, continuing without team context.");
+        setTeamMember(memberData);
+
+        if (teamData) {
+            setTeam(teamData.team);
+            const allMembers = await getTeamMembers(teamData.team.id);
+            setTeamMembers(allMembers);
+            Cookies.set('has-team', 'true', { expires: 1 });
+        } else {
             setTeam(null);
-            setTeamMember(null);
+            setTeamMembers([]);
             Cookies.set('has-team', 'false', { expires: 1 });
         }
     }, []);
 
     const refetchTeam = useCallback(async () => {
-        if (user && !isPreview) {
+        if (isPreview) {
+            setTeamMembers(mockTeamMembers);
+            return;
+        };
+
+        if (user) {
              try {
                 const teamData = await getTeamForUser(user.uid);
                 if (teamData) {
+                    const [memberData, allMembers] = await Promise.all([
+                        getTeamMember(user.uid),
+                        getTeamMembers(teamData.team.id)
+                    ]);
                     setTeam(teamData.team);
-                    const memberData = await getTeamMember(user.uid);
                     setTeamMember(memberData);
+                    setTeamMembers(allMembers);
                     Cookies.set('has-team', 'true', { expires: 1 });
                 } else {
                     setTeam(null);
                     setTeamMember(null);
+                    setTeamMembers([]);
                     Cookies.set('has-team', 'false', { expires: 1 });
                 }
             } catch (error) {
                  setTeam(null);
                  setTeamMember(null);
+                 setTeamMembers([]);
                  Cookies.set('has-team', 'false', { expires: 1 });
             }
         }
@@ -139,14 +154,14 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
      useEffect(() => {
         const isPreviewCookie = Cookies.get('is-preview') === 'true';
 
+        if (isPreviewCookie) {
+            enterPreviewMode();
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-            if (isPreviewCookie) {
-                // If preview cookie exists, prioritize it and ignore auth state
-                if (!isPreview) {
-                    enterPreviewMode();
-                }
-                setLoading(false);
-            } else if (authUser) {
+            if (authUser) {
+                setLoading(true);
                 try {
                     await fetchUserAndTeamData(authUser);
                 } catch (error) {
@@ -161,23 +176,19 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
         });
 
-        if (isPreviewCookie && !user) {
-            enterPreviewMode();
-            setLoading(false);
-        }
-
         return () => unsubscribe();
-    }, [fetchUserAndTeamData, clearAuthAndTeamState, enterPreviewMode, isPreview, user]);
+    }, [fetchUserAndTeamData, clearAuthAndTeamState, enterPreviewMode]);
 
 
     // This effect handles redirection AFTER authentication state is fully resolved.
     useEffect(() => {
         if (!loading) {
             const isAuthenticated = user || isPreview;
+            const hasTeam = team || isPreview;
             
             if (isAuthenticated && pathname === '/') {
                 router.push('/dashboard');
-            } else if (user && !isPreview && !team && pathname !== '/team/select' && pathname !== '/') {
+            } else if (isAuthenticated && !hasTeam && pathname !== '/team/select' && pathname !== '/') {
                  router.push('/team/select');
             }
         }
@@ -234,7 +245,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(false);
     };
 
-    const value = { user, isPreview, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam, enterPreviewMode };
+    const value = { user, isPreview, accessToken, loading, team, teamMember, teamMembers, signIn, signOut, refetchTeam, enterPreviewMode };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

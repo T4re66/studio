@@ -13,7 +13,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { getTasks, completeTask } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 import { AddTaskDialog } from '@/components/tasks/add-task-dialog';
-import { officeTasks as mockTasks } from '@/lib/data';
 
 const categoryColors = {
     'Soziales': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -23,20 +22,18 @@ const categoryColors = {
 
 
 export default function TasksPage() {
-    const { user, team, isPreview } = useAuth();
+    const { user, team, isPreview, loading, refetchTeam } = useAuth();
     const { toast } = useToast();
     const [tasks, setTasks] = useState<OfficeTask[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [isDataLoading, setIsDataLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchTasks = async () => {
-        if (isPreview) {
-            setTasks(mockTasks);
-            setLoading(false);
+        if (!team) {
+            setIsDataLoading(false);
             return;
         }
-        if (!team) return;
-        setLoading(true);
+        setIsDataLoading(true);
         try {
             const fetchedTasks = await getTasks(team.id);
             setTasks(fetchedTasks);
@@ -47,30 +44,34 @@ export default function TasksPage() {
                 description: 'Aufgaben konnten nicht geladen werden.'
             });
         } finally {
-            setLoading(false);
+            setIsDataLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchTasks();
-    }, [user, team, isPreview]);
+        if (!loading) {
+            fetchTasks();
+        }
+    }, [user, team, isPreview, loading]);
 
     const handleCompleteTask = async (taskId: string, points: number) => {
-        if (!user || !team || isPreview) {
-            toast({
-                title: 'Vorschau-Modus',
-                description: 'Diese Aktion ist im Vorschau-Modus nicht verfügbar.'
-            });
-            return;
-        };
+        if (!user || !team) return;
+        
+        // Optimistic UI update
+        const originalTasks = tasks;
+        const updatedTasks = tasks.map(t => t.id === taskId ? {...t, isCompleted: true} : t);
+        setTasks(updatedTasks);
+        
         try {
             await completeTask(team.id, taskId, user.uid);
             toast({
                 title: 'Aufgabe erledigt!',
                 description: `Du hast ${points} Punkte erhalten!`
             });
-            await fetchTasks();
+            await refetchTeam(); // Refetch user points
         } catch (error) {
+            // Revert UI on error
+            setTasks(originalTasks);
             toast({
                 variant: 'destructive',
                 title: 'Fehler',
@@ -78,8 +79,8 @@ export default function TasksPage() {
             });
         }
     }
-
-    if (loading) {
+    
+    if (loading || isDataLoading) {
         return (
             <div className="flex flex-col gap-8">
                 <PageHeader
@@ -131,7 +132,7 @@ export default function TasksPage() {
                   Erledigt
                 </Button>
               ) : (
-                <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)} disabled={!user}>
+                <Button className="w-full" onClick={() => handleCompleteTask(task.id, task.points)} disabled={!user || isPreview}>
                   <Plus className="mr-2" />
                   Als erledigt markieren
                 </Button>
@@ -149,5 +150,3 @@ export default function TasksPage() {
     </div>
   );
 }
-
-    

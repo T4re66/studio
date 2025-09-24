@@ -8,31 +8,14 @@ import { Crown, Loader2 } from "lucide-react";
 import type { TeamMember } from "@/lib/data";
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getTeamMembers } from "@/lib/team-api";
-import { teamMembers as mockTeamMembers } from "@/lib/data";
 
 export default function LeaderboardPage() {
-    const { user, team, isPreview } = useAuth();
-    const [leaderboard, setLeaderboard] = useState<TeamMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { teamMembers, loading } = useAuth();
 
-    useEffect(() => {
-        const fetchLeaderboard = async () => {
-            setLoading(true);
-            if (isPreview) {
-                const sortedMembers = [...mockTeamMembers].sort((a, b) => b.points - a.points);
-                setLeaderboard(sortedMembers);
-            } else if (user && team) {
-                const members = await getTeamMembers(team.id);
-                const sortedMembers = members.sort((a, b) => b.points - a.points);
-                setLeaderboard(sortedMembers);
-            } else {
-                setLeaderboard([]);
-            }
-            setLoading(false);
-        };
-        fetchLeaderboard();
-    }, [user, team, isPreview]);
+    const leaderboard = useMemo(() => {
+        return [...teamMembers].sort((a, b) => b.points - a.points);
+    }, [teamMembers]);
+
 
     if (loading) {
         return (

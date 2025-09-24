@@ -8,30 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pin, Loader2 } from 'lucide-react';
 import type { TeamMember } from '@/lib/data';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { getTeamMembers } from "@/lib/team-api";
 
 export default function MapPage() {
-    const { user, team } = useAuth();
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { teamMembers, loading } = useAuth();
     const [highlightedSeat, setHighlightedSeat] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (user && team) {
-            setLoading(true);
-            getTeamMembers(team.id).then(members => {
-                setTeamMembers(members);
-                setLoading(false);
-            });
-        } else {
-            setTeamMembers([]);
-            setLoading(false);
-        }
-    }, [user, team]);
-
-    const officeMembers = teamMembers.filter(m => m.status === 'office' && m.seat);
+    const officeMembers = useMemo(() => {
+        return teamMembers.filter(m => m.status === 'office' && m.seat);
+    }, [teamMembers]);
 
     return (
         <div className="flex flex-col gap-8">
