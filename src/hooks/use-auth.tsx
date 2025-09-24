@@ -8,36 +8,63 @@ import { useToast } from './use-toast';
 import { getTeamForUser, createTeamMember } from '@/lib/team-api';
 import type { Team, TeamMembership } from '@/lib/data';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
     user: User | null;
+    isPreview: boolean;
     accessToken: string | null;
     loading: boolean;
     team: Team | null;
     teamMember: TeamMembership | null;
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
+    enterPreviewMode: () => void;
     refetchTeam: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const PREVIEW_USER: User = {
+    uid: 'preview-user',
+    displayName: 'Gast',
+    email: 'gast@officezen.app',
+    photoURL: 'https://picsum.photos/seed/guest/200/200',
+    // Add other required User properties with mock values
+    emailVerified: true,
+    isAnonymous: true,
+    metadata: {},
+    providerData: [],
+    providerId: 'preview',
+    tenantId: null,
+    delete: async () => {},
+    getIdToken: async () => 'preview-token',
+    getIdTokenResult: async () => ({} as any),
+    reload: async () => {},
+    toJSON: () => ({}),
+};
+
+
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isPreview, setIsPreview] = useState(false);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [team, setTeam] = useState<Team | null>(null);
     const [teamMember, setTeamMember] = useState<TeamMembership | null>(null);
     const { toast } = useToast();
+    const router = useRouter();
 
-    const clearAuthAndTeamState = () => {
+    const clearAuthAndTeamState = useCallback(() => {
         setUser(null);
         setAccessToken(null);
         setTeam(null);
         setTeamMember(null);
+        setIsPreview(false);
         Cookies.remove('firebase-auth-token');
+        Cookies.remove('is-preview');
         Cookies.remove('has-team');
-    }
+    }, []);
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
@@ -67,7 +94,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }, []);
 
     const refetchTeam = useCallback(async () => {
-        if (user) {
+        if (user && !isPreview) {
              try {
                 const teamData = await getTeamForUser(user.uid);
                 if (teamData) {
@@ -85,11 +112,13 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                  Cookies.set('has-team', 'false', { expires: 1 });
             }
         }
-    }, [user]);
+    }, [user, isPreview]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
             setLoading(true);
+            const isPreviewCookie = Cookies.get('is-preview') === 'true';
+
             if (authUser) {
                  try {
                     await fetchUserAndTeamData(authUser);
@@ -97,24 +126,36 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     console.error("Error during auth state change:", error);
                     clearAuthAndTeamState();
                 }
+            } else if (isPreviewCookie) {
+                // If no real user but preview cookie exists, enter preview mode
+                setUser(PREVIEW_USER);
+                setIsPreview(true);
+                setTeam(null);
             } else {
                 clearAuthAndTeamState();
             }
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [fetchUserAndTeamData]);
+    }, [fetchUserAndTeamData, clearAuthAndTeamState]);
+
+    const enterPreviewMode = () => {
+        setLoading(true);
+        setUser(PREVIEW_USER);
+        setIsPreview(true);
+        setTeam(null);
+        Cookies.set('is-preview', 'true', { expires: 1 });
+        Cookies.remove('firebase-auth-token');
+        router.push('/dashboard');
+        setLoading(false);
+    };
 
     const signIn = async () => {
         setLoading(true);
         try {
+            Cookies.remove('is-preview');
             const result = await signInWithPopup(auth, provider);
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            if (credential?.accessToken) {
-                // The onAuthStateChanged listener will handle the rest
-            } else {
-                throw new Error("Kein Access Token von Google erhalten.");
-            }
+            // The onAuthStateChanged listener will handle the rest
         } catch (error: any) {
             console.error("Authentication error:", error);
             if (error.code === 'auth/unauthorized-domain') {
@@ -139,25 +180,30 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     const signOut = async () => {
         setLoading(true);
-        try {
-            await firebaseSignOut(auth);
+        if (isPreview) {
             clearAuthAndTeamState();
-            toast({
-                title: "Verbindung getrennt",
-                description: "Dein Google-Konto wurde erfolgreich getrennt.",
-            });
-        } catch (error: any) {
-             toast({
-                variant: "destructive",
-                title: "Abmeldung fehlgeschlagen",
-                description: error.message,
-            });
-        } finally {
-            setLoading(false);
+            router.push('/');
+        } else {
+            try {
+                await firebaseSignOut(auth);
+                // onAuthStateChanged will trigger clearAuthAndTeamState
+                toast({
+                    title: "Abgemeldet",
+                    description: "Du wurdest erfolgreich abgemeldet.",
+                });
+                router.push('/');
+            } catch (error: any) {
+                 toast({
+                    variant: "destructive",
+                    title: "Abmeldung fehlgeschlagen",
+                    description: error.message,
+                });
+            }
         }
+        setLoading(false);
     };
 
-    const value = { user, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam };
+    const value = { user, isPreview, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam, enterPreviewMode };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

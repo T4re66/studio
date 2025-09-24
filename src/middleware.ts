@@ -25,14 +25,17 @@ const PROTECTED_ROUTES = [
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const hasFirebaseToken = request.cookies.has('firebase-auth-token');
+    const isPreview = request.cookies.get('is-preview')?.value === 'true';
 
-    // If user is logged in and tries to access the landing page, redirect to dashboard
-    if (hasFirebaseToken && pathname === '/') {
+    const isAuthenticated = hasFirebaseToken || isPreview;
+
+    // If user is logged in (or in preview) and tries to access the landing page, redirect to dashboard
+    if (isAuthenticated && pathname === '/') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // If user is not logged in and tries to access a protected route, redirect to landing page
-    if (!hasFirebaseToken && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
+    // If user is not logged in (and not in preview) and tries to access a protected route, redirect to landing page
+    if (!isAuthenticated && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL('/', request.url));
     }
     
@@ -54,4 +57,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|sounds).*)',
   ],
 }
-    

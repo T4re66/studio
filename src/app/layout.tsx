@@ -27,7 +27,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   // Render children without sidebar for auth pages
-  const noSidebarRoutes = ['/', '/team/select'];
+  const noSidebarRoutes = ['/'];
   const showSidebar = user && !noSidebarRoutes.includes(pathname);
   
   if (showSidebar) {

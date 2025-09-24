@@ -1,3 +1,4 @@
+
 'use client'
 
 import {
@@ -30,6 +31,7 @@ import {
   BookText,
   Bot,
   CheckCircle,
+  LogOut,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -70,7 +72,7 @@ const officeMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { user } = useAuth();
+  const { user, isPreview, signOut } = useAuth();
   const isConnected = !!user;
 
   const isActive = (href: string) => pathname.startsWith(href);
@@ -88,7 +90,7 @@ export function AppSidebar() {
              </span>
               <CheckCircle className={cn(
                 "size-4 transition-all group-data-[collapsible=icon]:hidden",
-                isConnected ? "text-green-500 animate-glow" : "text-muted-foreground/50"
+                isConnected && !isPreview ? "text-green-500 animate-glow" : "text-muted-foreground/50"
               )}/>
           </div>
         </Link>
@@ -202,6 +204,18 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                  </Link>
             </SidebarMenuItem>
+            {isPreview && (
+                 <SidebarMenuItem>
+                    <SidebarMenuButton 
+                        onClick={signOut}
+                        tooltip={{ children: "Vorschau beenden" }}
+                        className="bg-destructive/10 text-destructive-foreground"
+                    >
+                        <LogOut/>
+                        <span>Vorschau beenden</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

@@ -3,12 +3,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, BrainCircuit, Refrigerator, Users } from "lucide-react";
+import { ArrowRight, BrainCircuit, Eye, Refrigerator, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const features = [
   {
@@ -29,7 +30,8 @@ const features = [
 ];
 
 function AuthButtons() {
-    const { user, team, signIn, loading } = useAuth();
+    const { user, team, signIn, loading, enterPreviewMode } = useAuth();
+    const router = useRouter();
 
     if (loading) {
         return (
@@ -46,10 +48,15 @@ function AuthButtons() {
                     <Icons.logo className="mr-2" />
                     Mit Google anmelden
                 </Button>
+                 <Button size="lg" variant="outline" onClick={() => enterPreviewMode()}>
+                    <Eye className="mr-2" />
+                    Vorschau ansehen
+                </Button>
             </div>
         )
     }
-
+    
+    // This part will now likely be skipped due to middleware redirecting to dashboard
     if (user && !team) {
          return (
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
