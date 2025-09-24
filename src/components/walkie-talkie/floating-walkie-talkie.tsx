@@ -15,7 +15,7 @@ import { getTeamMembers } from '@/lib/team-api';
 import { motion } from 'framer-motion';
 
 export function FloatingWalkieTalkie() {
-    const { user, currentTeam } = useAuth();
+    const { user, team } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [isTalking, setIsTalking] = useState(false);
@@ -25,13 +25,13 @@ export function FloatingWalkieTalkie() {
     const { toast } = useToast();
 
     useEffect(() => {
-        if (user && currentTeam && isOpen) {
-            getTeamMembers().then(members => {
+        if (user && team && isOpen) {
+            getTeamMembers(team.id).then(members => {
                 const online = members.filter(m => m.status === 'office' && m.id !== user.uid);
                 setOnlineUsers(online);
             });
         }
-    }, [user, currentTeam, isOpen]);
+    }, [user, team, isOpen]);
 
 
     const handleToggleOpen = () => {
@@ -76,7 +76,7 @@ export function FloatingWalkieTalkie() {
         }, 5000); // Confetti for 5 seconds
     }
 
-    if (!user || !currentTeam) {
+    if (!user || !team) {
         return null; // Don't show the walkie-talkie if not logged in or no team
     }
 

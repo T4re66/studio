@@ -18,7 +18,7 @@ import { Label } from "../ui/label";
 const moodEmojis = ["😔", "😕", "😐", "🙂", "😄"];
 
 export function CheckinForm() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -29,14 +29,14 @@ export function CheckinForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
-        getTeamMembers().then(setMembers);
+    if (team?.id) {
+        getTeamMembers(team.id).then(setMembers);
     }
-  }, [user]);
+  }, [team]);
 
   const handleSubmit = async () => {
-    if (!user) {
-        toast({ variant: 'destructive', title: 'Fehler', description: 'Du musst angemeldet sein.' });
+    if (!user || !team) {
+        toast({ variant: 'destructive', title: 'Fehler', description: 'Du musst angemeldet und Teil eines Teams sein.' });
         return;
     }
     if (status === 'office' && !selectedSeat) {
@@ -46,7 +46,7 @@ export function CheckinForm() {
 
     setLoading(true);
     try {
-        await updateUserCheckin({
+        await updateUserCheckin(user.uid, team.id, {
             status: status,
             mood: mood[0],
             seat: status === 'office' ? selectedSeat : null,

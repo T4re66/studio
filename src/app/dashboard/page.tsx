@@ -57,7 +57,7 @@ const AnimatedCounter = ({ to }: { to: number }) => {
 }
 
 export default function DashboardPage() {
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, team } = useAuth();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -108,9 +108,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadData() {
-        if (user) {
+        if (user && team) {
             setLoading(true);
-            const members = await getTeamMembers();
+            const members = await getTeamMembers(team.id);
             setTeamMembers(members);
             setLoading(false);
         } else {
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         }
     }
     loadData();
-  }, [user]);
+  }, [user, team]);
 
   const onlineMembers = teamMembers.filter(m => m.status === 'office');
   const tableWidth = 45;

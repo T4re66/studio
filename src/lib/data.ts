@@ -2,6 +2,22 @@
 // THIS FILE CONTAINS ONLY TYPE DEFINITIONS.
 // THE ACTUAL DATA IS FETCHED FROM FIRESTORE.
 
+export type Team = {
+    id: string;
+    name: string;
+    ownerId: string;
+    joinCode: string;
+    createdAt: any; // Firestore Timestamp
+};
+
+export type TeamMembership = {
+    id: string; // {teamId}_{userId}
+    teamId: string;
+    userId: string;
+    role: 'owner' | 'admin' | 'member';
+    joinedAt: any; // Firestore Timestamp
+}
+
 export type TeamMember = {
   id: string;
   name: string | null;
@@ -83,7 +99,7 @@ export type Tournament = {
     points: number;
     rounds: TournamentRound[];
     completed: boolean;
-    winner?: Team;
+    winner?: TeamRef;
 }
 
 export type TournamentRound = {
@@ -93,12 +109,12 @@ export type TournamentRound = {
 
 export type Match = {
     name: string;
-    teamA: Team;
-    teamB: Team;
-    winner?: Team;
+    teamA: TeamRef;
+    teamB: TeamRef;
+    winner?: TeamRef;
 }
 
-export type Team = {
+export type TeamRef = {
     name: string;
     members: {id: string, name: string}[];
     score: number;
@@ -139,4 +155,6 @@ export type OfficeTask = {
   isCompleted: boolean;
   completedBy?: string;
   completedAt?: any; // Firestore Timestamp
+  createdAt: any; // Firestore Timestamp
 };
+

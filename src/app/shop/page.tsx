@@ -25,7 +25,7 @@ const iconComponents: { [key: string]: React.ElementType } = {
 };
 
 export default function ShopPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const { toast } = useToast();
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
     const [points, setPoints] = useState(0);
@@ -33,11 +33,11 @@ export default function ShopPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchShopData = async () => {
-        if (!user) return;
+        if (!user || !team) return;
         setLoading(true);
         try {
             const [items, member] = await Promise.all([
-                getShopItems(),
+                getShopItems(team.id),
                 getTeamMember(user.uid)
             ]);
             setShopItems(items);
@@ -54,19 +54,19 @@ export default function ShopPage() {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && team) {
             fetchShopData();
         } else {
             setShopItems([]);
             setPoints(0);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
     const handlePurchase = async (item: ShopItem) => {
-        if (!user) return;
+        if (!user || !team) return;
         try {
-            await purchaseShopItem(user.uid, item);
+            await purchaseShopItem(user.uid, team.id, item);
             toast({
                 title: 'Kauf erfolgreich!',
                 description: `Du hast "${item.title}" für ${item.cost} Punkte gekauft.`

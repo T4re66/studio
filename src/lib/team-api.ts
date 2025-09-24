@@ -1,10 +1,8 @@
 
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, orderBy, writeBatch } from "firebase/firestore";
-import { db, auth } from "./firebase";
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, addDoc, runTransaction, serverTimestamp, increment, query, where, writeBatch } from "firebase/firestore";
+import { db } from "./firebase";
 import type { User as FirebaseUser } from "firebase/auth";
-import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note, Team } from "./data";
-import {_} from 'lodash-es';
-
+import type { TeamMember, Tournament, Match, OfficeTask, ShopItem, FridgeItem, Note, Team, TeamMembership } from "./data";
 
 // =================================
 // TEAM & AUTH API
@@ -15,12 +13,10 @@ const generateJoinCode = () => Math.floor(100000 + Math.random() * 900000).toStr
 
 export async function createTeam(teamName: string, user: FirebaseUser): Promise<string> {
     const teamColRef = collection(db, 'teams');
-    const teamDocRef = doc(teamColRef);
+    const teamDocRef = doc(teamColRef); // Create a new document reference with a random ID
     const teamId = teamDocRef.id;
 
-    const teamMemberColRef = collection(db, 'teamMembers');
-    const teamMemberDocRef = doc(teamMemberColRef, `${teamId}_${user.uid}`);
-
+    const teamMemberDocRef = doc(db, 'teamMembers', `${teamId}_${user.uid}`);
     const joinCode = generateJoinCode();
 
     const batch = writeBatch(db);
@@ -33,70 +29,92 @@ export async function createTeam(teamName: string, user: FirebaseUser): Promise<
     });
 
     batch.set(teamMemberDocRef, {
+        teamId: teamId,
+        userId: user.uid,
         role: 'owner',
         joinedAt: serverTimestamp(),
     });
 
     await batch.commit();
+    return teamId;
+}
+
+export async function joinTeamWithCode(joinCode: string, user: FirebaseUser): Promise<string | null> {
+    const teamsRef = collection(db, 'teams');
+    const q = query(teamsRef, where("joinCode", "==", joinCode));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        throw new Error("Ungültiger Beitritts-Code.");
+    }
+
+    const teamDoc = querySnapshot.docs[0];
+    const teamId = teamDoc.id;
+
+    const teamMemberDocRef = doc(db, 'teamMembers', `${teamId}_${user.uid}`);
+    const docSnap = await getDoc(teamMemberDocRef);
+
+    if (docSnap.exists()) {
+        // User is already a member
+        return teamId;
+    }
+
+    await setDoc(teamMemberDocRef, {
+        teamId: teamId,
+        userId: user.uid,
+        role: 'member',
+        joinedAt: serverTimestamp(),
+    });
 
     return teamId;
 }
 
-export async function getMyTeam(userId: string): Promise<Team | null> {
+
+export async function getTeamForUser(userId: string): Promise<{ team: Team, membership: TeamMembership } | null> {
     const teamMembersRef = collection(db, "teamMembers");
-    const q = query(teamMembersRef, where(userId, '==', true));
+    const q = query(teamMembersRef, where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-        // Fallback for owner
-        const teamsRef = collection(db, 'teams');
-        const ownerQuery = query(teamsRef, where('ownerId', '==', userId));
-        const ownerSnapshot = await getDocs(ownerQuery);
-        if (!ownerSnapshot.empty) {
-            const teamDoc = ownerSnapshot.docs[0];
-            return {
-                id: teamDoc.id,
-                ...teamDoc.data()
-            } as Team;
-        }
         return null;
     }
-    
-    // This logic is flawed for how team members are stored.
-    // Let's assume a simpler structure for now. A user is part of ONE team.
-    // We need to find which `teamMembers` document contains our user.
-    // This is inefficient. A better structure would be a user document with a teamId.
-    // Let's try to find the team via the `teamMembers` collection.
-    
-    const allTeamMembersSnap = await getDocs(collection(db, 'teamMembers'));
-    for (const doc of allTeamMembersSnap.docs) {
-        if (doc.id.endsWith(`_${userId}`)) {
-             const teamId = doc.id.split('_')[0];
-             const teamDoc = await getDoc(doc(db, 'teams', teamId));
-             if (teamDoc.exists()) {
-                 return { id: teamDoc.id, ...teamDoc.data() } as Team;
-             }
-        }
+
+    // Assume user is part of one team for now
+    const membershipDoc = querySnapshot.docs[0];
+    const membershipData = { id: membershipDoc.id, ...membershipDoc.data() } as TeamMembership;
+    const teamId = membershipData.teamId;
+
+    const teamDocRef = doc(db, 'teams', teamId);
+    const teamDoc = await getDoc(teamDocRef);
+
+    if (!teamDoc.exists()) {
+        return null;
     }
-    
-    return null;
+
+    const teamData = { id: teamDoc.id, ...teamDoc.data() } as Team;
+
+    return { team: teamData, membership: membershipData };
 }
 
-
-export async function getTeamMembers(): Promise<TeamMember[]> {
-    // This function is problematic in a multi-team context without a teamId.
-    // Assuming we fetch members for the CURRENT user's team. This needs context from auth.
-    // For now, let's leave it and assume a single-team context for components that use it without teamId.
-    // The proper way would be getTeamMembers(teamId: string)
+export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
+    if (!teamId) return [];
     try {
-        const querySnapshot = await getDocs(collection(db, `users`));
-        const members = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as TeamMember));
-        return members;
+        const teamMembersRef = collection(db, "teamMembers");
+        const q = query(teamMembersRef, where("teamId", "==", teamId));
+        const membershipSnapshot = await getDocs(q);
+        
+        if (membershipSnapshot.empty) return [];
+
+        const userIds = membershipSnapshot.docs.map(doc => doc.data().userId);
+        
+        const usersRef = collection(db, "users");
+        const usersQuery = query(usersRef, where('id', 'in', userIds));
+        const usersSnapshot = await getDocs(usersQuery);
+
+        return usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TeamMember));
+
     } catch (error) {
-        console.error("Error fetching users from Firestore:", error);
+        console.error("Error fetching team members from Firestore:", error);
         throw new Error("Teammitglieder konnten nicht geladen werden.");
     }
 }
@@ -122,6 +140,7 @@ export async function createTeamMember(user: FirebaseUser): Promise<void> {
 
         if (!docSnap.exists()) {
              await setDoc(memberDocRef, {
+                id: user.uid,
                 name: user.displayName,
                 email: user.email,
                 avatar: user.photoURL,
@@ -141,12 +160,9 @@ export async function createTeamMember(user: FirebaseUser): Promise<void> {
     }
 }
 
-export async function updateUserCheckin(checkinData: {status: TeamMember['status'], mood: number, seat: string | null}): Promise<void> {
-    const currentUser = auth.currentUser;
-    if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
-
+export async function updateUserCheckin(userId: string, teamId: string, checkinData: {status: TeamMember['status'], mood: number, seat: string | null}): Promise<void> {
     try {
-        const memberDocRef = doc(db, `users`, currentUser.uid);
+        const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, {
             status: checkinData.status,
             mood: checkinData.mood,
@@ -168,12 +184,9 @@ export async function updateTeamMemberBirthday(userId: string, birthday: string)
     }
 }
 
-export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string): Promise<void> {
-    const currentUser = auth.currentUser;
-    if (!currentUser) throw new Error("Benutzer nicht authentifiziert.");
-
+export async function updateMyBreakTimes(userId: string, lunchTime: string, coffeeTime: string): Promise<void> {
     try {
-        const memberDocRef = doc(db, `users`, currentUser.uid);
+        const memberDocRef = doc(db, `users`, userId);
         await updateDoc(memberDocRef, { lunchTime, coffeeTime });
     } catch (error) {
         console.error("Error updating break times in Firestore:", error);
@@ -186,9 +199,10 @@ export async function updateMyBreakTimes(lunchTime: string, coffeeTime: string):
 // GAMIFICATION API (Tasks, Shop)
 // =================================
 
-export async function getTasks(): Promise<OfficeTask[]> {
+export async function getTasks(teamId: string): Promise<OfficeTask[]> {
+    if (!teamId) return [];
     try {
-        const tasksCollectionRef = collection(db, 'tasks');
+        const tasksCollectionRef = collection(db, 'teams', teamId, 'tasks');
         const q = query(tasksCollectionRef, orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OfficeTask));
@@ -198,9 +212,10 @@ export async function getTasks(): Promise<OfficeTask[]> {
     }
 }
 
-export async function addTask(task: Omit<OfficeTask, 'id' | 'isCompleted'>): Promise<void> {
+export async function addTask(teamId: string, task: Omit<OfficeTask, 'id' | 'isCompleted'>): Promise<void> {
+    if (!teamId) return;
     try {
-        const tasksCollectionRef = collection(db, 'tasks');
+        const tasksCollectionRef = collection(db, 'teams', teamId, 'tasks');
         await addDoc(tasksCollectionRef, {
             ...task,
             isCompleted: false,
@@ -212,8 +227,9 @@ export async function addTask(task: Omit<OfficeTask, 'id' | 'isCompleted'>): Pro
     }
 }
 
-export async function completeTask(taskId: string, userId: string): Promise<void> {
-    const taskDocRef = doc(db, 'tasks', taskId);
+export async function completeTask(teamId: string, taskId: string, userId: string): Promise<void> {
+    if (!teamId) return;
+    const taskDocRef = doc(db, 'teams', teamId, 'tasks', taskId);
     const memberDocRef = doc(db, `users`, userId);
 
     await runTransaction(db, async (transaction) => {
@@ -227,9 +243,10 @@ export async function completeTask(taskId: string, userId: string): Promise<void
     });
 }
 
-export async function getShopItems(): Promise<ShopItem[]> {
+export async function getShopItems(teamId: string): Promise<ShopItem[]> {
+    if (!teamId) return [];
      try {
-        const shopItemsRef = collection(db, 'shop_items');
+        const shopItemsRef = collection(db, 'teams', teamId, 'shop_items');
         const q = query(shopItemsRef, orderBy('cost', 'asc'));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShopItem));
@@ -239,9 +256,10 @@ export async function getShopItems(): Promise<ShopItem[]> {
     }
 }
 
-export async function addShopItem(item: Omit<ShopItem, 'id'>): Promise<void> {
+export async function addShopItem(teamId: string, item: Omit<ShopItem, 'id'>): Promise<void> {
+    if (!teamId) return;
     try {
-        const shopItemsRef = collection(db, 'shop_items');
+        const shopItemsRef = collection(db, 'teams', teamId, 'shop_items');
         await addDoc(shopItemsRef, {
             ...item,
             createdAt: serverTimestamp(),
@@ -252,7 +270,7 @@ export async function addShopItem(item: Omit<ShopItem, 'id'>): Promise<void> {
     }
 }
 
-export async function purchaseShopItem(userId: string, item: ShopItem): Promise<void> {
+export async function purchaseShopItem(userId: string, teamId: string, item: ShopItem): Promise<void> {
     const memberDocRef = doc(db, `users`, userId);
 
     await runTransaction(db, async (transaction) => {
@@ -264,14 +282,14 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
 
         transaction.update(memberDocRef, { points: increment(-item.cost) });
 
-        // This path is now invalid with the new team structure, commenting out for now
-        // const purchaseLogRef = collection(db, `teams/${TEAM_ID}/members/${userId}/purchase_logs`);
-        // transaction.set(doc(purchaseLogRef), {
-        //     itemId: item.id,
-        //     itemTitle: item.title,
-        //     cost: item.cost,
-        //     purchasedAt: serverTimestamp()
-        // });
+        const purchaseLogRef = collection(db, `teams/${teamId}/purchase_logs`);
+        transaction.set(doc(purchaseLogRef), {
+            userId,
+            itemId: item.id,
+            itemTitle: item.title,
+            cost: item.cost,
+            purchasedAt: serverTimestamp()
+        });
     });
 }
 
@@ -279,9 +297,10 @@ export async function purchaseShopItem(userId: string, item: ShopItem): Promise<
 // OFFICE API (Fridge, Tournaments)
 // =================================
 
-export async function getFridgeItems(): Promise<FridgeItem[]> {
+export async function getFridgeItems(teamId: string): Promise<FridgeItem[]> {
+    if (!teamId) return [];
     try {
-        const itemsRef = collection(db, 'fridge_items');
+        const itemsRef = collection(db, 'teams', teamId, 'fridge_items');
         const q = query(itemsRef, orderBy('expiryDate', 'asc'));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FridgeItem));
@@ -291,9 +310,10 @@ export async function getFridgeItems(): Promise<FridgeItem[]> {
     }
 }
 
-export async function addFridgeItem(item: Omit<FridgeItem, 'id'>): Promise<void> {
+export async function addFridgeItem(teamId: string, item: Omit<FridgeItem, 'id'>): Promise<void> {
+    if (!teamId) return;
     try {
-        const itemsRef = collection(db, 'fridge_items');
+        const itemsRef = collection(db, 'teams', teamId, 'fridge_items');
         await addDoc(itemsRef, {
             ...item,
             addedAt: serverTimestamp(),
@@ -305,9 +325,10 @@ export async function addFridgeItem(item: Omit<FridgeItem, 'id'>): Promise<void>
 }
 
 
-export async function getTournaments(): Promise<Tournament[]> {
+export async function getTournaments(teamId: string): Promise<Tournament[]> {
+    if (!teamId) return [];
     try {
-        const tournamentsCollectionRef = collection(db, 'tournaments');
+        const tournamentsCollectionRef = collection(db, 'teams', teamId, 'tournaments');
         const q = query(tournamentsCollectionRef, orderBy('completed'), orderBy('createdAt', 'desc'));
         const querySnapshot = await getDocs(q);
         
@@ -321,9 +342,10 @@ export async function getTournaments(): Promise<Tournament[]> {
     }
 }
 
-export async function updateTournamentMatch(tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
+export async function updateTournamentMatch(teamId: string, tournamentId: string, roundIndex: number, matchIndex: number, updatedMatch: Match): Promise<void> {
+    if (!teamId) return;
     try {
-        const tournamentDocRef = doc(db, 'tournaments', tournamentId);
+        const tournamentDocRef = doc(db, 'teams', teamId, 'tournaments', tournamentId);
         const tournamentDoc = await getDoc(tournamentDocRef);
 
         if (!tournamentDoc.exists()) throw new Error("Turnier nicht gefunden");

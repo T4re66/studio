@@ -13,15 +13,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { getTeamMembers } from "@/lib/team-api";
 
 export default function MapPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [highlightedSeat, setHighlightedSeat] = useState<string | null>(null);
 
     useEffect(() => {
-        if (user) {
+        if (user && team) {
             setLoading(true);
-            getTeamMembers().then(members => {
+            getTeamMembers(team.id).then(members => {
                 setTeamMembers(members);
                 setLoading(false);
             });
@@ -29,7 +29,7 @@ export default function MapPage() {
             setTeamMembers([]);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
     const officeMembers = teamMembers.filter(m => m.status === 'office' && m.seat);
 

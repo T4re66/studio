@@ -14,17 +14,17 @@ import { getTeamMembers } from "@/lib/team-api";
 
 
 export default function BirthdaysPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState<number | null>(null);
 
     useEffect(() => {
         setCurrentMonth(getMonth(new Date()));
-        if (user) {
+        if (user && team) {
             const fetchMembers = async () => {
                 setLoading(true);
-                const members = await getTeamMembers();
+                const members = await getTeamMembers(team.id);
                 setTeamMembers(members);
                 setLoading(false);
             }
@@ -33,7 +33,7 @@ export default function BirthdaysPage() {
             setTeamMembers([]);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
     const sortedMembers = [...teamMembers].sort((a, b) => {
         if (!a.birthday || !b.birthday) return 0;

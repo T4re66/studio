@@ -23,16 +23,17 @@ const categoryColors = {
 
 
 export default function TasksPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const { toast } = useToast();
     const [tasks, setTasks] = useState<OfficeTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchTasks = async () => {
+        if (!team) return;
         setLoading(true);
         try {
-            const fetchedTasks = await getTasks();
+            const fetchedTasks = await getTasks(team.id);
             setTasks(fetchedTasks);
         } catch (error) {
             toast({
@@ -46,18 +47,18 @@ export default function TasksPage() {
     };
 
     useEffect(() => {
-        if (user) {
+        if (user && team) {
             fetchTasks();
         } else {
             setTasks([]);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
     const handleCompleteTask = async (taskId: string, points: number) => {
-        if (!user) return;
+        if (!user || !team) return;
         try {
-            await completeTask(taskId, user.uid);
+            await completeTask(team.id, taskId, user.uid);
             toast({
                 title: 'Aufgabe erledigt!',
                 description: `Du hast ${points} Punkte erhalten!`

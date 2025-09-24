@@ -15,7 +15,7 @@ import { differenceInDays, parseISO } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 
 export default function FridgePage() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const { toast } = useToast();
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -23,10 +23,10 @@ export default function FridgePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const fetchItems = async () => {
-      if (!user) return;
+      if (!user || !team) return;
       setLoading(true);
       try {
-        const [items, members] = await Promise.all([getFridgeItems(), getTeamMembers()]);
+        const [items, members] = await Promise.all([getFridgeItems(team.id), getTeamMembers(team.id)]);
         const itemsWithOwnerNames = items.map(item => {
             const owner = members.find(m => m.id === item.ownerId);
             return {
@@ -45,15 +45,16 @@ export default function FridgePage() {
 
   useEffect(() => {
     fetchItems();
-  }, [user]);
+  }, [user, team]);
 
   const handleAddItem = async (newItemData: { name: string, expiryDate: string }) => {
-    if (!user) return;
+    if (!user || !team) return;
 
     const owner = teamMembers.find(m => m.id === user.uid);
 
     const newItem: Omit<FridgeItem, 'id'> = {
-        ...newItemData,
+        name: newItemData.name,
+        expiryDate: newItemData.expiryDate,
         ownerId: user.uid,
         ownerName: owner?.name || 'Unbekannt',
         imageUrl: `https://picsum.photos/seed/${newItemData.name.replace(/\s+/g, '')}/${Date.now()}/400/300`,
@@ -61,7 +62,7 @@ export default function FridgePage() {
     };
 
     try {
-        await addFridgeItem(newItem);
+        await addFridgeItem(team.id, newItem);
         toast({ title: 'Artikel hinzugefügt', description: `${newItem.name} wurde in den Kühlschrank gelegt.` });
         fetchItems(); // Refetch
     } catch (error) {

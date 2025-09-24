@@ -2,19 +2,21 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
-import { getAuth, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, OAuthCredential, GoogleAuthProvider } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
-import { getTeamMember, createTeamMember, getMyTeam } from '@/lib/team-api';
-import type { Team } from '@/lib/data';
+import { getTeamForUser, createTeamMember } from '@/lib/team-api';
+import type { Team, TeamMembership } from '@/lib/data';
 
 interface AuthContextType {
     user: User | null;
     accessToken: string | null;
     loading: boolean;
+    team: Team | null;
+    teamMember: TeamMembership | null;
     signIn: () => Promise<void>;
     signOut: () => Promise<void>;
-    currentTeam: Team | null;
+    refetchTeam: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,43 +25,65 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
+    const [team, setTeam] = useState<Team | null>(null);
+    const [teamMember, setTeamMember] = useState<TeamMembership | null>(null);
     const { toast } = useToast();
 
+    const fetchUserAndTeamData = async (authUser: User) => {
+        const token = await authUser.getIdToken();
+        setAccessToken(token);
+        setUser(authUser);
+
+        await createTeamMember(authUser); // Ensure user profile exists in 'users' collection
+        
+        const teamData = await getTeamForUser(authUser.uid);
+        if (teamData) {
+            setTeam(teamData.team);
+            setTeamMember(teamData.membership);
+        } else {
+            setTeam(null);
+            setTeamMember(null);
+        }
+    };
+
+    const refetchTeam = async () => {
+        if (user) {
+            setLoading(true);
+            try {
+                const teamData = await getTeamForUser(user.uid);
+                if (teamData) {
+                    setTeam(teamData.team);
+                    setTeamMember(teamData.membership);
+                } else {
+                    setTeam(null);
+                    setTeamMember(null);
+                }
+            } catch (error) {
+                 console.error("Error refetching team data:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+    }
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
+        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+            setLoading(true);
+            if (authUser) {
                  try {
-                    const token = await user.getIdToken();
-                    setAccessToken(token);
-                    setUser(user);
-                    
-                    let teamMember = await getTeamMember(user.uid);
-                    if (!teamMember) {
-                        await createTeamMember(user);
-                        toast({
-                            title: `Willkommen, ${user.displayName}!`,
-                            description: "Dein Profil wurde im Team angelegt.",
-                        });
-                        teamMember = await getTeamMember(user.uid);
-                    }
-
-                    if (teamMember) {
-                        const team = await getMyTeam(user.uid);
-                        setCurrentTeam(team);
-                    }
-
-
+                    await fetchUserAndTeamData(authUser);
                 } catch (error) {
                     console.error("Error during auth state change:", error);
                     setUser(null);
                     setAccessToken(null);
-                    setCurrentTeam(null);
+                    setTeam(null);
+                    setTeamMember(null);
                 }
             } else {
                 setUser(null);
                 setAccessToken(null);
-                setCurrentTeam(null);
+                setTeam(null);
+                setTeamMember(null);
             }
             setLoading(false);
         });
@@ -72,8 +96,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             const result = await signInWithPopup(auth, provider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
-                setAccessToken(credential.accessToken);
-                setUser(result.user);
+                await fetchUserAndTeamData(result.user);
                 toast({
                     title: "Erfolgreich verbunden",
                     description: "Dein Google-Konto wurde verknüpft.",
@@ -109,7 +132,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             await firebaseSignOut(auth);
             setUser(null);
             setAccessToken(null);
-            setCurrentTeam(null);
+            setTeam(null);
+            setTeamMember(null);
             toast({
                 title: "Verbindung getrennt",
                 description: "Dein Google-Konto wurde erfolgreich getrennt.",
@@ -125,7 +149,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         }
     };
 
-    const value = { user, accessToken, loading, signIn, signOut, currentTeam };
+    const value = { user, accessToken, loading, team, teamMember, signIn, signOut, refetchTeam };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

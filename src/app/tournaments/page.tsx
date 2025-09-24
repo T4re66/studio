@@ -17,36 +17,37 @@ import { useToast } from '@/hooks/use-toast';
 
 
 export default function TournamentsPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const { toast } = useToast();
     const [tournaments, setTournaments] = useState<Tournament[]>([]);
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchTournaments = async () => {
+        if (!team) return;
         setLoading(true);
-        const [tourneyData, memberData] = await Promise.all([getTournaments(), getTeamMembers()]);
+        const [tourneyData, memberData] = await Promise.all([getTournaments(team.id), getTeamMembers(team.id)]);
         setTournaments(tourneyData);
         setTeamMembers(memberData);
         setLoading(false);
     }
 
     useEffect(() => {
-        if (user) {
+        if (user && team) {
             fetchTournaments();
         } else {
             setTournaments([]);
             setTeamMembers([]);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
-    const handleScoreChange = (tournamentId: string, roundIndex: number, matchIndex: number, team: 'teamA' | 'teamB', score: number) => {
+    const handleScoreChange = (tournamentId: string, roundIndex: number, matchIndex: number, teamSide: 'teamA' | 'teamB', score: number) => {
         setTournaments(prev =>
             prev.map(t => {
                 if (t.id === tournamentId) {
                     const newRounds = [...t.rounds];
-                    newRounds[roundIndex].matches[matchIndex][team].score = score;
+                    newRounds[roundIndex].matches[matchIndex][teamSide].score = score;
                     return { ...t, rounds: newRounds };
                 }
                 return t;
@@ -56,7 +57,7 @@ export default function TournamentsPage() {
 
     const handleDeclareWinner = async (tournamentId: string, roundIndex: number, matchIndex: number) => {
         const tournament = tournaments.find(t => t.id === tournamentId);
-        if (!tournament) return;
+        if (!tournament || !team) return;
 
         const match = tournament.rounds[roundIndex].matches[matchIndex];
         const winner = match.teamA.score > match.teamB.score ? match.teamA : match.teamB;
@@ -64,7 +65,7 @@ export default function TournamentsPage() {
         const updatedMatch: Match = { ...match, winner };
 
         try {
-            await updateTournamentMatch(tournamentId, roundIndex, matchIndex, updatedMatch);
+            await updateTournamentMatch(team.id, tournamentId, roundIndex, matchIndex, updatedMatch);
             toast({ title: "Gewinner deklariert!", description: `${winner.name} hat das Match gewonnen.` });
             await fetchTournaments(); // Refetch all data to ensure consistency
         } catch (error) {
@@ -125,7 +126,7 @@ export default function TournamentsPage() {
                                 <TournamentCard
                                     key={matchIndex}
                                     match={match}
-                                    onScoreChange={(team, score) => handleScoreChange(tournament.id, roundIndex, matchIndex, team, score)}
+                                    onScoreChange={(teamSide, score) => handleScoreChange(tournament.id, roundIndex, matchIndex, teamSide, score)}
                                     onDeclareWinner={() => handleDeclareWinner(tournament.id, roundIndex, matchIndex)}
                                     disabled={tournament.completed}
                                     findUser={findUser}

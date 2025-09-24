@@ -15,27 +15,28 @@ import { getTeamMembers } from "@/lib/team-api"
 
 
 export default function PeoplePage() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const [selectedUser, setSelectedUser] = useState<TeamMember | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchMembers = async () => {
+      if (!team) return;
       setLoading(true);
-      const members = await getTeamMembers();
+      const members = await getTeamMembers(team.id);
       setTeamMembers(members);
       setLoading(false);
   }
 
   useEffect(() => {
-    if (user) {
+    if (user && team) {
         fetchMembers();
     } else {
         setTeamMembers([]);
         setLoading(false);
     }
-  }, [user]);
+  }, [user, team]);
 
   const filteredMembers = teamMembers.filter(member => 
     member.name?.toLowerCase().includes(searchTerm.toLowerCase())

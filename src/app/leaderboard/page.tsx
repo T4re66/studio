@@ -11,15 +11,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { getTeamMembers } from "@/lib/team-api";
 
 export default function LeaderboardPage() {
-    const { user } = useAuth();
+    const { user, team } = useAuth();
     const [leaderboard, setLeaderboard] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user) {
+        if (user && team) {
             const fetchLeaderboard = async () => {
                 setLoading(true);
-                const members = await getTeamMembers();
+                const members = await getTeamMembers(team.id);
                 const sortedMembers = members.sort((a, b) => b.points - a.points);
                 setLeaderboard(sortedMembers);
                 setLoading(false);
@@ -29,7 +29,7 @@ export default function LeaderboardPage() {
             setLeaderboard([]);
             setLoading(false);
         }
-    }, [user]);
+    }, [user, team]);
 
     if (loading) {
         return (

@@ -20,7 +20,7 @@ type Match = {
 }
 
 export default function BreaksPage() {
-  const { user } = useAuth();
+  const { user, team } = useAuth();
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,10 +31,10 @@ export default function BreaksPage() {
   const currentUser = teamMembers.find(m => m.id === user?.uid);
 
   useEffect(() => {
-    if (user) {
+    if (user && team) {
         const fetchMembers = async () => {
             setLoading(true);
-            const members = await getTeamMembers();
+            const members = await getTeamMembers(team.id);
             setTeamMembers(members);
             
             const me = members.find(m => m.id === user.uid);
@@ -47,7 +47,7 @@ export default function BreaksPage() {
     } else {
         setLoading(false);
     }
-  }, [user]);
+  }, [user, team]);
 
   const { lunchMatches, coffeeMatches } = useMemo(() => {
     const groupBreaks = (breakType: 'lunchTime' | 'coffeeTime') => {
@@ -71,15 +71,18 @@ export default function BreaksPage() {
   }, [teamMembers]);
 
   const handleSaveBreaks = async () => {
+    if (!user) return;
     try {
-        await updateMyBreakTimes(myLunchTime, myCoffeeTime);
+        await updateMyBreakTimes(user.uid, myLunchTime, myCoffeeTime);
         toast({
             title: "Pausenzeiten gespeichert!",
             description: "Deine Pausenzeiten wurden erfolgreich aktualisiert.",
         });
         // Refetch to update UI
-        const members = await getTeamMembers();
-        setTeamMembers(members);
+        if (team) {
+            const members = await getTeamMembers(team.id);
+            setTeamMembers(members);
+        }
     } catch (e) {
         toast({
             variant: 'destructive',

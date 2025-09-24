@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { OfficeTask } from "@/lib/data";
 import { addTask } from "@/lib/team-api";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -32,6 +33,7 @@ interface AddTaskDialogProps {
 }
 
 export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialogProps) {
+  const { team } = useAuth();
   const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -39,6 +41,10 @@ export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialog
   const [category, setCategory] = useState<OfficeTask['category'] | undefined>(undefined);
 
   const handleAdd = async () => {
+    if (!team) {
+        toast({ variant: "destructive", title: "Fehler", description: "Kein Team ausgewählt." });
+        return;
+    }
     if (!title || !description || !points || !category) {
       toast({
         variant: "destructive",
@@ -49,13 +55,13 @@ export function AddTaskDialog({ open, onOpenChange, onTaskAdded }: AddTaskDialog
     }
 
     try {
-        const newTask: Omit<OfficeTask, 'id' | 'isCompleted'> = {
+        const newTask: Omit<OfficeTask, 'id' | 'isCompleted' | 'createdAt'> = {
             title,
             description,
             points: parseInt(points),
             category,
         };
-        await addTask(newTask);
+        await addTask(team.id, newTask);
         toast({
             title: "Aufgabe hinzugefügt",
             description: `Die Aufgabe "${title}" wurde erstellt.`,

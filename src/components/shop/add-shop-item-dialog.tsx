@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { ShopItem } from "@/lib/data";
 import { addShopItem } from "@/lib/team-api";
 import { Armchair, CalendarOff, Coffee, Cookie, Headphones, Pizza } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AddShopItemDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ const icons = [
 ]
 
 export function AddShopItemDialog({ open, onOpenChange, onItemAdded }: AddShopItemDialogProps) {
+  const { team } = useAuth();
   const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -50,6 +52,10 @@ export function AddShopItemDialog({ open, onOpenChange, onItemAdded }: AddShopIt
   const [icon, setIcon] = useState<string | undefined>(undefined);
 
   const handleAdd = async () => {
+    if (!team) {
+        toast({ variant: "destructive", title: "Fehler", description: "Kein Team ausgewählt." });
+        return;
+    }
     if (!title || !description || !cost || !category || !icon) {
       toast({
         variant: "destructive",
@@ -67,7 +73,7 @@ export function AddShopItemDialog({ open, onOpenChange, onItemAdded }: AddShopIt
             category,
             icon,
         };
-        await addShopItem(newItem);
+        await addShopItem(team.id, newItem);
         toast({
             title: "Angebot hinzugefügt",
             description: `Das Angebot "${title}" wurde zum Shop hinzugefügt.`,
