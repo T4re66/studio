@@ -137,8 +137,10 @@ export default function DashboardPage() {
             setLoading(false);
         }
     }
-    loadData();
-  }, [user, team, isPreview]);
+    if (!authLoading) {
+      loadData();
+    }
+  }, [user, team, isPreview, authLoading]);
 
   const displayMembers = isPreview ? mockTeamMembers : teamMembers;
   const onlineMembers = displayMembers.filter(m => m.status === 'office');
@@ -171,8 +173,10 @@ export default function DashboardPage() {
             }, 1000);
         }
     };
-    loadBriefing();
-  }, [accessToken, isPreview]);
+    if (!authLoading) {
+      loadBriefing();
+    }
+  }, [accessToken, isPreview, authLoading]);
 
 
   if (authLoading || loading) {
@@ -185,7 +189,7 @@ export default function DashboardPage() {
 
   if (!team && !isPreview) {
     return (
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
             <PageHeader
                 title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
                 description="Du bist noch keinem Team beigetreten. Erstelle eines oder tritt einem bei, um loszulegen."
