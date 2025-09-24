@@ -19,49 +19,24 @@ const PROTECTED_ROUTES = [
     '/grades',
     '/settings',
     '/dashboard',
+    '/team/select'
 ];
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    
     const hasFirebaseToken = request.cookies.has('firebase-auth-token');
-    const hasTeam = request.cookies.get('has-team')?.value === 'true';
 
-    // User is on the landing page
-    if (pathname === '/') {
-        // If logged in, always redirect to dashboard
-        if (hasFirebaseToken) {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
-        // Otherwise, let them stay on the landing page
-        return NextResponse.next();
-    }
-    
-    // User is trying to access a protected route
-    if (PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
-        // If not logged in, redirect to landing page
-        if (!hasFirebaseToken) {
-            return NextResponse.redirect(new URL('/', request.url));
-        }
-        // If logged in but has no team, redirect to team selection
-        if (!hasTeam) {
-            return NextResponse.redirect(new URL('/team/select', request.url));
-        }
-    }
-    
-    // User is on the team select page
-    if (pathname.startsWith('/team/select')) {
-        // If not logged in, redirect to landing page
-        if (!hasFirebaseToken) {
-             return NextResponse.redirect(new URL('/', request.url));
-        }
-        // If they already have a team, redirect to dashboard
-        if(hasTeam) {
-            return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
+    // If user is logged in and tries to access the landing page, redirect to dashboard
+    if (hasFirebaseToken && pathname === '/') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // For all other cases, allow the request
+    // If user is not logged in and tries to access a protected route, redirect to landing page
+    if (!hasFirebaseToken && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+    
+    // Allow the request to proceed
     return NextResponse.next();
 }
 
@@ -79,5 +54,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|sounds).*)',
   ],
 }
-
     

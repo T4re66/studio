@@ -16,6 +16,10 @@ import { fetchCalendar, fetchGmail } from '@/lib/google-api';
 import { getDailyBriefing } from '@/ai/flows/daily-briefing-flow';
 import { getTeamMembers } from '@/lib/team-api';
 import { parseISO, differenceInDays } from 'date-fns';
+import { CreateTeamCard } from '@/components/team/create-team-card';
+import { JoinTeamCard } from '@/components/team/join-team-card';
+import { useRouter } from 'next/navigation';
+
 
 const statusClasses: { [key: string]: string } = {
   office: "bg-green-500",
@@ -56,8 +60,33 @@ const AnimatedCounter = ({ to }: { to: number }) => {
     return <>{displayValue.toLocaleString()}</>;
 }
 
+function NoTeamDashboard() {
+    const { user, refetchTeam } = useAuth();
+    const router = useRouter();
+
+    const handleTeamAction = async () => {
+        await refetchTeam();
+        // The dashboard will re-render with the new team context
+    }
+
+    return (
+        <div className="flex flex-col items-center justify-center">
+            <PageHeader
+                title={`Willkommen, ${user?.displayName?.split(' ')[0] || 'User'}!`}
+                description="Um OfficeZen zu nutzen, erstelle ein neues Team oder tritt einem bestehenden bei."
+            />
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+                 <Link href="/team/select"><Button size="lg" className="w-full h-24 text-lg">Team beitreten</Button></Link>
+                 <Link href="/team/select"><Button size="lg" variant="outline" className="w-full h-24 text-lg">Team erstellen</Button></Link>
+            </div>
+        </div>
+    )
+}
+
+
 export default function DashboardPage() {
-  const { user, accessToken, team } = useAuth();
+  const { user, accessToken, team, loading: authLoading, refetchTeam } = useAuth();
+  const router = useRouter();
   const [briefing, setBriefing] = useState<string | null>(null);
   const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -148,9 +177,20 @@ export default function DashboardPage() {
     loadBriefing();
   }, [accessToken]);
 
-  const pageDescription = team 
-    ? `Willkommen zurück bei Team "${team.name}"! Hier ist dein Überblick für heute.`
-    : "Willkommen zurück! Um loszulegen, erstelle oder trete einem Team bei.";
+
+  if (authLoading) {
+      return (
+          <div className="flex h-full w-full items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      )
+  }
+
+  if (!team) {
+      return <NoTeamDashboard />;
+  }
+
+  const pageDescription = `Willkommen zurück bei Team "${team.name}"! Hier ist dein Überblick für heute.`;
 
 
   return (
