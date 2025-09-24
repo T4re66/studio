@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { getTasks, completeTask } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 import { AddTaskDialog } from '@/components/tasks/add-task-dialog';
-
+import { officeTasks as mockTasks } from '@/lib/data';
 
 const categoryColors = {
     'Soziales': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -23,13 +23,18 @@ const categoryColors = {
 
 
 export default function TasksPage() {
-    const { user, team } = useAuth();
+    const { user, team, isPreview } = useAuth();
     const { toast } = useToast();
     const [tasks, setTasks] = useState<OfficeTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchTasks = async () => {
+        if (isPreview) {
+            setTasks(mockTasks);
+            setLoading(false);
+            return;
+        }
         if (!team) return;
         setLoading(true);
         try {
@@ -47,16 +52,17 @@ export default function TasksPage() {
     };
 
     useEffect(() => {
-        if (user && team) {
-            fetchTasks();
-        } else {
-            setTasks([]);
-            setLoading(false);
-        }
-    }, [user, team]);
+        fetchTasks();
+    }, [user, team, isPreview]);
 
     const handleCompleteTask = async (taskId: string, points: number) => {
-        if (!user || !team) return;
+        if (!user || !team || isPreview) {
+            toast({
+                title: 'Vorschau-Modus',
+                description: 'Diese Aktion ist im Vorschau-Modus nicht verfügbar.'
+            });
+            return;
+        };
         try {
             await completeTask(team.id, taskId, user.uid);
             toast({
@@ -143,3 +149,5 @@ export default function TasksPage() {
     </div>
   );
 }
+
+    

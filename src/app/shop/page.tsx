@@ -8,12 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Coins, Coffee, Pizza, Headphones, CalendarOff, Armchair, Cookie, Loader2, Plus } from "lucide-react";
-import type { ShopItem } from '@/lib/data';
+import type { ShopItem, TeamMember } from '@/lib/data';
 import { useAuth } from '@/hooks/use-auth';
 import { getTeamMember, getShopItems, purchaseShopItem } from '@/lib/team-api';
 import { useToast } from '@/hooks/use-toast';
 import { AddShopItemDialog } from '@/components/shop/add-shop-item-dialog';
-
+import { shopItems as mockShopItems } from '@/lib/data';
 
 const iconComponents: { [key: string]: React.ElementType } = {
     Coffee,
@@ -25,7 +25,7 @@ const iconComponents: { [key: string]: React.ElementType } = {
 };
 
 export default function ShopPage() {
-    const { user, team } = useAuth();
+    const { user, team, isPreview } = useAuth();
     const { toast } = useToast();
     const [shopItems, setShopItems] = useState<ShopItem[]>([]);
     const [points, setPoints] = useState(0);
@@ -33,12 +33,23 @@ export default function ShopPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const fetchShopData = async () => {
-        if (!user || !team) return;
+        if (isPreview) {
+            setShopItems(mockShopItems);
+            setPoints(1337);
+            setLoading(false);
+            return;
+        }
+
+        if (!user || !team) {
+            setLoading(false);
+            return;
+        };
+
         setLoading(true);
         try {
             const [items, member] = await Promise.all([
                 getShopItems(team.id),
-                getTeamMember(user.uid)
+                getTeamMember(user.uid) as Promise<TeamMember>
             ]);
             setShopItems(items);
             setPoints(member?.points || 0);
@@ -54,16 +65,17 @@ export default function ShopPage() {
     };
 
     useEffect(() => {
-        if (user && team) {
-            fetchShopData();
-        } else {
-            setShopItems([]);
-            setPoints(0);
-            setLoading(false);
-        }
-    }, [user, team]);
+        fetchShopData();
+    }, [user, team, isPreview]);
 
     const handlePurchase = async (item: ShopItem) => {
+        if (isPreview) {
+            toast({
+                title: 'Vorschau-Modus',
+                description: `Im echten Modus hättest du "${item.title}" jetzt gekauft!`
+            });
+            return;
+        }
         if (!user || !team) return;
         try {
             await purchaseShopItem(user.uid, team.id, item);
@@ -158,3 +170,5 @@ export default function ShopPage() {
     </div>
   );
 }
+
+    

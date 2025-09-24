@@ -66,59 +66,6 @@ export default function DashboardPage() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const currentUser = useMemo(() => {
-    const members = isPreview ? mockTeamMembers : teamMembers;
-    return members.find(m => m.id === user?.uid) || (isPreview ? mockTeamMembers[0] : null);
-  }, [teamMembers, user, isPreview]);
-  
-  const sortedLeaderboard = useMemo(() => {
-      const members = isPreview ? mockTeamMembers : teamMembers;
-      return [...members].sort((a,b) => b.points - a.points)
-  }, [teamMembers, isPreview]);
-
-  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === currentUser?.id) + 1, [sortedLeaderboard, currentUser]);
-
-  const nextBirthday = useMemo(() => {
-      const members = isPreview ? mockTeamMembers : teamMembers;
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
-      const upcoming = members
-        .filter(m => m.birthday)
-        .map(member => {
-            const birthDate = parseISO(member.birthday);
-            const nextBirthdayDate = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-            if (nextBirthdayDate < today) {
-                nextBirthdayDate.setFullYear(today.getFullYear() + 1);
-            }
-            return {
-                member,
-                days: differenceInDays(nextBirthdayDate, today),
-            };
-        })
-        .sort((a,b) => a.days - b.days);
-    
-      return upcoming[0] || null;
-
-  }, [teamMembers, isPreview]);
-
-  const nextBreakMatch = useMemo(() => {
-      const members = isPreview ? mockTeamMembers : teamMembers;
-      const lunchGroups: { [time: string]: TeamMember[] } = {};
-      members.forEach(member => {
-          if (member.lunchTime) {
-              if (!lunchGroups[member.lunchTime]) lunchGroups[member.lunchTime] = [];
-              lunchGroups[member.lunchTime].push(member);
-          }
-      });
-      const matches = Object.values(lunchGroups).filter(group => group.length > 1);
-      if (matches.length > 0 && matches[0].length >=2) {
-          return { user1: matches[0][0], user2: matches[0][1], time: matches[0][0].lunchTime || '' };
-      }
-      return null;
-  }, [teamMembers, isPreview]);
-
-
   useEffect(() => {
     async function loadData() {
         if (isPreview) {
@@ -142,14 +89,63 @@ export default function DashboardPage() {
     }
   }, [user, team, isPreview, authLoading]);
 
-  const displayMembers = isPreview ? mockTeamMembers : teamMembers;
+  const displayMembers = useMemo(() => isPreview ? mockTeamMembers : teamMembers, [isPreview, teamMembers]);
+
+  const currentUser = useMemo(() => {
+    return displayMembers.find(m => m.id === (isPreview ? 'preview-user' : user?.uid)) || null;
+  }, [displayMembers, user, isPreview]);
+  
+  const sortedLeaderboard = useMemo(() => {
+      return [...displayMembers].sort((a,b) => b.points - a.points)
+  }, [displayMembers]);
+
+  const currentUserRank = useMemo(() => sortedLeaderboard.findIndex(m => m.id === currentUser?.id) + 1, [sortedLeaderboard, currentUser]);
+
+  const nextBirthday = useMemo(() => {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const upcoming = displayMembers
+        .filter(m => m.birthday)
+        .map(member => {
+            const birthDate = parseISO(member.birthday);
+            const nextBirthdayDate = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            if (nextBirthdayDate < today) {
+                nextBirthdayDate.setFullYear(today.getFullYear() + 1);
+            }
+            return {
+                member,
+                days: differenceInDays(nextBirthdayDate, today),
+            };
+        })
+        .sort((a,b) => a.days - b.days);
+    
+      return upcoming[0] || null;
+
+  }, [displayMembers]);
+
+  const nextBreakMatch = useMemo(() => {
+      const lunchGroups: { [time: string]: TeamMember[] } = {};
+      displayMembers.forEach(member => {
+          if (member.lunchTime) {
+              if (!lunchGroups[member.lunchTime]) lunchGroups[member.lunchTime] = [];
+              lunchGroups[member.lunchTime].push(member);
+          }
+      });
+      const matches = Object.values(lunchGroups).filter(group => group.length > 1);
+      if (matches.length > 0 && matches[0].length >=2) {
+          return { user1: matches[0][0], user2: matches[0][1], time: matches[0][0].lunchTime || '' };
+      }
+      return null;
+  }, [displayMembers]);
+
   const onlineMembers = displayMembers.filter(m => m.status === 'office');
   const tableWidth = 45;
   const tableHeight = 90;
 
   useEffect(() => {
     const loadBriefing = async () => {
-        if (accessToken) {
+        if (accessToken && !isPreview) {
             setIsLoadingBriefing(true);
             try {
                 const [emails, events] = await Promise.all([
@@ -365,3 +361,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

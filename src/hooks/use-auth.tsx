@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, FC, useCallb
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, User, GoogleAuthProvider } from 'firebase/auth';
 import { auth, provider } from '@/lib/firebase';
 import { useToast } from './use-toast';
-import { getTeamForUser, createTeamMember } from '@/lib/team-api';
+import { getTeamForUser, createTeamMember, getTeamMember } from '@/lib/team-api';
 import type { Team, TeamMember } from '@/lib/data';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -73,6 +73,19 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         Cookies.remove('is-preview');
         Cookies.remove('has-team');
     }, []);
+
+    const enterPreviewMode = useCallback(() => {
+        setLoading(true);
+        setUser(PREVIEW_USER);
+        setIsPreview(true);
+        setTeam(PREVIEW_TEAM);
+        setTeamMember(teamMembers.find(m => m.id === 'preview-user') || null);
+        Cookies.set('is-preview', 'true', { expires: 1 });
+        Cookies.remove('firebase-auth-token');
+        Cookies.set('has-team', 'true');
+        router.push('/dashboard');
+        setLoading(false);
+    }, [router]);
     
     const fetchUserAndTeamData = useCallback(async (authUser: User) => {
         const token = await authUser.getIdToken();
@@ -125,45 +138,41 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }, [user, isPreview]);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-            setLoading(true);
-            const isPreviewCookie = Cookies.get('is-preview') === 'true';
+        const isPreviewCookie = Cookies.get('is-preview') === 'true';
 
+        if (isPreviewCookie) {
+            enterPreviewMode();
+            return;
+        }
+
+        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
             if (authUser) {
                  try {
                     await fetchUserAndTeamData(authUser);
                 } catch (error) {
                     console.error("Error during auth state change:", error);
                     clearAuthAndTeamState();
+                } finally {
+                    setLoading(false);
                 }
-            } else if (isPreviewCookie) {
-                enterPreviewMode();
             } else {
                 clearAuthAndTeamState();
+                setLoading(false);
             }
-            setLoading(false);
         });
         return () => unsubscribe();
-    }, [fetchUserAndTeamData, clearAuthAndTeamState]);
-
-    const enterPreviewMode = () => {
-        setLoading(true);
-        setUser(PREVIEW_USER);
-        setIsPreview(true);
-        setTeam(PREVIEW_TEAM);
-        setTeamMember(teamMembers[0]); // Use first mock member as the preview user
-        Cookies.set('is-preview', 'true', { expires: 1 });
-        Cookies.remove('firebase-auth-token');
-        Cookies.set('has-team', 'true'); // Pretend we have a team
-        router.push('/dashboard');
-        setLoading(false);
-    };
+    }, [fetchUserAndTeamData, clearAuthAndTeamState, enterPreviewMode]);
 
     const signIn = async () => {
         setLoading(true);
         try {
             Cookies.remove('is-preview');
             const result = await signInWithPopup(auth, provider);
+             if (result.user) {
+                // The onAuthStateChanged listener will handle the rest
+            } else {
+                setLoading(false);
+            }
         } catch (error: any) {
             console.error("Authentication error:", error);
             if (error.code === 'auth/unauthorized-domain') {
@@ -181,20 +190,17 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                     description: error.code === 'auth/popup-closed-by-user' ? 'Das Anmeldefenster wurde geschlossen.' : 'Bitte versuche es erneut.',
                 });
             }
-        } finally {
+             setLoading(false);
         }
     };
 
     const signOut = async () => {
+        const wasPreview = isPreview;
         setLoading(true);
         clearAuthAndTeamState();
-        if (!isPreview) {
+        if (!wasPreview) {
             try {
                 await firebaseSignOut(auth);
-                toast({
-                    title: "Abgemeldet",
-                    description: "Du wurdest erfolgreich abgemeldet.",
-                });
             } catch (error: any) {
                  toast({
                     variant: "destructive",
@@ -204,6 +210,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
         }
         router.push('/');
+        toast({
+            title: "Abgemeldet",
+            description: "Du wurdest erfolgreich abgemeldet.",
+        });
         setLoading(false);
     };
 
@@ -220,3 +230,4 @@ export const useAuth = () => {
     return context;
 };
 
+    

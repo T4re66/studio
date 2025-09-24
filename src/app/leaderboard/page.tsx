@@ -6,30 +6,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Crown, Loader2 } from "lucide-react";
 import type { TeamMember } from "@/lib/data";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getTeamMembers } from "@/lib/team-api";
+import { teamMembers as mockTeamMembers } from "@/lib/data";
 
 export default function LeaderboardPage() {
-    const { user, team } = useAuth();
+    const { user, team, isPreview } = useAuth();
     const [leaderboard, setLeaderboard] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (user && team) {
-            const fetchLeaderboard = async () => {
-                setLoading(true);
+        const fetchLeaderboard = async () => {
+            setLoading(true);
+            if (isPreview) {
+                const sortedMembers = [...mockTeamMembers].sort((a, b) => b.points - a.points);
+                setLeaderboard(sortedMembers);
+            } else if (user && team) {
                 const members = await getTeamMembers(team.id);
                 const sortedMembers = members.sort((a, b) => b.points - a.points);
                 setLeaderboard(sortedMembers);
-                setLoading(false);
-            };
-            fetchLeaderboard();
-        } else {
-            setLeaderboard([]);
+            } else {
+                setLeaderboard([]);
+            }
             setLoading(false);
-        }
-    }, [user, team]);
+        };
+        fetchLeaderboard();
+    }, [user, team, isPreview]);
 
     if (loading) {
         return (
@@ -124,3 +127,5 @@ export default function LeaderboardPage() {
     </div>
   );
 }
+
+    
