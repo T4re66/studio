@@ -1,8 +1,8 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PROTECTED_ROUTES = [
-    '/dashboard',
     '/briefing',
     '/chatbot',
     '/people',
@@ -28,13 +28,22 @@ export function middleware(request: NextRequest) {
 
     // User is on the landing page
     if (pathname === '/') {
-        // If logged in and has a team, redirect to dashboard
-        if (hasFirebaseToken && hasTeam) {
+        // If logged in, always redirect to dashboard
+        if (hasFirebaseToken) {
             return NextResponse.redirect(new URL('/dashboard', request.url));
         }
         // Otherwise, let them stay on the landing page
         return NextResponse.next();
     }
+    
+    // Allow access to the dashboard regardless of team status
+    if (pathname.startsWith('/dashboard')) {
+        if (!hasFirebaseToken) {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+        return NextResponse.next();
+    }
+
 
     // User is trying to access a protected route
     if (PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
@@ -78,3 +87,5 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|sounds).*)',
   ],
 }
+
+    
