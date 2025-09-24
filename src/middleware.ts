@@ -28,12 +28,18 @@ export function middleware(request: NextRequest) {
     const hasTeam = request.cookies.get('has-team')?.value === 'true';
 
     const isAuthenticated = hasAuth || isPreview;
-    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route)) || pathname === '/team/select';
+    const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
 
     // 1. If NOT authenticated and trying to access a protected route, redirect to landing page.
     if (!isAuthenticated && isProtectedRoute) {
         return NextResponse.redirect(new URL('/', request.url));
     }
+    
+    // 1.1 Also redirect for /team/select if not authenticated
+    if (!isAuthenticated && pathname.startsWith('/team/select')) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
 
     // 2. If authenticated and on the landing page, redirect to the dashboard.
     if (isAuthenticated && pathname === '/') {
