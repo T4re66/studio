@@ -34,10 +34,13 @@ function AuthButtons() {
     const router = useRouter();
 
     useEffect(() => {
+        if (loading) return; // Wait until loading is finished
+
         if (user && (team || isPreview)) {
             router.push('/dashboard');
         }
-    }, [user, team, isPreview, router]);
+    }, [user, team, isPreview, router, loading]);
+
 
     if (loading) {
         return (
@@ -122,8 +125,8 @@ export default function LandingPage() {
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
                         <CardContent className="p-2 relative aspect-[12/8]">
                              <Image
-                                src="https://picsum.photos/seed/business-meeting/1200/800"
-                                alt="Ein Team, das in einem modernen Büro zusammenarbeitet"
+                                src="https://picsum.photos/seed/modern-office/1200/800"
+                                alt="Ein modernes und helles Büro mit Menschen, die zusammenarbeiten"
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="rounded-lg object-cover"
