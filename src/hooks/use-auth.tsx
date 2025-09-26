@@ -87,7 +87,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setTeamMember(previewMember);
         setTeamMembers(mockTeamMembers);
         Cookies.set('is-preview', 'true', { expires: 1 });
-        Cookies.set('has-team', 'true', { expires: 1 });
         setLoading(false);
     }, [clearAuthAndTeamState]);
     
@@ -182,15 +181,15 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     // This effect handles redirection AFTER authentication state is fully resolved.
     useEffect(() => {
-        if (!loading) {
-            const isAuthenticated = user || isPreview;
-            const hasTeam = team || isPreview;
-            
-            if (isAuthenticated && pathname === '/') {
-                router.push('/dashboard');
-            } else if (isAuthenticated && !hasTeam && pathname !== '/team/select' && pathname !== '/') {
-                 router.push('/team/select');
-            }
+        if (loading) return;
+
+        const isAuthenticated = user || isPreview;
+        const hasTeam = team || isPreview;
+
+        if (isAuthenticated && pathname === '/') {
+            router.push('/dashboard');
+        } else if (user && !isPreview && !hasTeam && pathname !== '/team/select' && pathname !== '/') {
+            router.push('/team/select');
         }
     }, [loading, user, isPreview, team, pathname, router]);
 
@@ -198,8 +197,16 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
         setLoading(true);
         try {
             clearAuthAndTeamState();
-            await signInWithPopup(auth, provider);
-            // onAuthStateChanged will handle the rest.
+            const result = await signInWithPopup(auth, provider);
+            await fetchUserAndTeamData(result.user);
+            const teamData = await getTeamForUser(result.user.uid);
+            
+            // This is the robust redirect.
+            if (teamData) {
+                window.location.href = '/dashboard';
+            } else {
+                window.location.href = '/team/select';
+            }
         } catch (error: any) {
             console.error("Authentication error:", error);
             if (error.code === 'auth/unauthorized-domain') {
@@ -218,7 +225,8 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 });
             }
             clearAuthAndTeamState();
-            setLoading(false);
+        } finally {
+            // Keep loading true, as the page will redirect and reload.
         }
     };
 
@@ -237,7 +245,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 });
             }
         }
-        router.push('/');
+        window.location.href = '/';
         toast({
             title: "Abgemeldet",
             description: "Du wurdest erfolgreich abgemeldet.",
