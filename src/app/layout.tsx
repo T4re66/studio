@@ -15,7 +15,7 @@ import { Loader2 } from 'lucide-react';
 
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isPreview } = useAuth();
   const pathname = usePathname();
 
   if (loading) {
@@ -26,8 +26,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  const noLayoutRoutes = ['/', '/team/select'];
-  const showLayout = user && !noLayoutRoutes.includes(pathname);
+  const noLayoutRoutes = ['/'];
+  // Show layout if user is logged in (or in preview) AND not on a "no layout" route.
+  // The team/select page should have the layout to allow navigation.
+  const showLayout = (user || isPreview) && !noLayoutRoutes.includes(pathname);
   
   if (showLayout) {
     return (
@@ -46,7 +48,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
   
-  // Render children without layout for public/special pages
+  // Render children without layout for public/special pages (e.g. landing page)
   return <>{children}</>;
 }
 
@@ -73,8 +75,8 @@ export default function RootLayout({
             <AppLayout>
               {children}
             </AppLayout>
+            <Toaster />
           </AuthProvider>
-          <Toaster />
         </ThemeProvider>
       </body>
     </html>
