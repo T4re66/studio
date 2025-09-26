@@ -125,12 +125,12 @@ export default function LandingPage() {
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
                         <CardContent className="p-2 relative aspect-[12/8]">
                              <Image
-                                src="https://picsum.photos/seed/modern-office/1200/800"
-                                alt="Ein modernes und helles Büro mit Menschen, die zusammenarbeiten"
+                                src="https://picsum.photos/seed/future-office/1200/800"
+                                alt="Ein sehr modernes, architektonisches Büro mit minimalistischem Design"
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="rounded-lg object-cover"
-                                data-ai-hint="modern office"
+                                data-ai-hint="modern architecture"
                             />
                         </CardContent>
                     </Card>
