@@ -122,12 +122,12 @@ export default function LandingPage() {
                      <Card className="overflow-hidden shadow-2xl shadow-primary/10">
                         <CardContent className="p-2 relative aspect-[12/8]">
                              <Image
-                                src="https://picsum.photos/seed/app-dashboard/1200/800"
-                                alt="OfficeZen Dashboard"
+                                src="https://picsum.photos/seed/business-team/1200/800"
+                                alt="Ein Team, das in einem modernen Büro zusammenarbeitet"
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                 className="rounded-lg object-cover"
-                                data-ai-hint="app dashboard"
+                                data-ai-hint="modern office"
                             />
                         </CardContent>
                     </Card>
